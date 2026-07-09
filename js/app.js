@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.0";
+export const APP_VERSION = "3.1";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -13,6 +13,7 @@ import {
 } from "./localdocs.js";
 import { renderNote, sanitizeRich } from "./render.js";
 import { ORDO_TYPES } from "./tpl-ordotypes.js";
+import { REGIMES, REGIME_NIVEAUX } from "./tpl-regimes.js";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -43,9 +44,15 @@ function buildCatalog() {
   notesEndo.push(...notesExplo);
   notesEndo.sort((a, b) => a.label.localeCompare(b.label, "fr"));
 
+  const regimeItems = REGIMES.flatMap((c) => c.items.map((f) => ({
+    id: "regime:" + f.id, type: "regime", key: f.id, label: f.name,
+    sub: `Fiche régime · ${c.cat} · ${REGIME_NIVEAUX[f.niveau].badge} niveau ${f.niveau}`,
+  })));
+
   const groups = [
     { id: "g-ordo", title: "Préparations coliques & ordonnances", items: ORDO_ITEMS.map((o) => ({ id: "ordo:" + o.key, type: "ordo", key: o.key, label: o.label, sub: "Ordonnance (page 1) + guide patient" })) },
     { id: "g-notes", title: "Notes d'information & consentement", items: notesEndo },
+    { id: "g-regimes", title: "Fiches régimes", items: regimeItems },
   ];
 
   // Sections personnalisées + documents locaux
@@ -176,6 +183,7 @@ function currentMedecin() {
 function currentPatient() {
   if ($("#chk-generic").checked) return null;
   const p = {
+    civ: $("#pt-civ").value,
     nom: $("#pt-nom").value.trim(),
     prenom: $("#pt-prenom").value.trim(),
     ddn: $("#pt-ddn").value,
@@ -1284,6 +1292,42 @@ $("#btn-affiche").addEventListener("click", async (e) => {
     </div></body></html>`);
   w.document.close();
 });
+
+// ------------------------------------------------------------------- régimes
+function renderRegimesModal(query = "") {
+  const words = norm(query.trim()).split(/\s+/).filter(Boolean);
+  const q = words.length > 0;
+  $("#rg-list").innerHTML = REGIMES.map((c) => {
+    const items = c.items.filter((f) => {
+      if (!q) return true;
+      const hay = norm(f.name + " " + c.cat + " " + f.pourquoi);
+      return words.every((w) => hay.includes(w));
+    });
+    if (!items.length) return "";
+    return `<details ${q ? "open" : ""} style="margin-bottom:6px;">
+      <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--bleu-fonce); padding:4px 2px;">${c.icon || ""} ${c.cat} <span style="color:var(--gris-clair); font-weight:600; font-size:11px;">${items.length}</span></summary>
+      ${items.map((f) => {
+        const N = REGIME_NIVEAUX[f.niveau];
+        const on = selection.has("regime:" + f.id);
+        return `<button class="subtle small" data-rg="${f.id}" style="display:flex; width:100%; text-align:left; margin-top:3px; gap:8px; align-items:center; ${on ? "background:var(--bleu-pale); border:1px solid var(--bleu);" : ""}">
+          <span style="flex:none;">${N.badge}</span>
+          <span style="flex:1;">${f.name}</span>
+          <span style="flex:none; font-weight:800; color:${on ? "var(--bleu)" : "var(--gris-clair)"};">${on ? "✓ ajoutée" : "+"}</span>
+        </button>`;
+      }).join("")}
+    </details>`;
+  }).join("") || `<div class="hint">Aucun résultat.</div>`;
+
+  $$("#rg-list [data-rg]").forEach((b) => b.addEventListener("click", () => {
+    const id = "regime:" + b.dataset.rg;
+    selection.has(id) ? selection.delete(id) : selection.add(id);
+    renderCatalog();
+    refresh();
+    renderRegimesModal($("#rg-search").value);
+  }));
+}
+$("#btn-regimes").addEventListener("click", () => { renderRegimesModal(); openModal("#modal-regimes"); });
+$("#rg-search").addEventListener("input", () => renderRegimesModal($("#rg-search").value));
 
 // ------------------------------------------------------------------ recherche
 $("#search").addEventListener("input", applyCatalogVisibility);

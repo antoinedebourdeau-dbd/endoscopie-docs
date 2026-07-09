@@ -41,6 +41,8 @@
         <button class="ghost" id="btn-create-demande">🩺 Demande d'examen</button>
         <button class="ghost" id="btn-cat-prepa">🧴 Préparations coliques</button>
         <button class="ghost" id="btn-cat-notes">📄 Notes info &amp; consentement</button>
+        <button class="ghost" id="btn-regimes">🍽 Régimes</button>
+        <button class="ghost" disabled title="Bientôt disponible" style="opacity:.55;">🎓 Éducation thérapeutique (bientôt)</button>
       </div>
 
       <div id="ordolibre-card" style="display:none; border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:var(--bleu-pale);">
@@ -264,6 +266,18 @@
     <div class="mhint">Classées par domaine — cliquez pour charger dans l'éditeur (le contenu reste entièrement modifiable). Le nom du médecin et le fax du secrétariat sont insérés automatiquement.</div>
     <label class="field"><input type="text" id="ot-search" placeholder="🔍 Rechercher (ex. IPP, imurel, ferinject, fissure…)" autocomplete="off"></label>
     <div id="ot-list" style="max-height:55vh; overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- ============================== MODALE RÉGIMES ============================== -->
+<div class="modal-back no-print" id="modal-regimes">
+  <div class="modal">
+    <button class="modal-close" data-close>✕</button>
+    <h3>🍽 Fiches régimes</h3>
+    <div class="mhint">Choisissez une ou plusieurs fiches : elles s'ajoutent aux documents à imprimer / envoyer, personnalisées au patient. Chaque fiche affiche son <strong>niveau de contrainte</strong>.</div>
+    <div class="pill-info" style="margin:0 0 10px;"><strong>Tous les régimes n'ont pas le même poids.</strong> Certains sont vitaux et sans exception (ex. sans gluten dans la maladie cœliaque). D'autres se règlent sur mesure et n'ont rien d'absolu (ex. pauvre en FODMAP). Se sur-restreindre « pour bien faire » peut être aussi nocif que ne pas suivre un régime réellement indispensable.</div>
+    <label class="field"><input type="text" id="rg-search" placeholder="🔍 Rechercher une fiche (ex. gluten, fodmap, cirrhose…)" autocomplete="off"></label>
+    <div id="rg-list" style="max-height:52vh; overflow-y:auto;"></div>
   </div>
 </div>
 

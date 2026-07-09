@@ -10,6 +10,7 @@
 import { DOCS, SERVICES } from "./endoc-docs.js";
 import { ORDOS } from "./tpl-ordos.js";
 import { IZINOVA } from "./tpl-izinova.js";
+import { REGIMES, REGIME_NIVEAUX, REGIME_ERREURS } from "./tpl-regimes.js";
 ORDOS.izinova = IZINOVA;
 import { code128svg } from "./barcode.js";
 
@@ -890,6 +891,122 @@ export function renderDemandeImagerie(kind, o, ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// Fiches régimes (brief HGE — trame fixe : entête patient, badge de niveau,
+// pourquoi, principes, journée type, tableau vert/rouge, vigilance, erreurs)
+// ---------------------------------------------------------------------------
+
+export function findRegime(id) {
+  for (const c of REGIMES) {
+    const f = c.items.find((i) => i.id === id);
+    if (f) return { ...f, cat: c.cat };
+  }
+  return null;
+}
+
+export function renderRegime(id, ctx) {
+  const f = findRegime(id);
+  if (!f) throw new Error("Fiche régime inconnue : " + id);
+  const med = ctx.medecin;
+  const p = ctx.patient;
+  const N = REGIME_NIVEAUX[f.niveau];
+
+  // ---- entête personnalisé
+  const qui = p && (p.nom || p.prenom)
+    ? `${p.civ ? esc(p.civ) + " " : ""}<strong>${esc(patientNom(p))}</strong>`
+    : "Madame, Monsieur";
+  const doc = med ? `votre gastroentérologue, le <strong>${esc(med.nom)}</strong>,` : "votre gastroentérologue";
+  const entete = `<div style="background:#EAF3FB; border-radius:10px; padding:12px 16px; margin-top:12px; ${F} font-size:13px; color:#1c3a52; line-height:1.55;">
+    ${qui}, ${doc} vous a prescrit le régime décrit ci-dessous. Cette fiche vous explique <strong>pourquoi</strong>, <strong>comment le suivre</strong> et <strong>ce que vous pouvez manger</strong>. Elle ne remplace pas les conseils personnalisés de votre médecin ou de votre diététicien(ne).
+  </div>`;
+
+  // ---- badge de contrainte (l'élément pédagogique central)
+  const badge = `<div style="border:2.5px solid ${N.border}; background:${N.bg}; border-radius:12px; margin-top:12px; padding:11px 16px; break-inside:avoid; ${F}">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="font-size:20px; flex:none;">${N.badge}</span>
+      <span style="${FC} text-transform:uppercase; letter-spacing:.05em; font-weight:800; font-size:16px; color:${N.color};">Niveau ${f.niveau} — ${N.label}</span>
+    </div>
+    <div style="font-size:12.5px; color:#1c3a52; margin-top:5px; line-height:1.5;">${N.sens}</div>
+    <div style="font-size:12px; color:${N.color}; margin-top:5px; line-height:1.5;"><strong>En cas d'écart :</strong> <em>${N.ecart}</em></div>
+    ${f.niveauNote ? `<div style="font-size:11.5px; color:#4a5b68; margin-top:5px;">${esc(f.niveauNote)}</div>` : ""}
+  </div>`;
+
+  const h2 = (t, color = "#0072BC", hc = "#0d2b45") => `<div style="display:flex; align-items:center; gap:9px; margin-top:16px;"><span style="flex:none; width:5px; height:17px; border-radius:2px; background:${color};"></span><h2 style="${F} font-weight:700; font-size:15.5px; color:${hc}; margin:0; line-height:1.15;">${t}</h2></div>`;
+
+  const pourquoi = h2("Pourquoi ce régime ?") +
+    `<div style="${F} font-size:12.5px; color:#1c3a52; line-height:1.55; margin-top:7px;">${f.pourquoi}</div>`;
+
+  const principes = h2("Comment ça marche — les principes") +
+    f.principes.map((li) => `<div style="display:flex; gap:9px; margin-top:5px; ${F} font-size:12.5px; color:#1c3a52; line-height:1.5;"><span style="flex:none; width:6px; height:6px; border-radius:50%; background:#0072BC; margin-top:6px;"></span><div style="flex:1;">${li}</div></div>`).join("");
+
+  // ---- journée type
+  let journee;
+  if (f.journee.libre) {
+    journee = `<div style="${F} font-size:12.5px; color:#1c3a52; line-height:1.5; margin-top:7px; border:1px solid #cfe1f0; border-radius:10px; padding:10px 14px;">${esc(f.journee.libre)}</div>`;
+  } else {
+    const cell = (t, v) => `<div style="flex:1; min-width:0; border:1px solid #cfe1f0; border-radius:10px; padding:8px 12px;">
+      <div style="${FC} text-transform:uppercase; letter-spacing:.04em; color:#0072BC; font-weight:700; font-size:11px;">${t}</div>
+      <div style="${F} font-size:11.5px; color:#1c3a52; margin-top:4px; line-height:1.45;">${esc(v)}</div>
+    </div>`;
+    journee = `<div style="display:flex; gap:8px; margin-top:8px; align-items:stretch;">${cell("Petit-déjeuner", f.journee.pdj)}${cell("Déjeuner", f.journee.dej)}</div>
+      <div style="display:flex; gap:8px; margin-top:8px; align-items:stretch;">${cell("Collation", f.journee.col)}${cell("Dîner", f.journee.din)}</div>`;
+  }
+  journee = h2("Une journée d'exemple") + journee;
+
+  // ---- tableau vert / rouge
+  const rowsN = Math.max(f.tab.ok.length, f.tab.ko.length);
+  let rows = "";
+  for (let i = 0; i < rowsN; i++) {
+    rows += `<tr>
+      <td style="padding:5px 12px; font-size:12px; border-top:1px solid #d6e8dc; background:#F4FBF6; color:#1c3a52; width:50%;">${f.tab.ok[i] || ""}</td>
+      <td style="padding:5px 12px; font-size:12px; border-top:1px solid #f0d4cf; background:#FDF4F2; color:#1c3a52; width:50%;">${f.tab.ko[i] || ""}</td>
+    </tr>`;
+  }
+  const tableau = h2("Ce que vous pouvez manger / ce qu'il faut éviter") +
+    `<table style="width:100%; border-collapse:collapse; margin-top:8px; ${F} border:1px solid #cfe1f0; border-radius:8px; overflow:hidden; break-inside:avoid;">
+      <thead><tr>
+        <th style="padding:7px 12px; background:#146c3a; color:#fff; font-size:12.5px; text-align:left;">✅ ${esc(f.tab.okT || "Autorisés / conseillés")}</th>
+        <th style="padding:7px 12px; background:#a5271a; color:#fff; font-size:12.5px; text-align:left;">⛔ ${esc(f.tab.koT || "À éviter / exclure")}</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  const vigilance = h2("À surveiller · durée · quand consulter", "#EF7D00") +
+    `<div style="background:#FFF4E6; border:1px solid #f3c98a; border-radius:10px; padding:9px 14px; margin-top:7px; ${F} font-size:12.5px; color:#1c3a52; line-height:1.55;">${f.vigilance}</div>`;
+
+  const erreur = f.erreur
+    ? `<div style="background:#FCECEA; border:2px solid #C0392B; border-radius:10px; padding:10px 14px; margin-top:14px; break-inside:avoid; ${F}">
+        <div style="${FC} text-transform:uppercase; letter-spacing:.04em; font-weight:800; color:#C0392B; font-size:13px;">⛔ Fausse bonne idée</div>
+        <div style="font-size:12.5px; color:#1c3a52; margin-top:4px; line-height:1.55;">${REGIME_ERREURS[f.erreur]}</div>
+      </div>`
+    : "";
+
+  const retenir = f.retenir
+    ? `<div style="border:1.5px solid #0072BC; background:#EAF3FB; border-radius:10px; padding:9px 14px; margin-top:12px; break-inside:avoid; ${F} font-size:13px; color:#0d2b45;"><strong>À retenir —</strong> <em>${esc(f.retenir)}</em></div>`
+    : "";
+
+  const mention = `<div style="${F} font-size:9.5px; color:#7a8794; margin-top:16px; line-height:1.5; border-top:1px solid #e3ebf2; padding-top:8px;">Cette fiche d'information a été rédigée par le Dr Antoine Debourdeau, gastroentérologue${med && med.nom !== "Dr Antoine DEBOURDEAU" ? ", et remise par " + esc(med.nom) : ""}. Elle est personnalisée à votre situation et ne remplace ni une consultation, ni les conseils d'un(e) diététicien(ne). En cas de doute, de symptôme nouveau ou inhabituel (amaigrissement, sang, douleur intense, fièvre, vomissements), <strong>contactez votre médecin</strong>.</div>`;
+
+  const body = `<div style="${F}">
+    <div style="${FC} text-transform:uppercase; letter-spacing:.08em; color:#0072BC; font-weight:700; font-size:13px;">Fiche régime — ${esc(f.cat)}</div>
+    <h1 style="font-weight:800; color:#0d2b45; font-size:24px; line-height:1.1; margin:4px 0 0; text-wrap:balance;">${esc(f.name)}</h1>
+    <div style="height:3px; width:64px; background:#EF7D00; border-radius:2px; margin-top:10px;"></div>
+  </div>` + entete + badge + pourquoi + principes + journee + tableau + vigilance + erreur + retenir + mention;
+
+  const fakeDoc = { service: "endoscopie" };
+  const footer = `<div style="display:flex; justify-content:space-between; align-items:center; ${F} font-size:9px; color:#7a8794; border-top:1px solid #d9e2ea; padding-top:5px;">
+    <span>CHU de Montpellier — Hépato-Gastroentérologie · Doc'HGE</span>
+    <span style="${FC} letter-spacing:.05em; text-transform:uppercase; color:#0072BC; font-weight:600;">Fiche régime · ${esc(f.cat)}</span>
+  </div>`;
+  return `<section class="doc">
+    <table class="frame">
+      <thead><tr><td><div class="hdr">${noteHeader(fakeDoc, ctx)}</div></td></tr></thead>
+      <tbody><tr><td class="bodycell">${body}</td></tr></tbody>
+      <tfoot><tr><td><div class="ftr">${footer}</div></td></tr></tfoot>
+    </table>
+  </section>`;
+}
+
+// ---------------------------------------------------------------------------
 // Fiches illustrées (pages A4 à gabarit fixe) — chargées à la demande
 // ---------------------------------------------------------------------------
 
@@ -944,6 +1061,7 @@ export async function assembleDocs(items, ctx) {
     else if (it.type === "ordolibre") parts.push(renderOrdoLibre(it.opts, ctx));
     else if (it.type === "demande-endo") parts.push(renderDemandeEndoscopie(it.opts, ctx));
     else if (it.type === "demande-imagerie") parts.push(renderDemandeImagerie(it.kind, it.opts, ctx));
+    else if (it.type === "regime") parts.push(renderRegime(it.key, ctx));
     else if (it.type === "fiche") parts.push(await renderFiche(it.key, ctx));
   }
   return parts.join("\n");
