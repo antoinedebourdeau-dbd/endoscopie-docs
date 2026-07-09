@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.8";
+export const APP_VERSION = "3.9";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -1468,7 +1468,7 @@ function renderParcoursList() {
       <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px;">
         ${recents.map((r, i) => `<button class="small" data-recent="${i}">${r.p.name}</button>`).join("")}
       </div>` : "") +
-    PARCOURS_DEFS.map((c, ci) => `<details ${ci === 0 ? "open" : ""} style="margin-bottom:6px;">
+    PARCOURS_DEFS.map((c, ci) => `<details style="margin-bottom:6px;">
       <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--bleu-fonce); padding:4px 2px;">${c.icon} ${c.cat} <span style="color:var(--gris-clair); font-weight:600; font-size:11px;">${c.items.length}</span></summary>
       ${c.items.map((p) => `<button class="subtle small" data-pack="${ci}:${p.id}" style="display:block; width:100%; text-align:left; margin-top:3px;">${p.name}${p.desc ? `<br><span style="font-weight:400; color:var(--gris-clair); font-size:10.5px;">${p.desc}</span>` : ""}</button>`).join("")}
     </details>`).join("") +
@@ -2330,7 +2330,15 @@ function parseIdentity(raw) {
     s = s.replace(civ[0], " ");
   }
   // date (jj/mm/aaaa, jj-mm-aaaa, jj.mm.aaaa ou aaaa-mm-jj)
-  const d1 = s.match(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})\b/);
+  let d1 = s.match(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})\b/);
+  if (!d1) {
+    const d0 = s.match(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2})\b/);
+    if (d0) {
+      const yy = Number(d0[3]);
+      const century = yy <= (new Date().getFullYear() % 100) ? 2000 : 1900;
+      d1 = [d0[0], d0[1], d0[2], String(century + yy)];
+    }
+  }
   const d2 = s.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
   if (d1) { out.ddn = `${d1[3]}-${d1[2].padStart(2, "0")}-${d1[1].padStart(2, "0")}`; s = s.replace(d1[0], " "); }
   else if (d2) { out.ddn = d2[0]; s = s.replace(d2[0], " "); }
@@ -2347,16 +2355,55 @@ function parseIdentity(raw) {
   return (out.nom || out.ddn) ? out : null;
 }
 
-$("#pt-paste").addEventListener("input", () => {
+let lastIdentityFill = null; // pour Ctrl+Z / annuler
+
+function applyIdentity() {
   const p = parseIdentity($("#pt-paste").value);
-  if (!p || (!p.nom && !p.ddn)) return;
+  if (!p || (!p.nom && !p.ddn)) return false;
+  lastIdentityFill = {
+    at: Date.now(),
+    prev: { civ: $("#pt-civ").value, nom: $("#pt-nom").value, prenom: $("#pt-prenom").value, ddn: $("#pt-ddn").value, paste: $("#pt-paste").value },
+  };
   if (p.civ) $("#pt-civ").value = p.civ;
   if (p.nom) $("#pt-nom").value = p.nom;
   if (p.prenom) $("#pt-prenom").value = p.prenom;
   if (p.ddn) $("#pt-ddn").value = p.ddn;
   $("#pt-paste").value = "";
-  toast(`⚡ Identité remplie : ${p.civ || ""} ${p.nom || ""} ${p.prenom || ""}${p.ddn ? " · " + p.ddn.split("-").reverse().join("/") : ""}`, 4000);
+  toast(`⚡ Identité remplie : ${p.civ || ""} ${p.nom || ""} ${p.prenom || ""}${p.ddn ? " · " + p.ddn.split("-").reverse().join("/") : ""} — <a href="#" data-toast-undo style="color:#8fc2ea; font-weight:700;">↩ annuler (Ctrl+Z)</a>`, 8000);
   refreshSoon();
+  return true;
+}
+
+function undoIdentityFill() {
+  if (!lastIdentityFill) return false;
+  const v = lastIdentityFill.prev;
+  $("#pt-civ").value = v.civ; $("#pt-nom").value = v.nom; $("#pt-prenom").value = v.prenom;
+  $("#pt-ddn").value = v.ddn; $("#pt-paste").value = v.paste;
+  lastIdentityFill = null;
+  $("#toast").style.display = "none";
+  toast("↩ Remplissage annulé.", 3000);
+  refreshSoon();
+  return true;
+}
+
+// collage : analyse immédiate ; saisie manuelle : validation par Entrée ou en quittant le champ
+$("#pt-paste").addEventListener("paste", () => setTimeout(applyIdentity, 50));
+$("#pt-paste").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); applyIdentity(); }
+});
+$("#pt-paste").addEventListener("blur", () => { if ($("#pt-paste").value.trim()) applyIdentity(); });
+$("#toast").addEventListener("click", (e) => {
+  if (e.target.closest("[data-toast-undo]")) { e.preventDefault(); undoIdentityFill(); }
+});
+// Ctrl/Cmd+Z dans la zone patient : annule le dernier remplissage automatique
+document.addEventListener("keydown", (e) => {
+  if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "z") return;
+  if (!lastIdentityFill || Date.now() - lastIdentityFill.at > 30000) return;
+  const inPatient = e.target.closest && e.target.closest("#panel-patient");
+  if (inPatient || e.target === document.body) {
+    e.preventDefault();
+    undoIdentityFill();
+  }
 });
 
 // ---------------------------------------------- patient suivant (mode série)
