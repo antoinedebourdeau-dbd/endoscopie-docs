@@ -34,9 +34,11 @@
         <button class="subtle small" id="btn-import-doc" title="Importer un document JSON partagé par un collègue">Importer</button>
       </h2>
 
-      <div class="btnrow" style="margin:0 0 10px;">
-        <button class="ghost" id="btn-create-ordo" style="flex:1;">💊 Créer une ordonnance</button>
-        <button class="ghost" id="btn-create-demande" style="flex:1;">🩺 Demande d'examen</button>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 0 10px;">
+        <button class="ghost" id="btn-create-ordo">💊 Créer une ordonnance</button>
+        <button class="ghost" id="btn-create-demande">🩺 Demande d'examen</button>
+        <button class="ghost" id="btn-cat-prepa">🧴 Préparations coliques</button>
+        <button class="ghost" id="btn-cat-notes">📄 Notes info &amp; consentement</button>
       </div>
 
       <div id="ordolibre-card" style="display:none; border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:var(--bleu-pale);">
@@ -111,6 +113,13 @@
         <label class="field"><span class="lbl">Date de l'examen</span><input type="date" id="pt-examen"></label>
         <label class="field" style="grid-column:1 / -1;"><span class="lbl">Téléphone (pour les demandes d'examen)</span><input type="tel" id="pt-tel"></label>
       </div>
+      <label class="doc-item" style="margin-top:2px;">
+        <input type="checkbox" id="chk-mail-patient">
+        <span>📧 <strong>Envoyer les documents au patient par mail</strong></span>
+      </label>
+      <div id="mail-patient-fields" style="display:none;">
+        <label class="field"><span class="lbl">E-mail du patient</span><input type="text" id="pt-mail" placeholder="patient@exemple.fr" autocomplete="off"></label>
+      </div>
       <div class="hint">Les informations patient restent dans ce navigateur : rien n'est transmis sur internet.</div>
     </div>
 
@@ -120,6 +129,7 @@
         <input type="date" id="doc-date">
       </label>
       <button class="big" id="btn-print" disabled>🖨 Imprimer / Enregistrer en PDF</button>
+      <button class="big orange" id="btn-emails" style="display:none; margin-top:8px;">📧 Générer les e-mails (PJ incluses)</button>
       <div class="hint">Un seul flux d'impression : chaque document démarre sur une nouvelle page. Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF » pour obtenir le fichier.</div>
       <div class="hint" style="margin-top:10px;"><a href="https://github.com/antoinedebourdeau-dbd/endoscopie-docs/releases/latest/download/endoscopie-docs-hors-ligne.zip">⬇ Télécharger la version hors-ligne</a> (dossier à copier sur un poste sans internet).</div>
     </div>

@@ -30,16 +30,16 @@ function buildCatalog() {
     const item = { id: "note:" + slug, type: "note", slug, label: d.title, sub: d.geste };
     (d.service === "explo" ? notesExplo : notesEndo).push(item);
   }
-  // Les fiches illustrées sont des notes d'information & consentement comme les autres.
+  // Les fiches illustrées et les notes des explorations fonctionnelles sont
+  // des notes d'information & consentement comme les autres.
   for (const f of FICHE_ITEMS)
     notesEndo.push({ id: "fiche:" + f.key, type: "fiche", key: f.key, label: f.label, sub: "Note d'information illustrée (recto-verso)" });
+  notesEndo.push(...notesExplo);
   notesEndo.sort((a, b) => a.label.localeCompare(b.label, "fr"));
-  notesExplo.sort((a, b) => a.label.localeCompare(b.label, "fr"));
 
   const groups = [
     { id: "g-ordo", title: "Préparations coliques & ordonnances", items: ORDO_ITEMS.map((o) => ({ id: "ordo:" + o.key, type: "ordo", key: o.key, label: o.label, sub: "Ordonnance (page 1) + guide patient" })) },
-    { id: "g-notes", title: "Notes d'information & consentement — Endoscopie", items: notesEndo },
-    { id: "g-explo", title: "Explorations fonctionnelles digestives", items: notesExplo },
+    { id: "g-notes", title: "Notes d'information & consentement", items: notesEndo },
   ];
 
   // Sections personnalisées + documents locaux
@@ -332,25 +332,53 @@ function loadScript(src) {
   }));
 }
 
-/** Rend un item en PDF (A4, rasterisé) et retourne { blob, filename }. */
-async function itemToPdf(item, ctx, filename) {
+/** Cherche une rangée blanche proche de `target` (px) pour couper sans traverser une ligne de texte. */
+function safeCutRow(canvas, cctx, target, window_) {
+  const w = canvas.width;
+  const from = Math.max(0, target - window_), to = Math.min(canvas.height - 1, target);
+  const data = cctx.getImageData(0, from, w, to - from + 1).data;
+  for (let y = to; y >= from; y--) {
+    let white = true;
+    const row = (y - from) * w * 4;
+    for (let x = 0; x < w * 4; x += 16) { // échantillonnage 1 px sur 4
+      if (data[row + x] < 246 || data[row + x + 1] < 246 || data[row + x + 2] < 246) { white = false; break; }
+    }
+    if (white) return y;
+  }
+  return target;
+}
+
+/** Rend des items en un PDF A4 multi-pages (rasterisé, coupures sur zones blanches). */
+async function docsToPdf(items, ctx, filename) {
   await Promise.all([loadScript("vendor/html2canvas.min.js"), loadScript("vendor/jspdf.umd.min.js")]);
   await document.fonts.ready;
   const host = document.createElement("div");
   host.style.cssText = "position:absolute; top:0; left:-9999px; width:210mm; background:#fff;";
-  host.innerHTML = await assembleDocs([item], ctx);
-  const sec = host.querySelector("section.doc");
-  sec.style.cssText += "box-shadow:none; margin:0; min-height:0; padding:10mm 12mm;";
+  host.innerHTML = await assembleDocs(items, ctx);
   document.body.appendChild(host);
   try {
-    const canvas = await html2canvas(sec, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
     const pdf = new jspdf.jsPDF({ unit: "mm", format: "a4", compress: true });
     const pageW = 210, pageH = 297;
-    const imgH = (canvas.height * pageW) / canvas.width;
-    const pages = Math.max(1, Math.ceil(imgH / pageH));
-    for (let i = 0; i < pages; i++) {
-      if (i > 0) pdf.addPage();
-      pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, -i * pageH, pageW, imgH);
+    let first = true;
+    const blocks = host.querySelectorAll("section.doc, .fichepage");
+    for (const el of blocks) {
+      if (el.classList.contains("fichepage")) el.style.cssText += "box-shadow:none; margin:0; border-radius:0;";
+      else el.style.cssText += "box-shadow:none; margin:0; min-height:0; padding:10mm 12mm; border-radius:0;";
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      const cctx = canvas.getContext("2d");
+      const pageHpx = Math.floor((canvas.width * pageH) / pageW);
+      let y = 0;
+      while (y < canvas.height - 4) {
+        let cut = Math.min(y + pageHpx, canvas.height);
+        if (cut < canvas.height) cut = Math.max(y + Math.floor(pageHpx / 2), safeCutRow(canvas, cctx, cut, Math.floor(pageHpx * 0.18)));
+        const slice = document.createElement("canvas");
+        slice.width = canvas.width; slice.height = cut - y;
+        slice.getContext("2d").drawImage(canvas, 0, y, canvas.width, cut - y, 0, 0, canvas.width, cut - y);
+        if (!first) pdf.addPage();
+        first = false;
+        pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, (slice.height * pageW) / slice.width);
+        y = cut;
+      }
     }
     return { blob: pdf.output("blob"), filename };
   } finally {
@@ -386,32 +414,12 @@ function demandeCtx() {
   return { medecin: currentMedecin(), patient: currentPatient(), dateDoc: $("#doc-date").value || null };
 }
 
-async function sendDemandeMail(d) {
-  const to = (d.opts.sendTo || mailCfg().endo).trim();
-  const { sujet, corps, fichier } = mailTexts(d);
-  const item = { type: "demande-endo", opts: { ...d.opts, telPatient: $("#pt-tel").value.trim() } };
-  toast("⏳ Génération du PDF…", 20000);
-  const { blob } = await itemToPdf(item, demandeCtx(), fichier);
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = fichier; a.click();
-  const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
-  window.__lastMailto = mailto; // pour les tests
-  setTimeout(() => { location.href = mailto; }, 400);
-  toast(`📎 PDF téléchargé : <strong>${fichier}</strong><br>Le brouillon s'ouvre dans votre messagerie — <strong>glissez-y le PDF</strong> puis envoyez.`, 12000);
-  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
-}
-
-/** Brouillon .eml avec le PDF déjà en pièce jointe (Outlook Windows). */
-async function sendDemandeEml(d) {
-  const to = (d.opts.sendTo || mailCfg().endo).trim();
-  const { sujet, corps, fichier } = mailTexts(d);
-  const item = { type: "demande-endo", opts: { ...d.opts, telPatient: $("#pt-tel").value.trim() } };
-  toast("⏳ Génération du brouillon…", 20000);
-  const { blob } = await itemToPdf(item, demandeCtx(), fichier);
+/** Construit et télécharge un brouillon .eml (X-Unsent) avec le PDF en pièce jointe. */
+async function downloadEml(to, sujet, corps, pdfBlob, fichierPdf) {
   const b64 = await new Promise((ok) => {
     const r = new FileReader();
     r.onload = () => ok(String(r.result).split(",")[1]);
-    r.readAsDataURL(blob);
+    r.readAsDataURL(pdfBlob);
   });
   const b64utf8 = (s) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
   const eml = [
@@ -427,20 +435,80 @@ async function sendDemandeEml(d) {
     "",
     b64utf8(corps).replace(/(.{76})/g, "$1\r\n"),
     "--ENDOC-BOUNDARY",
-    `Content-Type: application/pdf; name="${fichier}"`,
+    `Content-Type: application/pdf; name="${fichierPdf}"`,
     "Content-Transfer-Encoding: base64",
-    `Content-Disposition: attachment; filename="${fichier}"`,
+    `Content-Disposition: attachment; filename="${fichierPdf}"`,
     "",
     b64.replace(/(.{76})/g, "$1\r\n"),
     "--ENDOC-BOUNDARY--",
   ].join("\r\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([eml], { type: "message/rfc822" }));
-  a.download = fichier.replace(/\.pdf$/, ".eml");
+  a.download = fichierPdf.replace(/\.pdf$/, ".eml");
   a.click();
-  toast(`📧 Brouillon téléchargé (<strong>PJ incluse</strong>) — double-cliquez dessus : il s'ouvre dans Outlook prêt à envoyer.`, 12000);
   setTimeout(() => URL.revokeObjectURL(a.href), 30000);
 }
+
+/** Brouillon secrétariat : la demande en PJ. */
+async function generateDemandeEml(d) {
+  const to = (d.opts.sendTo || mailCfg().endo).trim();
+  const { sujet, corps, fichier } = mailTexts(d);
+  const item = { type: "demande-endo", opts: { ...d.opts, telPatient: $("#pt-tel").value.trim() } };
+  const { blob } = await docsToPdf([item], demandeCtx(), fichier);
+  await downloadEml(to, sujet, corps, blob, fichier);
+}
+
+/** Brouillon patient : tous les documents cochés (hors demandes) en un PDF joint. */
+async function generatePatientEml() {
+  const to = $("#pt-mail").value.trim();
+  if (!to || !to.includes("@")) throw new Error("Renseignez l'e-mail du patient.");
+  const items = selectedItems().filter((it) => it.type !== "demande-endo");
+  if (!items.length) throw new Error("Aucun document coché à envoyer au patient.");
+  const p = currentPatient();
+  const med = currentMedecin();
+  const civ = $("#pt-civ").value;
+  const nomAff = [p?.nom?.toUpperCase(), p?.prenom].filter(Boolean).join(" ");
+  const titres = items.map((it) => it.label || (it.type === "ordolibre" ? "Ordonnance" : "Document"));
+  const fichier = `Documents - ${nomAff || "patient"}.pdf`.replace(/[\/\\:*?"<>|]/g, "");
+  const sujet = `Vos documents — CHU de Montpellier${nomAff ? " — " + nomAff : ""}`;
+  const corps = `Bonjour${civ ? " " + civ + (p?.nom ? " " + p.nom.toUpperCase() : "") : ""},
+
+Veuillez trouver en pièce jointe les documents concernant votre prise en charge :
+${titres.map((t) => "  • " + t).join("\n")}
+
+Merci de les lire attentivement et d'apporter les documents signés le jour de l'examen.
+
+Cordialement,
+${med ? med.nom : ""}${med?.tel ? "\nSecrétariat : " + med.tel : ""}${med?.mail ? "\n" + med.mail : ""}`;
+  const { blob } = await docsToPdf(items, demandeCtx(), fichier);
+  await downloadEml(to, sujet, corps, blob, fichier);
+}
+
+/** Bouton « Générer les e-mails » : un brouillon par envoi coché. */
+async function generateAllEmails() {
+  const jobs = demandes.filter((d) => d.type && d.opts.sendMail);
+  const withPatient = $("#chk-mail-patient").checked;
+  let n = 0;
+  toast("⏳ Génération des e-mails…", 60000);
+  for (const d of jobs) {
+    await generateDemandeEml(d);
+    n++;
+    await new Promise((ok) => setTimeout(ok, 700)); // téléchargements successifs
+  }
+  if (withPatient) { await generatePatientEml(); n++; }
+  toast(`📧 <strong>${n} brouillon(s) .eml téléchargé(s)</strong> (PDF en pièce jointe).<br>Double-cliquez chaque fichier : il s'ouvre dans Outlook prêt à envoyer.`, 12000);
+}
+
+function updateEmailButton() {
+  const any = demandes.some((d) => d.type && d.opts.sendMail) || $("#chk-mail-patient").checked;
+  $("#btn-emails").style.display = any ? "block" : "none";
+}
+$("#btn-emails").addEventListener("click", () =>
+  generateAllEmails().catch((e) => toast("❌ " + e.message, 8000)));
+$("#chk-mail-patient").addEventListener("change", () => {
+  $("#mail-patient-fields").style.display = $("#chk-mail-patient").checked ? "block" : "none";
+  updateEmailButton();
+});
 
 // ------------------------------------------------------ demandes d'examen
 const demandes = [];
@@ -465,7 +533,7 @@ function newDemande() {
       service: "Hépato-Gastroentérologie", uf: "", telDemandeur: "",
       crit: {}, iso: "", isoAutre: "", cjd: "non",
       antico: "", anticoStop: "", antiagreg: "", antiagregStop: "", tp: "", plaquettes: "",
-      sendTo: mailCfg().endo,
+      sendTo: mailCfg().endo, sendMail: false,
     },
   };
   demandes.push(d);
@@ -547,12 +615,12 @@ function demandeCard(d) {
       <label class="field" style="grid-column:1 / -1;"><span class="lbl">Téléphone (défaut : secrétariat du médecin)</span>${inp("telDemandeur", o.telDemandeur)}</label>
     </div>
   </details>
-  <div style="border-top:1px solid #cfe1f0; margin-top:8px; padding-top:8px;">
-    <label class="field"><span class="lbl">Envoyer à (e-mail du secrétariat) — <a href="#" data-mailcfg>⚙ paramètres</a></span>${inp("sendTo", o.sendTo)}</label>
-    <div class="btnrow" style="margin-top:0;">
-      <button class="small" data-send-dem="${d.id}">📧 Envoyer au secrétariat</button>
-      <button class="subtle small" data-eml-dem="${d.id}" title="Brouillon Outlook (.eml) avec le PDF déjà en pièce jointe — double-clic pour l'ouvrir prêt à envoyer">Brouillon .eml (PJ incluse)</button>
-    </div>
+  <div style="border-top:1px solid #cfe1f0; margin-top:8px; padding-top:6px;">
+    <label class="doc-item" style="padding:2px 0;">
+      <input type="checkbox" data-d="${d.id}" data-sendmail ${o.sendMail ? "checked" : ""}>
+      <span>📧 <strong>Envoyer la demande par mail au secrétariat</strong></span>
+    </label>
+    ${o.sendMail ? `<label class="field" style="margin-top:4px;"><span class="lbl">Envoyer à — <a href="#" data-mailcfg>⚙ paramètres</a></span>${inp("sendTo", o.sendTo)}</label>` : ""}
   </div>`;
 }
 
@@ -576,15 +644,12 @@ function renderDemandes() {
   }));
   root.querySelectorAll("[data-del-dem]").forEach((b) => b.addEventListener("click", () => {
     demandes.splice(demandes.findIndex((x) => x.id === b.dataset.delDem), 1);
-    renderDemandes(); refreshSoon();
+    renderDemandes(); updateEmailButton(); refreshSoon();
   }));
-  root.querySelectorAll("[data-send-dem]").forEach((b) => b.addEventListener("click", () => {
-    const d = demandes.find((x) => x.id === b.dataset.sendDem);
-    sendDemandeMail(d).catch((e) => toast("❌ " + e.message, 8000));
-  }));
-  root.querySelectorAll("[data-eml-dem]").forEach((b) => b.addEventListener("click", () => {
-    const d = demandes.find((x) => x.id === b.dataset.emlDem);
-    sendDemandeEml(d).catch((e) => toast("❌ " + e.message, 8000));
+  root.querySelectorAll("[data-sendmail]").forEach((cb) => cb.addEventListener("change", () => {
+    demandes.find((x) => x.id === cb.dataset.d).opts.sendMail = cb.checked;
+    renderDemandes();
+    updateEmailButton();
   }));
   root.querySelectorAll("[data-mailcfg]").forEach((a) => a.addEventListener("click", (e) => {
     e.preventDefault(); e.stopPropagation();
@@ -616,6 +681,19 @@ $("#btn-create-demande").addEventListener("click", () => {
   newDemande();
   $("#demandes").lastElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 });
+
+// Boutons d'accès rapide aux catégories du catalogue
+function openCategory(gid) {
+  $("#search").value = "";
+  $$("#catalogue .cat-group").forEach((g) => {
+    g.style.display = "";
+    g.querySelectorAll(".doc-item").forEach((it) => (it.style.display = ""));
+    g.classList.toggle("open", g.dataset.g === gid);
+  });
+  document.querySelector(`#catalogue .cat-group[data-g="${gid}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+$("#btn-cat-prepa").addEventListener("click", () => openCategory("g-ordo"));
+$("#btn-cat-notes").addEventListener("click", () => openCategory("g-notes"));
 
 // ------------------------------------------------------------------ recherche
 const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -763,7 +841,10 @@ $("#btn-reset").addEventListener("click", () => {
   demandes.length = 0;
   renderDemandes();
   // Patient + générique + date du jour
-  ["#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen", "#pt-tel", "#pt-civ"].forEach((id) => ($(id).value = ""));
+  ["#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen", "#pt-tel", "#pt-civ", "#pt-mail"].forEach((id) => ($(id).value = ""));
+  $("#chk-mail-patient").checked = false;
+  $("#mail-patient-fields").style.display = "none";
+  updateEmailButton();
   $("#chk-generic").checked = false;
   $("#panel-patient").style.opacity = "1";
   const d = new Date();
