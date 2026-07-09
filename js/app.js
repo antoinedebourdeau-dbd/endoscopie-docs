@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.3";
+export const APP_VERSION = "3.4";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -15,6 +15,7 @@ import { renderNote, sanitizeRich } from "./render.js";
 import { ORDO_TYPES } from "./tpl-ordotypes.js";
 import { REGIMES, REGIME_NIVEAUX } from "./tpl-regimes.js";
 import { ETP } from "./tpl-etp.js";
+import { PARCOURS_DEFS } from "./tpl-parcours.js";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -198,27 +199,174 @@ function currentPatient() {
 }
 
 // ------------------------------------------------------------------- aperçu
-let ordoOpen = false;
+// ------------------------------------------------ ordonnances (cartes multiples)
+const ordos = [];
+let ordoSeq = 0;
+let activeOrdoId = null; // carte concernée par le sélecteur de types / l'enregistrement
 
-function ordoLibreItem() {
-  if (!ordoOpen) return null;
-  return {
-    id: "ordolibre",
-    type: "ordolibre",
-    opts: {
-      mode: $("#ol-mode").value,
-      texte: $("#ol-texte").innerHTML,
-      textAld: $("#ol-ald").innerHTML,
-      textNonAld: $("#ol-nonald").innerHTML,
-      duree: $("#ol-duree").value.trim(),
-    },
+function newOrdo(prefill) {
+  const o = {
+    id: "ord" + (++ordoSeq),
+    fresh: !prefill, // affiche le choix type/vierge
+    mode: prefill?.mode || "simple",
+    texte: prefill?.texte || "",
+    textAld: prefill?.textAld || "",
+    textNonAld: prefill?.textNonAld || "",
+    duree: prefill?.duree || "",
   };
+  ordos.push(o);
+  renderOrdos();
+  return o;
 }
+
+const RICHBAR = `
+  <div class="richbar">
+    <button type="button" data-cmd="bold" title="Gras"><b>G</b></button>
+    <button type="button" data-cmd="italic" title="Italique"><i>I</i></button>
+    <button type="button" data-cmd="underline" title="Souligné"><u>S</u></button>
+    <button type="button" data-cmd="insertUnorderedList" title="Liste à puces">•&nbsp;Liste</button>
+    <button type="button" data-cmd="insertOrderedList" title="Liste numérotée">1.&nbsp;Liste</button>
+    <button type="button" data-cmd="indent" title="Augmenter le retrait (Tab)">⇥</button>
+    <button type="button" data-cmd="outdent" title="Diminuer le retrait (Maj+Tab)">⇤</button>
+    <button type="button" data-insert="℞ " title="Insérer le symbole ℞">℞</button>
+  </div>`;
+
+function ordoResume(o) {
+  const t = (o.mode === "ald" ? o.textAld : o.texte).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return t ? " — " + t.slice(0, 42) + (t.length > 42 ? "…" : "") : "";
+}
+
+function renderOrdos() {
+  const root = $("#ordos");
+  root.innerHTML = ordos.map((o, idx) => `
+  <div style="border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:var(--bleu-pale);" data-ordo-card="${o.id}">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <strong style="flex:1; font-size:13px;">💊 Ordonnance${ordos.length > 1 ? " " + (idx + 1) : ""}${o.mode === "ald" ? " (ALD)" : ""}${ordoResume(o)}</strong>
+      <button class="subtle small" data-del-ordo="${o.id}">✕ retirer</button>
+    </div>
+    ${o.fresh ? `
+    <div style="margin-top:8px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <button data-ordo-type-btn="${o.id}" style="padding:16px 10px; border-radius:12px; line-height:1.5;">📋<br><strong>Ordonnance type</strong><br><span style="font-weight:400; font-size:11px;">modèles classés, modifiables</span></button>
+        <button data-ordo-vierge="${o.id}" class="ghost" style="padding:16px 10px; border-radius:12px; line-height:1.5; background:#fff;">🗒<br><strong>Ordonnance vierge</strong></button>
+      </div>
+      <div class="hint">Vous choisirez ensuite ordonnance simple ou ALD (bizone).</div>
+    </div>` : `
+    <div style="margin-top:8px;">
+      <div class="btnrow" style="margin:0 0 8px;">
+        <button type="button" class="small" data-ordo-type-btn="${o.id}" title="Charger une ordonnance type">📋 Types</button>
+        <button type="button" class="subtle small" data-save-type="${o.id}" title="Enregistrer cette ordonnance comme type">💾 Enregistrer comme type</button>
+      </div>
+      <label class="field"><span class="lbl">Type d'ordonnance</span>
+        <select data-oid="${o.id}" data-ok="mode">
+          <option value="simple" ${o.mode !== "ald" ? "selected" : ""}>Ordonnance simple (une zone)</option>
+          <option value="ald" ${o.mode === "ald" ? "selected" : ""}>Ordonnance ALD — bizone (100 % / hors ALD)</option>
+        </select>
+      </label>
+      ${RICHBAR}
+      <div style="display:${o.mode === "ald" ? "none" : "block"};">
+        <label class="field" style="margin-bottom:2px;"><span class="lbl">Prescription</span></label>
+        <div class="rich" contenteditable="true" data-oid="${o.id}" data-zone="texte" data-placeholder="PANTOPRAZOLE 40 mg : 1 comprimé le matin…"></div>
+      </div>
+      <div style="display:${o.mode === "ald" ? "block" : "none"};">
+        <label class="field" style="margin-bottom:2px;"><span class="lbl">Zone ALD — prescriptions en rapport (100 %)</span></label>
+        <div class="rich" contenteditable="true" data-oid="${o.id}" data-zone="textAld"></div>
+        <label class="field" style="margin:8px 0 2px;"><span class="lbl">Zone hors ALD — sans rapport (optionnel)</span></label>
+        <div class="rich" contenteditable="true" data-oid="${o.id}" data-zone="textNonAld" style="min-height:60px;"></div>
+      </div>
+      <label class="field"><span class="lbl">Durée du traitement (texte libre, optionnel)</span>
+        <input type="text" data-oid="${o.id}" data-ok="duree" value="${(o.duree || "").replace(/"/g, "&quot;")}" placeholder="ex. 3 mois — QSP 6 mois">
+      </label>
+    </div>`}
+  </div>`).join("");
+
+  // injecte le contenu riche (innerHTML ne peut pas être mis dans le template sans double-échappement)
+  root.querySelectorAll(".rich[data-oid]").forEach((ed) => {
+    const o = ordos.find((x) => x.id === ed.dataset.oid);
+    if (o) ed.innerHTML = o[ed.dataset.zone] || "";
+  });
+
+  // interactions structurelles
+  root.querySelectorAll("[data-del-ordo]").forEach((b) => b.addEventListener("click", () => {
+    ordos.splice(ordos.findIndex((x) => x.id === b.dataset.delOrdo), 1);
+    renderOrdos(); refreshSoon();
+  }));
+  root.querySelectorAll("[data-ordo-vierge]").forEach((b) => b.addEventListener("click", () => {
+    const o = ordos.find((x) => x.id === b.dataset.ordoVierge);
+    o.fresh = false;
+    renderOrdos(); refreshSoon();
+    root.querySelector(`.rich[data-oid="${o.id}"]`)?.focus();
+  }));
+  root.querySelectorAll("[data-ordo-type-btn]").forEach((b) => b.addEventListener("click", () => {
+    activeOrdoId = b.dataset.ordoTypeBtn;
+    renderOrdoTypes();
+    openModal("#modal-ordotypes");
+  }));
+  root.querySelectorAll("[data-save-type]").forEach((b) => b.addEventListener("click", () => {
+    activeOrdoId = b.dataset.saveType;
+    openSaveTypeModal();
+  }));
+}
+
+// saisie : mise à jour du modèle sans re-rendu (conserve le focus)
+$("#ordos").addEventListener("input", (e) => {
+  const t = e.target;
+  const o = ordos.find((x) => x.id === t.dataset.oid);
+  if (!o) return;
+  if (t.dataset.zone) o[t.dataset.zone] = t.innerHTML;
+  if (t.dataset.ok === "duree") o.duree = t.value;
+  refreshSoon();
+});
+$("#ordos").addEventListener("change", (e) => {
+  const t = e.target;
+  const o = ordos.find((x) => x.id === t.dataset.oid);
+  if (!o || t.dataset.ok !== "mode") return;
+  const ald = t.value === "ald";
+  // le contenu suit le changement de mode si la zone cible est vide
+  if (ald && !o.textAld.replace(/<[^>]*>/g, "").trim() && o.texte.replace(/<[^>]*>/g, "").trim()) { o.textAld = o.texte; o.texte = ""; }
+  else if (!ald && !o.texte.replace(/<[^>]*>/g, "").trim() && o.textAld.replace(/<[^>]*>/g, "").trim()) { o.texte = o.textAld; o.textAld = ""; }
+  o.mode = t.value;
+  renderOrdos(); refreshSoon();
+});
+
+// barre de mise en forme + Tab + collage sécurisé (délégation sur le conteneur)
+$("#ordos").addEventListener("mousedown", (e) => {
+  if (e.target.closest(".richbar button")) e.preventDefault(); // conserve la sélection
+});
+$("#ordos").addEventListener("click", (e) => {
+  const b = e.target.closest(".richbar button");
+  if (!b) return;
+  if (b.dataset.cmd) document.execCommand(b.dataset.cmd, false, null);
+  else if (b.dataset.insert) document.execCommand("insertText", false, b.dataset.insert);
+  refreshSoon();
+});
+$("#ordos").addEventListener("keydown", (e) => {
+  if (e.key !== "Tab" || !e.target.classList.contains("rich")) return;
+  e.preventDefault();
+  document.execCommand(e.shiftKey ? "outdent" : "indent", false, null);
+  refreshSoon();
+});
+$("#ordos").addEventListener("paste", (e) => {
+  if (!e.target.classList.contains("rich")) return;
+  e.preventDefault();
+  const html = e.clipboardData.getData("text/html");
+  const text = e.clipboardData.getData("text/plain");
+  const safe = html ? sanitizeRich(html) : (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\n/g, "<br>");
+  document.execCommand("insertHTML", false, safe);
+});
+
+$("#btn-create-ordo").addEventListener("click", () => {
+  newOrdo();
+  refreshSoon();
+  $("#ordos").lastElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+});
 
 function selectedItems() {
   const items = [];
-  const ol = ordoLibreItem();
-  if (ol) items.push(ol);
+  for (const o of ordos) {
+    if (o.fresh) continue;
+    items.push({ id: o.id, type: "ordolibre", opts: { mode: o.mode, texte: o.texte, textAld: o.textAld, textNonAld: o.textNonAld, duree: o.duree.trim() } });
+  }
   for (const d of demandes) {
     if (!d.type) continue;
     const opts = { ...d.opts, telPatient: $("#pt-tel").value.trim(), dialyse: d.opts.dialyse === "1" || d.opts.dialyse === true };
@@ -1170,82 +1318,166 @@ $("#btn-cat-notes").addEventListener("click", () => openCategory("g-notes"));
 // ------------------------------------------------------------ parcours types
 const PARCOURS_KEY = "endoc.parcours.v1";
 const PREPS = [["plenvu", "PLENVU®"], ["izinova", "IZINOVA®"], ["moviprep", "MOVIPREP®"], ["ximepeg", "XIMEPEG®"], ["citrafleet", "CITRAFLEET®"]];
-const PARCOURS_PREDEF = [
-  { name: "Coloscopie", desc: "Note info + ordonnance de préparation + demande d'examen", docs: ["note:coloscopie"], prepChoice: true, demande: { examens: ["coloscopie"], ag: "oui" } },
-  { name: "Gastroscopie", desc: "Note info + demande d'examen", docs: ["note:gastroscopie"], demande: { examens: ["gastroscopie"], ag: "oui" } },
-  { name: "Gastroscopie + Coloscopie", desc: "2 notes + préparation + demande (2 examens)", docs: ["note:gastroscopie", "note:coloscopie"], prepChoice: true, demande: { examens: ["gastroscopie", "coloscopie"], ag: "oui" } },
-  { name: "Dissection colique (ESD)", desc: "Note ESD colique + préparation + demande (acte : dissection sous-muqueuse)", docs: ["note:dsm_colique"], prepChoice: true, demande: { examens: ["coloscopie"], ag: "oui", actes: "Dissection sous-muqueuse colique (ESD)" } },
-  { name: "CPRE", desc: "Note info + demande d'examen", docs: ["note:cpre"], demande: { examens: ["cpre"], ag: "oui" } },
-  { name: "Échoendoscopie (± ponction)", desc: "Note info ponction + demande d'examen", docs: ["note:ponction_echo"], demande: { examens: ["echoendoscopie"], ag: "oui" } },
-];
 const listParcoursPerso = () => {
   try { return JSON.parse(localStorage.getItem(PARCOURS_KEY) || "[]"); } catch (_) { return []; }
 };
 
-function applyParcours(p, prepKey) {
-  for (const id of p.docs || []) selection.add(id);
-  if (prepKey) selection.add("ordo:" + prepKey);
-  const demDefs = p.demandes || (p.demande ? [{ type: "endo", opts: p.demande }] : []);
-  for (const def of demDefs) {
-    newDemande();
-    const d = demandes[demandes.length - 1];
-    d.type = def.type || "endo";
-    Object.assign(d.opts, JSON.parse(JSON.stringify(def.opts || {})));
-    if (!d.opts.sendTo) d.opts.sendTo = mailCfg().endo;
-  }
-  renderDemandes();
-  renderCatalog();
-  refresh();
-  closeModals();
-  toast(`⚡ Parcours « ${p.name} » appliqué — ajustez si besoin puis imprimez/envoyez.`, 6000);
+function findCatalogItem(ref) {
+  for (const g of CATALOG) for (const it of g.items) if (it.id === ref) return it;
+  return null;
 }
+function findOrdoType(name) {
+  for (const c of ORDO_TYPES) {
+    const it = c.items.find((i) => i.name === name);
+    if (it) return it;
+  }
+  return null;
+}
+
+const ELEM_ICON = { doc: "📄", prep: "🧴", ordotype: "💊", ordochoice: "💊", demande: "🩺" };
+function elemIcon(el) {
+  if (el.t === "doc") {
+    if (el.ref.startsWith("regime:")) return "🍽";
+    if (el.ref.startsWith("etp:")) return el.ref.includes("reeduc") || ["etp:resp_diaphragme", "etp:eructations", "etp:rumination", "etp:ballonnement", "etp:aerophagie"].includes(el.ref) ? "📘" : "🎓";
+    if (el.ref.startsWith("ordo:")) return "🧴";
+  }
+  return ELEM_ICON[el.t] || "📄";
+}
+function elemLabel(el) {
+  if (el.t === "doc") return findCatalogItem(el.ref)?.label || el.ref;
+  if (el.t === "prep") return "Ordonnance + guide de préparation colique";
+  if (el.t === "ordotype") return "Ordonnance : " + el.name;
+  if (el.t === "ordochoice") return "Ordonnance : " + el.label;
+  if (el.t === "demande") return el.label;
+  return "?";
+}
+
+let currentPack = null; // {name, elements} affiché dans l'écran de composition
 
 function renderParcoursList() {
   const perso = listParcoursPerso();
   $("#parcours-list").innerHTML =
-    PARCOURS_PREDEF.map((p, i) => `
-      <div class="med-row">
-        <div class="info"><div class="nom">${p.name}</div><div class="det">${p.desc}</div></div>
-        ${p.prepChoice ? `<select data-prep="${i}" style="width:130px;">${PREPS.map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select>` : ""}
-        <button class="small" data-apply-parcours="${i}">Appliquer</button>
-      </div>`).join("") +
-    (perso.length ? `<div class="mhint" style="margin:10px 0 6px;"><strong>Mes parcours (ce poste)</strong></div>` : "") +
-    perso.map((p, i) => `
-      <div class="med-row">
-        <div class="info"><div class="nom">${p.name}</div><div class="det">${(p.docs || []).length} document(s)${(p.demandes || []).length ? " + " + p.demandes.length + " demande(s)" : ""}</div></div>
-        <button class="small" data-apply-perso="${i}">Appliquer</button>
-        <button class="danger small" data-del-parcours="${i}">✕</button>
-      </div>`).join("");
+    PARCOURS_DEFS.map((c, ci) => `<details ${ci === 0 ? "open" : ""} style="margin-bottom:6px;">
+      <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--bleu-fonce); padding:4px 2px;">${c.icon} ${c.cat} <span style="color:var(--gris-clair); font-weight:600; font-size:11px;">${c.items.length}</span></summary>
+      ${c.items.map((p) => `<button class="subtle small" data-pack="${ci}:${p.id}" style="display:block; width:100%; text-align:left; margin-top:3px;">${p.name}${p.desc ? `<br><span style="font-weight:400; color:var(--gris-clair); font-size:10.5px;">${p.desc}</span>` : ""}</button>`).join("")}
+    </details>`).join("") +
+    (perso.length ? `<div class="mhint" style="margin:10px 0 4px;"><strong>📦 Mes packs (ce poste)</strong></div>` +
+      perso.map((p, i) => `<div style="display:flex; gap:4px; margin-top:3px;">
+        <button class="subtle small" data-pack-perso="${i}" style="flex:1; text-align:left;">${p.name} <span class="badge-local">perso</span></button>
+        <button class="danger small" data-del-pack="${i}">✕</button>
+      </div>`).join("") : "");
 
-  $$("[data-apply-parcours]").forEach((b) => b.addEventListener("click", () => {
-    const i = Number(b.dataset.applyParcours);
-    const prep = PARCOURS_PREDEF[i].prepChoice ? document.querySelector(`[data-prep="${i}"]`).value : null;
-    applyParcours(PARCOURS_PREDEF[i], prep);
+  $$("#parcours-list [data-pack]").forEach((b) => b.addEventListener("click", () => {
+    const [ci, id] = b.dataset.pack.split(":");
+    const p = PARCOURS_DEFS[Number(ci)].items.find((x) => x.id === id);
+    openPackCompose(p);
   }));
-  $$("[data-apply-perso]").forEach((b) => b.addEventListener("click", () => applyParcours(listParcoursPerso()[Number(b.dataset.applyPerso)], null)));
-  $$("[data-del-parcours]").forEach((b) => b.addEventListener("click", () => {
+  $$("#parcours-list [data-pack-perso]").forEach((b) => b.addEventListener("click", () => {
+    applyPersoPack(listParcoursPerso()[Number(b.dataset.packPerso)]);
+  }));
+  $$("#parcours-list [data-del-pack]").forEach((b) => b.addEventListener("click", () => {
     const arr = listParcoursPerso();
-    if (!confirm(`Supprimer le parcours « ${arr[Number(b.dataset.delParcours)].name} » ?`)) return;
-    arr.splice(Number(b.dataset.delParcours), 1);
+    if (!confirm(`Supprimer le pack « ${arr[Number(b.dataset.delPack)].name} » ?`)) return;
+    arr.splice(Number(b.dataset.delPack), 1);
     localStorage.setItem(PARCOURS_KEY, JSON.stringify(arr));
     renderParcoursList();
   }));
 }
 
-$("#btn-parcours").addEventListener("click", () => { renderParcoursList(); openModal("#modal-parcours"); });
+function openPackCompose(p) {
+  currentPack = p;
+  $("#parcours-home").style.display = "none";
+  $("#parcours-compose").style.display = "block";
+  $("#pc-title").textContent = p.name;
+  $("#pc-desc").textContent = p.desc || "Les essentiels sont cochés — ajustez puis ajoutez.";
+  $("#pc-elements").innerHTML = p.elements.map((el, i) => `
+    <div style="display:flex; gap:8px; align-items:center; border:1px solid var(--bord); border-radius:9px; padding:6px 10px; margin-top:5px; ${el.on ? "" : "background:#f7fafc;"}">
+      <input type="checkbox" data-pc-el="${i}" ${el.on ? "checked" : ""} style="flex:none; accent-color:var(--bleu);">
+      <span style="flex:none;">${elemIcon(el)}</span>
+      <span style="flex:1; font-size:12.5px; ${el.on ? "" : "color:var(--gris);"}">${elemLabel(el)}${el.on ? "" : ' <span style="font-size:10px; color:var(--gris-clair);">(option)</span>'}</span>
+      ${el.t === "prep" ? `<select data-pc-prep="${i}" style="width:120px; flex:none;">${PREPS.map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select>` : ""}
+      ${el.t === "ordochoice" ? `<select data-pc-choice="${i}" style="max-width:220px; flex:none;">${el.options.map((o2) => `<option value="${o2.replace(/"/g, "&quot;")}">${o2}</option>`).join("")}</select>` : ""}
+    </div>`).join("");
+}
+
+$("#pc-back").addEventListener("click", (e) => {
+  e.preventDefault();
+  $("#parcours-compose").style.display = "none";
+  $("#parcours-home").style.display = "block";
+});
+
+$("#pc-apply").addEventListener("click", () => {
+  if (!currentPack) return;
+  let n = 0;
+  currentPack.elements.forEach((el, i) => {
+    if (!document.querySelector(`[data-pc-el="${i}"]`)?.checked) return;
+    n++;
+    if (el.t === "doc") selection.add(el.ref);
+    else if (el.t === "prep") selection.add("ordo:" + (document.querySelector(`[data-pc-prep="${i}"]`)?.value || "plenvu"));
+    else if (el.t === "ordotype" || el.t === "ordochoice") {
+      const name = el.t === "ordotype" ? el.name : document.querySelector(`[data-pc-choice="${i}"]`)?.value;
+      const it = findOrdoType(name);
+      if (!it) { toast("Ordonnance type introuvable : " + name, 6000); return; }
+      const med = currentMedecin();
+      newOrdo({
+        mode: "simple",
+        texte: it.content.replaceAll("{MEDECIN}", med ? med.nom : "votre médecin").replaceAll("{FAX}", med?.fax || "………………"),
+      });
+    } else if (el.t === "demande") {
+      newDemande();
+      const d = demandes[demandes.length - 1];
+      d.type = el.kind || "endo";
+      d.opts = { ...initDemandeOpts(d.type), ...JSON.parse(JSON.stringify(el.opts || {})) };
+    }
+  });
+  renderDemandes();
+  renderCatalog();
+  refresh();
+  closeModals();
+  $("#parcours-compose").style.display = "none";
+  $("#parcours-home").style.display = "block";
+  toast(`📦 Pack « ${currentPack.name} » : ${n} élément(s) ajouté(s) — ajustez si besoin puis imprimez / envoyez.`, 7000);
+});
+
+// pack personnel : instantané complet (documents + ordonnances + demandes)
+function applyPersoPack(p) {
+  for (const ref of p.docs || []) selection.add(ref);
+  for (const o of p.ordos || []) newOrdo(o);
+  for (const def of p.demandes || []) {
+    newDemande();
+    const d = demandes[demandes.length - 1];
+    d.type = def.type || "endo";
+    d.opts = { ...initDemandeOpts(d.type), ...JSON.parse(JSON.stringify(def.opts || {})) };
+  }
+  renderDemandes();
+  renderCatalog();
+  refresh();
+  closeModals();
+  toast(`📦 Pack « ${p.name} » appliqué.`, 5000);
+}
+
+$("#btn-parcours").addEventListener("click", () => {
+  $("#parcours-compose").style.display = "none";
+  $("#parcours-home").style.display = "block";
+  renderParcoursList();
+  openModal("#modal-parcours");
+});
 $("#btn-save-parcours").addEventListener("click", () => {
-  if (!selection.size && !demandes.some((d) => d.type)) { alert("Cochez d'abord des documents et/ou créez une demande d'examen."); return; }
-  const name = prompt("Nom du parcours (ex. « Ma colo standard ») :");
+  if (!selection.size && !demandes.some((d) => d.type) && !ordos.some((o) => !o.fresh)) {
+    alert("Préparez d'abord un dossier (documents cochés, ordonnances, demandes)."); return;
+  }
+  const name = prompt("Nom du pack (ex. « Ma colo standard ») :");
   if (!name || !name.trim()) return;
   const arr = listParcoursPerso().filter((x) => x.name !== name.trim());
   arr.push({
     name: name.trim(),
     docs: [...selection],
+    ordos: ordos.filter((o) => !o.fresh).map((o) => ({ mode: o.mode, texte: o.texte, textAld: o.textAld, textNonAld: o.textNonAld, duree: o.duree })),
     demandes: demandes.filter((d) => d.type).map((d) => ({ type: d.type, opts: { ...d.opts, sendMail: false } })),
   });
   localStorage.setItem(PARCOURS_KEY, JSON.stringify(arr));
   renderParcoursList();
-  toast(`💾 Parcours « ${name.trim()} » enregistré sur ce poste.`, 5000);
+  toast(`💾 Pack « ${name.trim()} » enregistré sur ce poste.`, 5000);
 });
 
 // -------------------------------------------------- validation douce demandes
@@ -1520,13 +1752,8 @@ $("#btn-reset").addEventListener("click", () => {
   $("#search").value = "";
   activeCat = null;
   // Ordonnance libre
-  ordoOpen = false;
-  $("#ordolibre-card").style.display = "none";
-  ["#ol-texte", "#ol-ald", "#ol-nonald"].forEach((id) => ($(id).innerHTML = ""));
-  $("#ol-duree").value = "";
-  $("#ol-mode").value = "simple";
-  $("#ol-zone-simple").style.display = "block";
-  $("#ol-zone-ald").style.display = "none";
+  ordos.length = 0;
+  renderOrdos();
   // Demandes d'examen
   demandes.length = 0;
   renderDemandes();
@@ -1549,7 +1776,10 @@ $("#btn-reset").addEventListener("click", () => {
 // ------------------------------------------------------- choix d'impression
 function itemLabel(it) {
   if (it.label) return it.label;
-  if (it.type === "ordolibre") return "Ordonnance" + (it.opts.mode === "ald" ? " (ALD bizone)" : "");
+  if (it.type === "ordolibre") {
+    const t = (it.opts.mode === "ald" ? it.opts.textAld : it.opts.texte).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    return "Ordonnance" + (it.opts.mode === "ald" ? " ALD" : "") + (t ? " — " + t.slice(0, 30) + (t.length > 30 ? "…" : "") : "");
+  }
   if (it.type === "demande-endo") {
     const ex = (it.opts.examens || []).map((k) => (EXAMENS_ENDO_UI.find(([kk]) => kk === k) || [])[1]).filter(Boolean);
     return "Demande d'examen — " + (ex.join(", ") || "endoscopie");
@@ -1608,7 +1838,7 @@ $("#sel-medecin").addEventListener("change", () => {
   refreshSoon();
 });
 ["#ml-nom", "#ml-spec", "#ml-tel", "#ml-rpps", "#ml-mail", "#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen",
- "#pt-tel", "#ol-texte", "#ol-ald", "#ol-nonald", "#ol-duree"]
+ "#pt-tel"]
   .forEach((id) => $(id).addEventListener("input", refreshSoon));
 
 // ------------------------------------ ordonnances types personnelles (poste)
@@ -1639,60 +1869,7 @@ const saveUserCats = (arr) => localStorage.setItem(UTCAT_KEY, JSON.stringify(arr
   } catch (_) {}
 })();
 
-// Tab / Maj+Tab dans les éditeurs riches : retrait (sans quitter le champ)
-$$(".rich").forEach((ed) => ed.addEventListener("keydown", (e) => {
-  if (e.key !== "Tab") return;
-  e.preventDefault();
-  document.execCommand(e.shiftKey ? "outdent" : "indent", false, null);
-  refreshSoon();
-}));
 
-// Collage dans les éditeurs riches : contenu nettoyé (balises sûres uniquement)
-$$(".rich").forEach((ed) => ed.addEventListener("paste", (e) => {
-  e.preventDefault();
-  const html = e.clipboardData.getData("text/html");
-  const text = e.clipboardData.getData("text/plain");
-  const safe = html ? sanitizeRich(html) : (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\n/g, "<br>");
-  document.execCommand("insertHTML", false, safe);
-}));
-
-// Barre de mise en forme (agit sur l'éditeur qui a le focus / la sélection)
-$$(".richbar button").forEach((b) => {
-  b.addEventListener("mousedown", (e) => e.preventDefault()); // conserve la sélection
-  b.addEventListener("click", () => {
-    if (b.dataset.cmd) document.execCommand(b.dataset.cmd, false, null);
-    else if (b.dataset.insert) document.execCommand("insertText", false, b.dataset.insert);
-    refreshSoon();
-  });
-});
-
-function ordoEditorsEmpty() {
-  return !$("#ol-texte").textContent.trim() && !$("#ol-ald").textContent.trim() && !$("#ol-nonald").textContent.trim();
-}
-
-$("#btn-create-ordo").addEventListener("click", () => {
-  ordoOpen = true;
-  $("#ordolibre-card").style.display = "block";
-  const fresh = ordoEditorsEmpty();
-  $("#ordo-choice").style.display = fresh ? "block" : "none";
-  $("#ordolibre-fields").style.display = fresh ? "none" : "block";
-  if (!fresh) $("#ol-texte").focus();
-  refreshSoon();
-});
-
-$("#btn-ordo-vierge").addEventListener("click", () => {
-  $("#ordo-choice").style.display = "none";
-  $("#ordolibre-fields").style.display = "block";
-  $("#ol-texte").focus();
-});
-$("#btn-ordo-type").addEventListener("click", () => {
-  renderOrdoTypes();
-  openModal("#modal-ordotypes");
-});
-$("#btn-open-ordotypes").addEventListener("click", () => {
-  renderOrdoTypes();
-  openModal("#modal-ordotypes");
-});
 
 // ------------------------------------------------- bibliothèque de types
 function allTypeCats() {
@@ -1789,29 +1966,34 @@ function renderOrdoTypes(query = "") {
 }
 $("#ot-search").addEventListener("input", () => renderOrdoTypes($("#ot-search").value));
 
+function targetOrdo() {
+  let o = ordos.find((x) => x.id === activeOrdoId);
+  if (!o) o = newOrdo({});
+  return o;
+}
+
 function applyUserType(t) {
   if (!t) return;
   const toHtml = (v) => (/[<>]/.test(v || "") ? v : (v || "").replace(/\n/g, "<br>"));
-  $("#ol-mode").value = t.mode || "simple";
-  $("#ol-texte").innerHTML = toHtml(t.texte);
-  $("#ol-ald").innerHTML = toHtml(t.textAld);
-  $("#ol-nonald").innerHTML = toHtml(t.textNonAld);
-  $("#ol-duree").value = t.duree || "";
-  const ald = t.mode === "ald";
-  $("#ol-zone-simple").style.display = ald ? "none" : "block";
-  $("#ol-zone-ald").style.display = ald ? "block" : "none";
+  const o = targetOrdo();
+  const hasContent = (o.texte + o.textAld).replace(/<[^>]*>/g, "").trim();
+  if (hasContent && !confirm("Remplacer le contenu de cette ordonnance ?")) return;
+  o.mode = t.mode || "simple";
+  o.texte = toHtml(t.texte);
+  o.textAld = toHtml(t.textAld);
+  o.textNonAld = toHtml(t.textNonAld);
+  o.duree = t.duree || "";
+  o.fresh = false;
   closeModals();
-  $("#ordo-choice").style.display = "none";
-  $("#ordolibre-fields").style.display = "block";
-  ordoOpen = true;
-  $("#ordolibre-card").style.display = "block";
+  renderOrdos();
   toast(`📋 « ${t.name} » chargée.`, 4000);
   refreshSoon();
 }
 
 // Enregistrer l'ordonnance actuelle comme type (avec choix de catégorie)
-$("#btn-save-type").addEventListener("click", () => {
-  if (ordoEditorsEmpty()) { toast("L'ordonnance est vide.", 4000); return; }
+function openSaveTypeModal() {
+  const o = ordos.find((x) => x.id === activeOrdoId);
+  if (!o || !(o.texte + o.textAld).replace(/<[^>]*>/g, "").trim()) { toast("L'ordonnance est vide.", 4000); return; }
   const cats = [...ORDO_TYPES.map((c) => c.cat), ...listUserCats()];
   $("#st-cat").innerHTML =
     cats.map((c) => `<option value="${c}">${catIcon(c)} ${c}</option>`).join("") +
@@ -1819,7 +2001,7 @@ $("#btn-save-type").addEventListener("click", () => {
   $("#st-name").value = "";
   openModal("#modal-savetype");
   $("#st-name").focus();
-});
+}
 $("#st-save").addEventListener("click", () => {
   const name = $("#st-name").value.trim();
   if (!name) { alert("Donnez un nom à l'ordonnance."); return; }
@@ -1830,11 +2012,12 @@ $("#st-save").addEventListener("click", () => {
     cat = c.trim().toUpperCase();
     saveUserCats([...listUserCats(), cat]);
   }
+  const o = ordos.find((x) => x.id === activeOrdoId) || {};
   const arr = listUserTypes().filter((t) => !(t.name === name && t.cat === cat));
   arr.push({
     id: "ut" + Math.random().toString(36).slice(2, 9), cat, name,
-    mode: $("#ol-mode").value, texte: $("#ol-texte").innerHTML,
-    textAld: $("#ol-ald").innerHTML, textNonAld: $("#ol-nonald").innerHTML, duree: $("#ol-duree").value,
+    mode: o.mode || "simple", texte: o.texte || "",
+    textAld: o.textAld || "", textNonAld: o.textNonAld || "", duree: o.duree || "",
   });
   saveUserTypes(arr);
   closeModals();
@@ -1846,36 +2029,17 @@ function applyOrdoType(item) {
   const content = item.content
     .replaceAll("{MEDECIN}", med ? med.nom : "votre médecin")
     .replaceAll("{FAX}", med?.fax || "………………");
-  const target = $("#ol-mode").value === "ald" ? $("#ol-ald") : $("#ol-texte");
-  if (target.textContent.trim() && !confirm("Remplacer le contenu actuel de l'ordonnance ?")) return;
-  target.innerHTML = content;
+  const o = targetOrdo();
+  const target = o.mode === "ald" ? "textAld" : "texte";
+  const hasContent = o[target].replace(/<[^>]*>/g, "").trim();
+  if (hasContent && !confirm("Remplacer le contenu de cette ordonnance ?")) return;
+  o[target] = content;
+  o.fresh = false;
   closeModals();
-  $("#ordo-choice").style.display = "none";
-  $("#ordolibre-fields").style.display = "block";
-  ordoOpen = true;
-  $("#ordolibre-card").style.display = "block";
+  renderOrdos();
   toast(`📋 « ${item.name} » chargée — modifiez librement puis choisissez simple ou ALD.`, 6000);
   refreshSoon();
 }
-$("#btn-remove-ordo").addEventListener("click", () => {
-  ordoOpen = false;
-  $("#ordolibre-card").style.display = "none";
-  refreshSoon();
-});
-$("#ol-mode").addEventListener("change", () => {
-  const ald = $("#ol-mode").value === "ald";
-  // le contenu suit le changement de mode (si la zone cible est vide)
-  if (ald && !$("#ol-ald").textContent.trim() && $("#ol-texte").textContent.trim()) {
-    $("#ol-ald").innerHTML = $("#ol-texte").innerHTML;
-    $("#ol-texte").innerHTML = "";
-  } else if (!ald && !$("#ol-texte").textContent.trim() && $("#ol-ald").textContent.trim()) {
-    $("#ol-texte").innerHTML = $("#ol-ald").innerHTML;
-    $("#ol-ald").innerHTML = "";
-  }
-  $("#ol-zone-simple").style.display = ald ? "none" : "block";
-  $("#ol-zone-ald").style.display = ald ? "block" : "none";
-  refreshSoon();
-});
 $("#chk-generic").addEventListener("change", () => {
   $("#panel-patient").style.opacity = $("#chk-generic").checked ? ".45" : "1";
   refreshSoon();

@@ -35,7 +35,7 @@
         <button class="subtle small" id="btn-import-doc" title="Importer un document JSON partagé par un collègue">Importer</button>
       </h2>
 
-      <button class="big" id="btn-parcours" style="margin:0 0 8px; background:var(--bleu-fonce);">⚡ Parcours types (tout en un clic)</button>
+      <button class="big" id="btn-parcours" style="margin:0 0 8px; background:var(--bleu-fonce);">📦 Packs de prise en charge</button>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 0 10px;">
         <button class="ghost" id="btn-create-ordo">💊 Créer une ordonnance</button>
         <button class="ghost" id="btn-create-demande">🩺 Demande d'examen</button>
@@ -45,54 +45,7 @@
         <button class="ghost" id="btn-etp">🎓 Éducation thérapeutique</button>
       </div>
 
-      <div id="ordolibre-card" style="display:none; border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:var(--bleu-pale);">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <strong style="flex:1;">💊 Ordonnance</strong>
-          <button class="subtle small" id="btn-remove-ordo">✕ retirer</button>
-        </div>
-        <div id="ordo-choice" style="display:none; margin-top:8px;">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <button id="btn-ordo-type" style="padding:20px 10px; border-radius:12px; line-height:1.5;">📋<br><strong>Ordonnance type</strong><br><span style="font-weight:400; font-size:11px;">122 modèles classés, modifiables</span></button>
-            <button id="btn-ordo-vierge" class="ghost" style="padding:20px 10px; border-radius:12px; line-height:1.5; background:#fff;">🗒<br><strong>Ordonnance vierge</strong><br><span style="font-weight:400; font-size:11px;">page blanche</span></button>
-          </div>
-          <div class="hint">Vous choisirez ensuite ordonnance simple ou ALD (bizone).</div>
-        </div>
-        <div id="ordolibre-fields" style="margin-top:8px;">
-          <div class="btnrow" style="margin:0 0 8px;">
-            <button type="button" class="small" id="btn-open-ordotypes" title="Charger une ordonnance type">📋 Ordonnances types</button>
-            <button type="button" class="subtle small" id="btn-save-type" title="Enregistrer l'ordonnance actuelle comme ordonnance type, dans une catégorie">💾 Enregistrer comme type</button>
-          </div>
-          <label class="field"><span class="lbl">Type d'ordonnance</span>
-            <select id="ol-mode">
-              <option value="simple">Ordonnance simple (une zone)</option>
-              <option value="ald">Ordonnance ALD — bizone (100 % / hors ALD)</option>
-            </select>
-          </label>
-          <div class="richbar">
-            <button type="button" data-cmd="bold" title="Gras"><b>G</b></button>
-            <button type="button" data-cmd="italic" title="Italique"><i>I</i></button>
-            <button type="button" data-cmd="underline" title="Souligné"><u>S</u></button>
-            <button type="button" data-cmd="insertUnorderedList" title="Liste à puces">•&nbsp;Liste</button>
-            <button type="button" data-cmd="insertOrderedList" title="Liste numérotée">1.&nbsp;Liste</button>
-            <button type="button" data-cmd="indent" title="Augmenter le retrait (Tab)">⇥</button>
-            <button type="button" data-cmd="outdent" title="Diminuer le retrait (Maj+Tab)">⇤</button>
-            <button type="button" data-insert="℞ " title="Insérer le symbole ℞">℞</button>
-          </div>
-          <div id="ol-zone-simple">
-            <label class="field"><span class="lbl">Prescription</span></label>
-            <div class="rich" id="ol-texte" contenteditable="true" data-placeholder="PANTOPRAZOLE 40 mg : 1 comprimé le matin…"></div>
-          </div>
-          <div id="ol-zone-ald" style="display:none;">
-            <label class="field" style="margin-bottom:2px;"><span class="lbl">Zone ALD — prescriptions en rapport (100 %)</span></label>
-            <div class="rich" id="ol-ald" contenteditable="true"></div>
-            <label class="field" style="margin:8px 0 2px;"><span class="lbl">Zone hors ALD — sans rapport (optionnel)</span></label>
-            <div class="rich" id="ol-nonald" contenteditable="true" style="min-height:60px;"></div>
-          </div>
-          <label class="field"><span class="lbl">Durée du traitement (texte libre, optionnel)</span>
-            <input type="text" id="ol-duree" placeholder="ex. 3 mois — QSP 6 mois — jusqu'au contrôle">
-          </label>
-        </div>
-      </div>
+      <div id="ordos"></div>
 
       <div id="demandes"></div>
 
@@ -357,14 +310,25 @@
 <div class="modal-back no-print" id="modal-parcours">
   <div class="modal">
     <button class="modal-close" data-close>✕</button>
-    <h3>⚡ Parcours types</h3>
-    <div class="mhint">Un clic prépare tous les documents du parcours (notes, ordonnance de préparation, demande d'examen pré-remplie). Vous pouvez ensuite ajuster.</div>
-    <div id="parcours-list"></div>
-    <div style="border-top:1px solid var(--bord); margin:12px 0 10px;"></div>
-    <div class="btnrow">
-      <button class="ghost" id="btn-save-parcours">💾 Enregistrer la sélection actuelle comme parcours</button>
+    <h3>📦 Packs de prise en charge</h3>
+    <div id="parcours-home">
+      <div class="mhint">Choisissez une situation clinique : le pack rassemble tout ce qui est pertinent (notes, ordonnances, régime, éducation thérapeutique, demandes) — les essentiels sont pré-cochés, vous ajustez avant d'ajouter.</div>
+      <div id="parcours-list"></div>
+      <div style="border-top:1px solid var(--bord); margin:12px 0 10px;"></div>
+      <div class="btnrow">
+        <button class="ghost" id="btn-save-parcours">💾 Enregistrer la préparation actuelle comme pack personnel</button>
+      </div>
+      <div class="hint">Le pack personnel mémorise documents cochés, ordonnances et demandes en cours — sur ce poste.</div>
     </div>
-    <div class="hint">Astuce : cochez vos documents habituels + créez votre demande type, puis enregistrez-les comme parcours personnel — il apparaîtra dans cette liste sur ce poste.</div>
+    <div id="parcours-compose" style="display:none;">
+      <a href="#" id="pc-back" style="font-size:12.5px;">← Retour aux packs</a>
+      <div id="pc-title" style="font-weight:800; font-size:16px; color:var(--bleu-fonce); margin:8px 0 2px;"></div>
+      <div id="pc-desc" class="mhint"></div>
+      <div id="pc-elements"></div>
+      <div class="btnrow" style="margin-top:12px;">
+        <button class="big orange" id="pc-apply">➕ Ajouter les éléments cochés</button>
+      </div>
+    </div>
   </div>
 </div>
 
