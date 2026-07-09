@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "2.5";
+export const APP_VERSION = "2.6";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -12,6 +12,7 @@ import {
   exportLocalDoc, importLocalDoc, validateDoc, buildPrompt,
 } from "./localdocs.js";
 import { renderNote, sanitizeRich } from "./render.js";
+import { ORDO_TYPES } from "./tpl-ordotypes.js";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -1533,13 +1534,70 @@ $$(".richbar button").forEach((b) => {
   });
 });
 
+function ordoEditorsEmpty() {
+  return !$("#ol-texte").textContent.trim() && !$("#ol-ald").textContent.trim() && !$("#ol-nonald").textContent.trim();
+}
+
 $("#btn-create-ordo").addEventListener("click", () => {
   ordoOpen = true;
   $("#ordolibre-card").style.display = "block";
   renderOlModeles($("#ol-modele").value);
-  $("#ol-texte").focus();
+  const fresh = ordoEditorsEmpty();
+  $("#ordo-choice").style.display = fresh ? "block" : "none";
+  $("#ordolibre-fields").style.display = fresh ? "none" : "block";
+  if (!fresh) $("#ol-texte").focus();
   refreshSoon();
 });
+
+$("#btn-ordo-vierge").addEventListener("click", () => {
+  $("#ordo-choice").style.display = "none";
+  $("#ordolibre-fields").style.display = "block";
+  $("#ol-texte").focus();
+});
+$("#btn-ordo-type").addEventListener("click", () => {
+  renderOrdoTypes();
+  openModal("#modal-ordotypes");
+});
+$("#btn-open-ordotypes").addEventListener("click", () => {
+  renderOrdoTypes();
+  openModal("#modal-ordotypes");
+});
+
+// ------------------------------------------------- bibliothèque de types
+function renderOrdoTypes(query = "") {
+  const q = norm(query.trim());
+  $("#ot-list").innerHTML = ORDO_TYPES.map((c) => {
+    const items = c.items.filter((it) => !q || norm(it.name).includes(q) || norm(it.content).includes(q));
+    if (!items.length) return "";
+    return `<details ${q ? "open" : ""} style="margin-bottom:6px;">
+      <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--bleu-fonce); padding:4px 2px;">${c.cat} <span style="color:var(--gris-clair); font-weight:600; font-size:11px;">${items.length}</span></summary>
+      ${items.map((it) => `<button class="subtle small" data-ot-cat="${c.cat}" data-ot-name="${it.name.replace(/"/g, "&quot;")}" style="display:block; width:100%; text-align:left; margin-top:3px;">${it.name}</button>`).join("")}
+    </details>`;
+  }).join("") || `<div class="hint">Aucun résultat.</div>`;
+
+  $$("#ot-list [data-ot-name]").forEach((b) => b.addEventListener("click", () => {
+    const item = ORDO_TYPES.find((c) => c.cat === b.dataset.otCat).items.find((i) => i.name === b.dataset.otName);
+    applyOrdoType(item);
+  }));
+}
+$("#ot-search").addEventListener("input", () => renderOrdoTypes($("#ot-search").value));
+
+function applyOrdoType(item) {
+  const med = currentMedecin();
+  const content = item.content
+    .replaceAll("{MEDECIN}", med ? med.nom : "votre médecin")
+    .replaceAll("{FAX}", med?.fax || "………………");
+  const target = $("#ol-mode").value === "ald" ? $("#ol-ald") : $("#ol-texte");
+  if (target.textContent.trim() && !confirm("Remplacer le contenu actuel de l'ordonnance ?")) return;
+  target.innerHTML = content;
+  closeModals();
+  $("#ordo-choice").style.display = "none";
+  $("#ordolibre-fields").style.display = "block";
+  ordoOpen = true;
+  $("#ordolibre-card").style.display = "block";
+  toast(`📋 « ${item.name} » chargée — modifiez librement puis choisissez simple ou ALD.`, 6000);
+  refreshSoon();
+}
 $("#btn-remove-ordo").addEventListener("click", () => {
   ordoOpen = false;
   $("#ordolibre-card").style.display = "none";
@@ -1547,6 +1605,14 @@ $("#btn-remove-ordo").addEventListener("click", () => {
 });
 $("#ol-mode").addEventListener("change", () => {
   const ald = $("#ol-mode").value === "ald";
+  // le contenu suit le changement de mode (si la zone cible est vide)
+  if (ald && !$("#ol-ald").textContent.trim() && $("#ol-texte").textContent.trim()) {
+    $("#ol-ald").innerHTML = $("#ol-texte").innerHTML;
+    $("#ol-texte").innerHTML = "";
+  } else if (!ald && !$("#ol-texte").textContent.trim() && $("#ol-ald").textContent.trim()) {
+    $("#ol-texte").innerHTML = $("#ol-ald").innerHTML;
+    $("#ol-ald").innerHTML = "";
+  }
   $("#ol-zone-simple").style.display = ald ? "none" : "block";
   $("#ol-zone-ald").style.display = ald ? "block" : "none";
   refreshSoon();

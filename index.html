@@ -48,8 +48,16 @@
           <strong style="flex:1;">💊 Ordonnance</strong>
           <button class="subtle small" id="btn-remove-ordo">✕ retirer</button>
         </div>
+        <div id="ordo-choice" style="display:none; margin-top:8px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <button id="btn-ordo-type" style="padding:20px 10px; border-radius:12px; line-height:1.5;">📋<br><strong>Ordonnance type</strong><br><span style="font-weight:400; font-size:11px;">122 modèles classés, modifiables</span></button>
+            <button id="btn-ordo-vierge" class="ghost" style="padding:20px 10px; border-radius:12px; line-height:1.5; background:#fff;">🗒<br><strong>Ordonnance vierge</strong><br><span style="font-weight:400; font-size:11px;">page blanche</span></button>
+          </div>
+          <div class="hint">Vous choisirez ensuite ordonnance simple ou ALD (bizone).</div>
+        </div>
         <div id="ordolibre-fields" style="margin-top:8px;">
           <div style="display:flex; gap:6px; align-items:flex-end; margin-bottom:8px;">
+            <button type="button" class="small" id="btn-open-ordotypes" title="Choisir une ordonnance type" style="flex:none;">📋 Types</button>
             <label class="field" style="flex:1; margin:0;"><span class="lbl">Mes modèles d'ordonnance</span>
               <select id="ol-modele"></select>
             </label>
@@ -249,6 +257,17 @@
       <div id="wz-feedback"></div>
       <div id="wz-preview" style="margin-top:14px; max-height:520px; overflow-y:auto; background:var(--fond); border-radius:12px; padding:14px;"></div>
     </div>
+  </div>
+</div>
+
+<!-- ============================== MODALE ORDONNANCES TYPES ============================== -->
+<div class="modal-back no-print" id="modal-ordotypes">
+  <div class="modal">
+    <button class="modal-close" data-close>✕</button>
+    <h3>📋 Ordonnances types</h3>
+    <div class="mhint">Classées par domaine — cliquez pour charger dans l'éditeur (le contenu reste entièrement modifiable). Le nom du médecin et le fax du secrétariat sont insérés automatiquement.</div>
+    <label class="field"><input type="text" id="ot-search" placeholder="🔍 Rechercher (ex. IPP, imurel, ferinject, fissure…)" autocomplete="off"></label>
+    <div id="ot-list" style="max-height:55vh; overflow-y:auto;"></div>
   </div>
 </div>
 
