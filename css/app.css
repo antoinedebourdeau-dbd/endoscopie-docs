@@ -1,0 +1,210 @@
+/* ==========================================================================
+   Documents patients — Endoscopie digestive · CHU de Montpellier
+   Interface + aperçu + impression
+   ========================================================================== */
+
+:root {
+  --bleu: #0072BC;
+  --bleu-fonce: #0d2b45;
+  --bleu-mid: #005a94;
+  --orange: #EF7D00;
+  --rouge: #C0392B;
+  --encre: #1c3a52;
+  --gris: #4a5b68;
+  --gris-clair: #7a8794;
+  --fond: #eef2f6;
+  --bord: #d5e2ec;
+  --bleu-pale: #EAF3FB;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--fond); font-family: 'Barlow', -apple-system, sans-serif; color: var(--encre); }
+
+/* ----------------------------------------------------------- layout app -- */
+.topbar {
+  background: var(--bleu-fonce); color: #fff;
+  display: flex; align-items: center; gap: 14px; padding: 10px 22px;
+  position: sticky; top: 0; z-index: 40;
+}
+.topbar img { height: 34px; background: #fff; border-radius: 6px; padding: 3px 6px; }
+.topbar .titles { flex: 1; min-width: 0; line-height: 1.15; }
+.topbar .t1 { font-weight: 800; font-size: 16px; }
+.topbar .t2 { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: .07em; font-size: 11.5px; color: #8fc2ea; }
+.topbar button { flex: none; }
+
+.layout { display: flex; gap: 0; align-items: flex-start; max-width: 1600px; margin: 0 auto; }
+.sidebar {
+  width: 420px; flex: none; padding: 18px 16px 60px 22px;
+  position: sticky; top: 54px; max-height: calc(100vh - 54px); overflow-y: auto;
+}
+.preview { flex: 1; min-width: 0; padding: 18px 22px 80px; }
+
+.panel {
+  background: #fff; border: 1px solid var(--bord); border-radius: 14px;
+  padding: 14px 16px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(13,43,69,.05);
+}
+.panel h2 {
+  font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: .06em;
+  font-size: 13.5px; color: var(--bleu); margin: 0 0 10px; display: flex; align-items: center; gap: 8px;
+}
+.panel h2 .step {
+  flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--bleu); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;
+}
+.panel h2 .spacer { flex: 1; }
+
+/* --------------------------------------------------------------- catalogue */
+.cat-group { margin-bottom: 10px; }
+.cat-title {
+  font-weight: 700; font-size: 13px; color: var(--bleu-fonce);
+  display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;
+  padding: 6px 4px; border-radius: 8px;
+}
+.cat-title:hover { background: var(--bleu-pale); }
+.cat-title .chev { transition: transform .15s; font-size: 11px; color: var(--gris-clair); }
+.cat-group.open .chev { transform: rotate(90deg); }
+.cat-title .count { margin-left: auto; font-weight: 600; font-size: 11px; color: var(--gris-clair); }
+.cat-docs { display: none; padding: 2px 0 4px 8px; }
+.cat-group.open .cat-docs { display: block; }
+
+.doc-item {
+  display: flex; align-items: flex-start; gap: 9px; padding: 5px 6px; border-radius: 8px;
+  font-size: 13px; cursor: pointer; line-height: 1.3;
+}
+.doc-item:hover { background: var(--bleu-pale); }
+.doc-item input { margin: 2px 0 0; accent-color: var(--bleu); flex: none; }
+.doc-item .sub { color: var(--gris-clair); font-size: 11px; }
+.doc-item .badge-local {
+  font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: .04em;
+  font-size: 10px; color: #8a5a00; background: #FFF4E6; border: 1px solid #f3c98a;
+  border-radius: 5px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px;
+}
+
+/* ------------------------------------------------------------------ champs */
+label.field { display: block; margin-bottom: 9px; font-size: 12px; color: var(--gris); font-weight: 600; }
+label.field span.lbl { display: block; margin-bottom: 3px; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: .05em; font-size: 11px; }
+input[type=text], input[type=date], input[type=tel], select, textarea {
+  width: 100%; border: 1px solid var(--bord); border-radius: 8px; padding: 8px 10px;
+  font: 500 13.5px 'Barlow', sans-serif; color: var(--encre); background: #fff;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid #8fc2ea; border-color: var(--bleu); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+
+/* ----------------------------------------------------------------- boutons */
+button {
+  font: 700 13.5px 'Barlow', sans-serif; border: none; border-radius: 9px;
+  padding: 9px 16px; cursor: pointer; color: #fff; background: var(--bleu);
+}
+button:hover { filter: brightness(1.08); }
+button.big { font-size: 15px; padding: 12px 20px; width: 100%; }
+button.orange { background: var(--orange); }
+button.ghost { background: #fff; color: var(--bleu); border: 1.5px solid var(--bleu); }
+button.ghost:hover { background: var(--bleu-pale); }
+button.subtle { background: #edf2f7; color: var(--gris); font-weight: 600; }
+button.danger { background: #fff; color: var(--rouge); border: 1.5px solid var(--rouge); }
+button.small { padding: 5px 10px; font-size: 12px; border-radius: 7px; }
+.btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+.hint { font-size: 11.5px; color: var(--gris-clair); line-height: 1.45; margin-top: 6px; }
+.pill-info {
+  background: var(--bleu-pale); border: 1px solid #cfe1f0; border-radius: 9px;
+  padding: 8px 12px; font-size: 12px; color: var(--encre); line-height: 1.45; margin-top: 8px;
+}
+
+/* ------------------------------------------------------------------ modale */
+.modal-back {
+  display: none; position: fixed; inset: 0; background: rgba(13,43,69,.45); z-index: 100;
+  align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto;
+}
+.modal-back.open { display: flex; }
+.modal {
+  background: #fff; border-radius: 16px; width: 640px; max-width: 100%;
+  padding: 20px 24px 24px; box-shadow: 0 12px 40px rgba(13,43,69,.3);
+}
+.modal.wide { width: 860px; }
+.modal h3 { margin: 0 0 4px; font-size: 19px; color: var(--bleu-fonce); font-weight: 800; }
+.modal .mhint { font-size: 12.5px; color: var(--gris); margin-bottom: 14px; }
+.modal-close { float: right; background: none; color: var(--gris-clair); font-size: 20px; padding: 0 6px; }
+.modal-close:hover { color: var(--rouge); filter: none; }
+
+.med-row {
+  display: flex; align-items: center; gap: 10px; border: 1px solid var(--bord);
+  border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; font-size: 13px;
+}
+.med-row .info { flex: 1; min-width: 0; }
+.med-row .nom { font-weight: 700; color: var(--bleu-fonce); }
+.med-row .det { color: var(--gris-clair); font-size: 11.5px; }
+
+/* --------------------------------------------------------- wizard nouveau doc */
+.wsteps { display: flex; gap: 6px; margin: 10px 0 16px; }
+.wsteps .ws {
+  flex: 1; text-align: center; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;
+  letter-spacing: .04em; font-size: 11px; color: var(--gris-clair);
+  border-top: 3px solid var(--bord); padding-top: 5px;
+}
+.wsteps .ws.on { color: var(--bleu); border-top-color: var(--bleu); font-weight: 700; }
+.wpane { display: none; }
+.wpane.on { display: block; }
+textarea.mono { font: 12px/1.5 ui-monospace, 'SF Mono', Menlo, monospace; min-height: 140px; resize: vertical; }
+.validation-ok { color: #146c3a; background: #E6F4EC; border: 1px solid #b7dfc6; border-radius: 9px; padding: 8px 12px; font-size: 12.5px; margin-top: 8px; }
+.validation-err { color: var(--rouge); background: #FCECEA; border: 1px solid #e7b3ab; border-radius: 9px; padding: 8px 12px; font-size: 12.5px; margin-top: 8px; white-space: pre-wrap; }
+
+/* =================================================================== APERÇU */
+#print-root { display: block; }
+.preview-empty {
+  border: 2px dashed var(--bord); border-radius: 16px; padding: 60px 30px;
+  text-align: center; color: var(--gris-clair); font-size: 15px;
+}
+
+/* Feuilles à l'écran */
+section.doc, section.fiche > .fichepage {
+  background: #fff; width: 210mm; max-width: 100%; margin: 0 auto 22px;
+  box-shadow: 0 2px 14px rgba(13, 43, 69, .14); border-radius: 2px;
+}
+section.doc { min-height: 297mm; padding: 10mm 12mm; }
+.frame { width: 100%; border-collapse: collapse; }
+.frame td { padding: 0; vertical-align: top; }
+.bodycell { padding: 14px 0; }
+.hdr-spacer { height: 2mm; }
+
+/* Fiches illustrées : gabarit fixe A4 */
+.fichepage { position: relative; width: 210mm; height: 297mm; padding: 14mm; overflow: hidden; }
+
+/* ================================================================ IMPRESSION */
+@page { size: A4 portrait; margin: 0; }
+
+@media print {
+  html, body { background: none; }
+  .topbar, .sidebar, .no-print { display: none !important; }
+  .layout, .preview { display: block; padding: 0; margin: 0; max-width: none; }
+  .preview-empty { display: none; }
+
+  *, *::before, *::after { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  section.doc {
+    width: auto; min-height: 0; margin: 0; padding: 0 12mm;
+    box-shadow: none; border-radius: 0;
+  }
+  #print-root > section + section { break-before: page; }
+
+  /* En-tête / pied répétés à chaque page : ils portent les marges verticales */
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  .hdr { padding-top: 9mm; }
+  .ftr { padding-bottom: 9mm; padding-top: 2mm; }
+  .hdr-spacer { height: 12mm; padding-top: 0; }
+
+  h1, h2 { break-after: avoid; }
+  tr, img, figure { break-inside: avoid; }
+  p, div { orphans: 3; widows: 3; }
+
+  /* Pages internes des guides (ordonnances) */
+  .page-break { break-before: page; }
+
+  /* Fiches illustrées : pleine page, gabarit exact */
+  section.fiche > .fichepage {
+    margin: 0; box-shadow: none; border-radius: 0;
+    break-before: page;
+  }
+  section.fiche > .fichepage:first-child { break-before: auto; }
+}

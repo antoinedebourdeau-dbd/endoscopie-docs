@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documents patients — Endoscopie digestive · CHU de Montpellier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="topbar no-print">
+  <img src="chu-logo.webp" alt="CHU de Montpellier">
+  <div class="titles">
+    <div class="t1">Documents patients — Endoscopie digestive</div>
+    <div class="t2">CHU de Montpellier · Hépato-Gastroentérologie</div>
+  </div>
+  <button class="ghost" id="btn-new-doc" style="background:#fff;">＋ Nouveau document</button>
+  <button class="ghost" id="btn-medecins" style="background:#fff;">Gérer les médecins</button>
+  <button class="orange" id="btn-repro">Pack reprographie</button>
+</header>
+
+<div class="layout">
+  <aside class="sidebar no-print">
+
+    <!-- ÉTAPE 1 : documents -->
+    <div class="panel">
+      <h2><span class="step">1</span> Choisir les documents <span class="spacer"></span>
+        <button class="subtle small" id="btn-import-doc" title="Importer un document JSON partagé par un collègue">Importer</button>
+      </h2>
+      <div id="catalogue"></div>
+    </div>
+
+    <!-- ÉTAPE 2 : médecin -->
+    <div class="panel">
+      <h2><span class="step">2</span> Médecin</h2>
+      <label class="field"><span class="lbl">Médecin référent</span>
+        <select id="sel-medecin"></select>
+      </label>
+      <div id="medecin-libre" style="display:none;">
+        <div class="grid2">
+          <label class="field"><span class="lbl">Nom (ex. Dr Prénom NOM)</span><input type="text" id="ml-nom" placeholder="Dr …"></label>
+          <label class="field"><span class="lbl">Spécialité</span><input type="text" id="ml-spec" value="Hépato-Gastroentérologie"></label>
+          <label class="field"><span class="lbl">Tél. secrétariat</span><input type="tel" id="ml-tel" placeholder="04 67 33 …"></label>
+          <label class="field"><span class="lbl">RPPS (pour l'ordonnance)</span><input type="text" id="ml-rpps" placeholder="11 chiffres"></label>
+        </div>
+      </div>
+      <label class="doc-item" style="margin-top:4px;">
+        <input type="checkbox" id="chk-generic">
+        <span>Version <strong>générique</strong> — sans médecin ni patient (reprographie)</span>
+      </label>
+    </div>
+
+    <!-- ÉTAPE 3 : patient -->
+    <div class="panel" id="panel-patient">
+      <h2><span class="step">3</span> Patient <span style="color:var(--gris-clair); font-weight:600; text-transform:none; letter-spacing:0;">(optionnel)</span></h2>
+      <div class="grid2">
+        <label class="field"><span class="lbl">Nom</span><input type="text" id="pt-nom" autocomplete="off"></label>
+        <label class="field"><span class="lbl">Prénom</span><input type="text" id="pt-prenom" autocomplete="off"></label>
+        <label class="field"><span class="lbl">Date de naissance</span><input type="date" id="pt-ddn"></label>
+        <label class="field"><span class="lbl">Date de l'examen</span><input type="date" id="pt-examen"></label>
+      </div>
+      <div class="hint">Les informations patient restent dans ce navigateur : rien n'est transmis sur internet.</div>
+    </div>
+
+    <!-- IMPRESSION -->
+    <div class="panel">
+      <button class="big" id="btn-print" disabled>🖨 Imprimer / Enregistrer en PDF</button>
+      <div class="hint">Un seul flux d'impression : chaque document démarre sur une nouvelle page. Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF » pour obtenir le fichier.</div>
+      <div class="hint" style="margin-top:10px;"><a href="endoscopie-docs-hors-ligne.zip" download>⬇ Télécharger la version hors-ligne</a> (dossier à copier sur un poste sans internet).</div>
+    </div>
+  </aside>
+
+  <main class="preview">
+    <div class="preview-empty no-print" id="preview-empty">Cochez un ou plusieurs documents pour afficher l'aperçu.</div>
+    <div id="print-root"></div>
+  </main>
+</div>
+
+<!-- ============================== MODALE MÉDECINS ============================== -->
+<div class="modal-back no-print" id="modal-medecins">
+  <div class="modal">
+    <button class="modal-close" data-close>✕</button>
+    <h3>Gérer les médecins</h3>
+    <div class="mhint">La liste est enregistrée dans ce navigateur. Utilisez Exporter / Importer pour la partager entre postes ou avec les collègues.</div>
+    <div id="med-list"></div>
+    <div class="btnrow">
+      <button id="btn-med-add">＋ Ajouter un médecin</button>
+      <button class="ghost" id="btn-med-export">Exporter la liste</button>
+      <button class="ghost" id="btn-med-import">Importer une liste</button>
+    </div>
+    <form id="med-form" style="display:none; margin-top:14px; border-top:1px solid var(--bord); padding-top:12px;">
+      <input type="hidden" id="mf-id">
+      <div class="grid2">
+        <label class="field"><span class="lbl">Nom affiché *</span><input type="text" id="mf-nom" placeholder="Dr Prénom NOM" required></label>
+        <label class="field"><span class="lbl">Spécialité</span><input type="text" id="mf-spec" value="Hépato-Gastroentérologie"></label>
+        <label class="field"><span class="lbl">Tél. secrétariat</span><input type="tel" id="mf-tel" placeholder="04 67 33 …"></label>
+        <label class="field"><span class="lbl">Fax (optionnel)</span><input type="tel" id="mf-fax"></label>
+        <label class="field"><span class="lbl">RPPS (11 chiffres — ordonnances)</span><input type="text" id="mf-rpps"></label>
+      </div>
+      <div class="validation-err" id="mf-err" style="display:none;"></div>
+      <div class="btnrow">
+        <button type="submit">Enregistrer</button>
+        <button type="button" class="subtle" id="mf-cancel">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================== MODALE NOUVEAU DOC ============================== -->
+<div class="modal-back no-print" id="modal-wizard">
+  <div class="modal wide">
+    <button class="modal-close" data-close>✕</button>
+    <h3>Nouveau document</h3>
+    <div class="mhint">Création guidée : le site prépare un prompt calibré pour Claude, puis vérifie et met en forme le résultat avec la charte du service.</div>
+    <div class="wsteps">
+      <div class="ws on" data-ws="1">1 · Type & section</div>
+      <div class="ws" data-ws="2">2 · Texte source</div>
+      <div class="ws" data-ws="3">3 · Prompt → Claude</div>
+      <div class="ws" data-ws="4">4 · Vérification & aperçu</div>
+    </div>
+
+    <div class="wpane on" data-wp="1">
+      <div class="grid2">
+        <label class="field"><span class="lbl">Type de document</span>
+          <select id="wz-kind">
+            <option value="info">Fiche d'information (sans consentement)</option>
+            <option value="consent">Note d'information &amp; consentement</option>
+          </select>
+        </label>
+        <label class="field"><span class="lbl">Section du catalogue</span>
+          <select id="wz-section"></select>
+        </label>
+      </div>
+      <label class="field"><span class="lbl">Titre souhaité (optionnel)</span><input type="text" id="wz-title" placeholder="ex. Traitement par anti-TNF (infliximab)"></label>
+      <div class="btnrow"><button id="wz-next-1">Continuer →</button></div>
+    </div>
+
+    <div class="wpane" data-wp="2">
+      <label class="field"><span class="lbl">Collez ici votre texte source (notes, protocole, ancien document…)</span>
+        <textarea id="wz-source" rows="10" placeholder="Le contenu médical à mettre en forme. Plus il est précis, meilleur sera le document."></textarea>
+      </label>
+      <div class="btnrow"><button class="subtle" data-wback="1">← Retour</button><button id="wz-next-2">Générer le prompt →</button></div>
+    </div>
+
+    <div class="wpane" data-wp="3">
+      <div class="pill-info">1. Copiez le prompt ci-dessous · 2. Collez-le dans <strong>Claude</strong> (claude.ai) · 3. Copiez la réponse JSON de Claude · 4. Passez à l'étape suivante.</div>
+      <textarea id="wz-prompt" class="mono" rows="10" readonly style="margin-top:10px;"></textarea>
+      <div class="btnrow">
+        <button class="subtle" data-wback="2">← Retour</button>
+        <button id="wz-copy">📋 Copier le prompt</button>
+        <button id="wz-next-3">J'ai la réponse →</button>
+      </div>
+    </div>
+
+    <div class="wpane" data-wp="4">
+      <label class="field"><span class="lbl">Collez la réponse JSON de Claude</span>
+        <textarea id="wz-json" class="mono" rows="8" placeholder='{ "geste": …'></textarea>
+      </label>
+      <div class="btnrow">
+        <button class="subtle" data-wback="3">← Retour</button>
+        <button id="wz-validate">Vérifier &amp; prévisualiser</button>
+        <button id="wz-save" style="display:none;" class="orange">✔ Enregistrer dans le catalogue</button>
+      </div>
+      <div id="wz-feedback"></div>
+      <div id="wz-preview" style="margin-top:14px; max-height:520px; overflow-y:auto; background:var(--fond); border-radius:12px; padding:14px;"></div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="file-input" accept="application/json,.json" style="display:none;">
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
