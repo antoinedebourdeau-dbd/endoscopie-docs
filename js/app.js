@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.5";
+export const APP_VERSION = "3.6";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -795,26 +795,28 @@ async function downloadEml(to, sujet, corps, pdfBlob, fichierPdf) {
       if (cp === 32) return "_";
       return /[A-Za-z0-9!*+\-/]/.test(String.fromCharCode(cp)) ? String.fromCharCode(cp) : "=" + cp.toString(16).toUpperCase().padStart(2, "0");
     }).join("");
+  // Les en-têtes MIME n'acceptent que l'ASCII : nom de PJ sans accents
+  const fichierAscii = fichierPdf.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\x20-\x7E]/g, "_");
   const eml = [
     "X-Unsent: 1",
     `To: ${to}`,
     `Subject: =?windows-1252?Q?${subjQ}?=`,
     "MIME-Version: 1.0",
-    'Content-Type: multipart/mixed; boundary="=_ENDOC_1"',
+    'Content-Type: multipart/mixed; boundary="DOCHGE-PART"',
     "",
-    "--=_ENDOC_1",
+    "--DOCHGE-PART",
     "Content-Type: text/plain; charset=windows-1252",
     "Content-Transfer-Encoding: quoted-printable",
     "",
     qpCp1252(corps),
     "",
-    "--=_ENDOC_1",
-    `Content-Type: application/pdf; name="${fichierPdf}"`,
+    "--DOCHGE-PART",
+    `Content-Type: application/pdf; name="${fichierAscii}"`,
     "Content-Transfer-Encoding: base64",
-    `Content-Disposition: attachment; filename="${fichierPdf}"`,
+    `Content-Disposition: attachment; filename="${fichierAscii}"`,
     "",
     b64.replace(/(.{76})/g, "$1\r\n"),
-    "--=_ENDOC_1--",
+    "--DOCHGE-PART--",
     "",
   ].join("\r\n");
   const a = document.createElement("a");
