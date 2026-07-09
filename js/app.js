@@ -1,5 +1,9 @@
 // Interface principale — catalogue, médecin, patient, aperçu, impression.
 
+// Version affichée dans le bandeau — à incrémenter à chaque déploiement
+// (permet de vérifier qu'un poste n'exécute pas une version en cache).
+export const APP_VERSION = "1.8";
+
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
 import { listMedecins, saveMedecin, removeMedecin, exportMedecins, importMedecins, checkRpps } from "./doctors.js";
@@ -512,42 +516,60 @@ function mailtoEncode(s) {
   return out;
 }
 
-/** Encodage quoted-printable (UTF-8) — accents fiables dans Outlook. */
-function qpEncode(s) {
-  const bytes = new TextEncoder().encode(s.replace(/\r?\n/g, "\r\n"));
+/**
+ * Construit et télécharge un brouillon .eml (X-Unsent) avec le PDF en pièce
+ * jointe. Texte encodé en windows-1252 (l'encodage qu'Outlook PC utilise par
+ * défaut) : les accents restent corrects même si Outlook ignore le charset.
+ */
+function qpCp1252(s) {
+  // même substitution typographique que mailtoEncode, puis octets latin-1
+  s = String(s).replace(/[—–’‘«»…•œŒ€ ☑☐]/g, (c) => MAILTO_SUBST[c] ?? "");
+  s = s.replace(/\r?\n/g, "\r\n");
   let out = "", line = "";
-  for (const b of bytes) {
-    if (b === 13) continue;
-    if (b === 10) { out += line + "\r\n"; line = ""; continue; }
-    const tok = (b >= 33 && b <= 126 && b !== 61) || b === 32 || b === 9
-      ? String.fromCharCode(b)
-      : "=" + b.toString(16).toUpperCase().padStart(2, "0");
+  for (const ch of s) {
+    let cp = ch.codePointAt(0);
+    if (cp === 13) continue;
+    if (cp === 10) { out += line + "\r\n"; line = ""; continue; }
+    if (cp > 255) {
+      const a = ch.normalize("NFD").replace(/[̀-ͯ]/g, "");
+      cp = a.codePointAt(0) ?? 63;
+      if (cp > 255) cp = 63;
+    }
+    const tok = (cp >= 33 && cp <= 126 && cp !== 61) || cp === 32 || cp === 9
+      ? String.fromCharCode(cp)
+      : "=" + cp.toString(16).toUpperCase().padStart(2, "0");
     if (line.length + tok.length >= 74) { out += line + "=\r\n"; line = ""; }
     line += tok;
   }
   return out + line;
 }
 
-/** Construit et télécharge un brouillon .eml (X-Unsent) avec le PDF en pièce jointe. */
 async function downloadEml(to, sujet, corps, pdfBlob, fichierPdf) {
   const b64 = await new Promise((ok) => {
     const r = new FileReader();
     r.onload = () => ok(String(r.result).split(",")[1]);
     r.readAsDataURL(pdfBlob);
   });
-  const b64utf8 = (s) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+  // Sujet en windows-1252 (Q-encoding) — accents fiables sur Outlook PC
+  const subjQ = [...sujet.replace(/[—–’‘«»…•œŒ€ ☑☐]/g, (c) => MAILTO_SUBST[c] ?? "")]
+    .map((ch) => {
+      let cp = ch.codePointAt(0);
+      if (cp > 255) { const a = ch.normalize("NFD").replace(/[̀-ͯ]/g, ""); cp = a.codePointAt(0) ?? 63; if (cp > 255) cp = 63; }
+      if (cp === 32) return "_";
+      return /[A-Za-z0-9!*+\-/]/.test(String.fromCharCode(cp)) ? String.fromCharCode(cp) : "=" + cp.toString(16).toUpperCase().padStart(2, "0");
+    }).join("");
   const eml = [
     "X-Unsent: 1",
     `To: ${to}`,
-    `Subject: =?UTF-8?B?${b64utf8(sujet)}?=`,
+    `Subject: =?windows-1252?Q?${subjQ}?=`,
     "MIME-Version: 1.0",
     'Content-Type: multipart/mixed; boundary="=_ENDOC_1"',
     "",
     "--=_ENDOC_1",
-    "Content-Type: text/plain; charset=utf-8",
+    "Content-Type: text/plain; charset=windows-1252",
     "Content-Transfer-Encoding: quoted-printable",
     "",
-    qpEncode(corps),
+    qpCp1252(corps),
     "",
     "--=_ENDOC_1",
     `Content-Type: application/pdf; name="${fichierPdf}"`,
@@ -864,6 +886,7 @@ const PARCOURS_PREDEF = [
   { name: "Coloscopie", desc: "Note info + ordonnance de préparation + demande d'examen", docs: ["note:coloscopie"], prepChoice: true, demande: { examens: ["coloscopie"], ag: "oui" } },
   { name: "Gastroscopie", desc: "Note info + demande d'examen", docs: ["note:gastroscopie"], demande: { examens: ["gastroscopie"], ag: "oui" } },
   { name: "Gastroscopie + Coloscopie", desc: "2 notes + préparation + demande (2 examens)", docs: ["note:gastroscopie", "note:coloscopie"], prepChoice: true, demande: { examens: ["gastroscopie", "coloscopie"], ag: "oui" } },
+  { name: "Dissection colique (ESD)", desc: "Note ESD colique + préparation + demande (acte : dissection sous-muqueuse)", docs: ["note:dsm_colique"], prepChoice: true, demande: { examens: ["coloscopie"], ag: "oui", actes: "Dissection sous-muqueuse colique (ESD)" } },
   { name: "CPRE", desc: "Note info + demande d'examen", docs: ["note:cpre"], demande: { examens: ["cpre"], ag: "oui" } },
   { name: "Échoendoscopie (± ponction)", desc: "Note info ponction + demande d'examen", docs: ["note:ponction_echo"], demande: { examens: ["echoendoscopie"], ag: "oui" } },
 ];
@@ -1246,6 +1269,8 @@ $("#wl-add-me").addEventListener("click", () => {
 const now = new Date();
 $("#doc-date").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 $("#doc-date").addEventListener("input", refreshSoon);
+
+document.querySelector(".topbar .t2").textContent += ` · v${APP_VERSION}`;
 
 renderCatalog();
 renderMedecinSelect();
