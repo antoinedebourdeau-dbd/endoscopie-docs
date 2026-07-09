@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.7";
+export const APP_VERSION = "3.8";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -864,12 +864,6 @@ async function generateAllEmails() {
   for (const d of todo) { jobs.push(await buildDemandeJob(d)); prog(); }
   if ($("#chk-mail-patient").checked) { jobs.push(await buildPatientJob()); prog(); }
   if (!jobs.length) throw new Error("Aucun envoi coché.");
-  for (const j of jobs) {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(j.blob); a.download = j.fichier; a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-    await new Promise((ok) => setTimeout(ok, 600)); // téléchargements successifs
-  }
   sendJobs = jobs;
   $("#toast").style.display = "none";
   renderSendModal();
@@ -883,53 +877,81 @@ function openMailDraft(j) {
   location.href = url;
 }
 
+const SENDMETHOD_KEY = "endoc.sendmethod";
+const getSendMethod = () => localStorage.getItem(SENDMETHOD_KEY) || "mailto";
+
+function downloadBlob(blob, fichier) {
+  const el = document.createElement("a");
+  el.href = URL.createObjectURL(blob); el.download = fichier; el.click();
+  setTimeout(() => URL.revokeObjectURL(el.href), 60000);
+}
+
+async function sendOneJob(j, method, statusEl) {
+  if (method === "eml") {
+    await downloadEml(j.to, j.sujet, j.corps, j.blob, j.fichier);
+    if (statusEl) statusEl.textContent = "· brouillon .eml téléchargé ✓";
+  } else {
+    downloadBlob(j.blob, j.fichier);
+    await new Promise((ok) => setTimeout(ok, 400));
+    openMailDraft(j);
+    if (statusEl) statusEl.textContent = "· mail ouvert ✓ (glissez le PDF)";
+  }
+}
+
 function renderSendModal() {
+  const method = getSendMethod();
   $("#send-list").innerHTML = sendJobs.map((j, i) => `
     <div class="med-row" style="align-items:flex-start;">
       <input type="checkbox" data-send-chk="${i}" checked style="margin-top:6px; accent-color:var(--bleu); flex:none;">
       <div class="info">
         <div class="nom">${j.label}</div>
-        <div class="det">À : <strong>${j.to}</strong><br>PJ à glisser : ${j.fichier} <span style="color:#146c3a;">(téléchargé ✓)</span> <span data-status="${i}" style="color:#146c3a; font-weight:700;"></span></div>
+        <div class="det">À : <strong>${j.to}</strong><br>PJ : ${j.fichier} <span data-status="${i}" style="color:#146c3a; font-weight:700;"></span></div>
       </div>
-      <button class="subtle small" data-open-mail="${i}">📧 Ouvrir seul</button>
+      <button class="subtle small" data-open-mail="${i}">Envoyer seul</button>
     </div>`).join("") +
-    `<div class="btnrow" style="margin-top:10px;">
-      <button class="big orange" id="send-all-mails">📧 Ouvrir tous les mails sélectionnés (l'un après l'autre)</button>
-    </div>
-    <div class="hint" style="margin-top:8px;">Les brouillons s'ouvrent automatiquement <strong>toutes les ~2 secondes</strong> — laissez-les s'ouvrir, puis glissez dans chacun le PDF portant le même nom, et envoyez.</div>
-    <div class="hint" style="margin-top:6px;">Selon votre version d'Outlook, vous pouvez aussi essayer les <a href="#" id="send-eml-all">brouillons .eml avec PJ déjà incluse</a> — si le texte ou la pièce jointe s'affichent mal, restez sur la méthode principale.</div>`;
+    `<div class="mhint" style="margin:12px 0 4px;"><strong>Méthode d'envoi</strong></div>
+    <label class="doc-item" style="border:1.5px solid ${method === "mailto" ? "var(--bleu)" : "var(--bord)"}; border-radius:10px; padding:8px 10px; ${method === "mailto" ? "background:var(--bleu-pale);" : ""}">
+      <input type="radio" name="sendmethod" value="mailto" ${method === "mailto" ? "checked" : ""}>
+      <span><strong>📧 Mail pré-rempli + PDF à joindre à la main</strong><br>
+      <span class="sub">Le brouillon s'ouvre dans votre messagerie, le PDF se télécharge : glissez-le dans le mail puis envoyez. Compatible partout.</span></span>
+    </label>
+    <label class="doc-item" style="border:1.5px solid ${method === "eml" ? "var(--bleu)" : "var(--bord)"}; border-radius:10px; padding:8px 10px; margin-top:6px; ${method === "eml" ? "background:var(--bleu-pale);" : ""}">
+      <input type="radio" name="sendmethod" value="eml" ${method === "eml" ? "checked" : ""}>
+      <span><strong>📎 Brouillon .eml avec PJ déjà incluse</strong><br>
+      <span class="sub">Un fichier .eml se télécharge, PDF déjà joint : double-cliquez-le → il s'ouvre prêt à envoyer. Validé sur Mac ✓ — à tester sur Outlook PC.</span></span>
+    </label>
+    <div class="btnrow" style="margin-top:10px;">
+      <button class="big orange" id="send-all-mails">🚀 Générer les envois sélectionnés</button>
+    </div>`;
+
+  $$('#modal-send input[name="sendmethod"]').forEach((r) => r.addEventListener("change", () => {
+    localStorage.setItem(SENDMETHOD_KEY, r.value);
+    renderSendModal();
+  }));
 
   $$("#send-list [data-open-mail]").forEach((b) =>
     b.addEventListener("click", () => {
-      openMailDraft(sendJobs[Number(b.dataset.openMail)]);
-      document.querySelector(`[data-status="${b.dataset.openMail}"]`).textContent = "· mail ouvert ✓";
+      const i = Number(b.dataset.openMail);
+      sendOneJob(sendJobs[i], getSendMethod(), document.querySelector(`[data-status="${i}"]`))
+        .catch((e) => toast("❌ " + e.message, 6000));
     }));
 
   $("#send-all-mails").addEventListener("click", async () => {
+    const method = getSendMethod();
     const chosen = sendJobs.map((j, i) => ({ j, i })).filter(({ i }) => document.querySelector(`[data-send-chk="${i}"]`)?.checked);
     if (!chosen.length) { toast("Aucun envoi coché.", 4000); return; }
     const btn = $("#send-all-mails");
     btn.disabled = true;
     for (let k = 0; k < chosen.length; k++) {
       const { j, i } = chosen[k];
-      btn.textContent = `📧 Ouverture ${k + 1} / ${chosen.length}…`;
-      openMailDraft(j);
-      const st = document.querySelector(`[data-status="${i}"]`);
-      if (st) st.textContent = "· mail ouvert ✓";
-      if (k < chosen.length - 1) await new Promise((ok) => setTimeout(ok, 2200)); // laisse Outlook ouvrir chaque brouillon
+      btn.textContent = `🚀 Envoi ${k + 1} / ${chosen.length}…`;
+      await sendOneJob(j, method, document.querySelector(`[data-status="${i}"]`));
+      if (k < chosen.length - 1) await new Promise((ok) => setTimeout(ok, method === "eml" ? 700 : 2200));
     }
-    btn.textContent = `✓ ${chosen.length} brouillon(s) ouvert(s) — joignez les PDF puis envoyez`;
-    toastNext(`📧 ${chosen.length} brouillon(s) ouvert(s) — joignez les PDF puis envoyez.`);
-  });
-
-  const emlAll = document.querySelector("#send-eml-all");
-  if (emlAll) emlAll.addEventListener("click", async (e) => {
-    e.preventDefault();
-    const chosen = sendJobs.filter((j, i) => document.querySelector(`[data-send-chk="${i}"]`)?.checked);
-    for (const j of chosen) {
-      await downloadEml(j.to, j.sujet, j.corps, j.blob, j.fichier);
-      await new Promise((ok) => setTimeout(ok, 600));
-    }
+    btn.textContent = method === "eml"
+      ? `✓ ${chosen.length} brouillon(s) .eml téléchargé(s) — double-cliquez chacun puis Envoyer`
+      : `✓ ${chosen.length} mail(s) ouvert(s) — glissez chaque PDF puis Envoyer`;
+    toastNext(`📧 ${chosen.length} envoi(s) généré(s).`);
   });
 }
 
