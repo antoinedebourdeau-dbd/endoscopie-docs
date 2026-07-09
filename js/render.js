@@ -300,6 +300,108 @@ export function renderOrdo(key, ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// Ordonnance libre (simple ou ALD bizone)
+// ---------------------------------------------------------------------------
+
+function rxLines(text) {
+  const lines = String(text || "").split("\n").map((l) => l.trim());
+  const out = [];
+  for (const l of lines) {
+    if (!l) { out.push(`<div style="height:6px;"></div>`); continue; }
+    out.push(
+      `<div style="display:flex; gap:12px;"><span style="flex:none; color:#0072BC; font-weight:800;">℞</span><span style="flex:1;">${esc(l)}</span></div>`
+    );
+  }
+  return `<div style="margin-top:14px; display:flex; flex-direction:column; gap:12px; font-size:14.5px; line-height:1.5;">${out.join("")}</div>`;
+}
+
+/**
+ * opts = { mode: "ald" | "simple", textAld, textNonAld, texte, duree }
+ * — mode "ald" : bizone (zone ALD 100 % + zone hors ALD) ;
+ * — mode "simple" : une seule zone, sans mention ALD.
+ */
+export function renderOrdoLibre(opts, ctx) {
+  const med = ctx.medecin;
+  const p = ctx.patient;
+  const svc = SERVICES.endoscopie;
+  const t = ordoTokens(ctx); // réutilise bloc patient / RPPS / date
+
+  const medBlock = `<div style="flex:1; ${F} color:#0d2b45;">
+      <div style="${F} font-weight:700; font-size:15px; line-height:1.15;">${t["@@MED_NOM@@"]}</div>
+      <div style="font-size:12px; color:#0072BC; font-weight:600;">${t["@@MED_SPEC@@"]}</div>
+      <div style="font-size:11px; color:#4a5b68; margin-top:4px; line-height:1.5;">CHU de Montpellier<br>Hospitalisation : 04 67 33 70 65<br>${t["@@MED_TEL_LINE@@"]}</div>
+      ${t["@@RPPS_BLOCK@@"]}
+    </div>`;
+
+  const dureeLine = opts.duree
+    ? `<div style="font-size:12.5px; color:#1c3a52; margin-top:16px;"><strong>Durée du traitement :</strong> ${esc(opts.duree)}</div>`
+    : "";
+
+  let zones = "";
+  if (opts.mode === "ald") {
+    zones = `
+    <div style="border:1.5px solid #0072BC; border-radius:10px; overflow:hidden; margin-top:16px;">
+      <div style="background:#EAF3FB; padding:7px 14px; ${F} font-weight:700; font-size:12px; color:#0d2b45; border-bottom:1px solid #cfe1f0;">Prescriptions relatives au traitement de l'affection de longue durée reconnue (liste ou hors liste)<span style="font-weight:600; color:#4a5b68;"> — AFFECTION EXONÉRANTE</span></div>
+      <div style="padding:2px 16px 16px; min-height:150px;">${rxLines(opts.textAld)}</div>
+    </div>
+    <div style="border:1.5px solid #9db4c6; border-radius:10px; overflow:hidden; margin-top:14px;">
+      <div style="background:#f4f7fa; padding:7px 14px; ${F} font-weight:700; font-size:12px; color:#4a5b68; border-bottom:1px solid #dde6ee;">Prescriptions SANS rapport avec l'affection de longue durée<span style="font-weight:600;"> — MALADIES INTERCURRENTES</span></div>
+      <div style="padding:2px 16px 16px; min-height:110px;">${rxLines(opts.textNonAld)}</div>
+    </div>`;
+  } else {
+    zones = `<div style="${F} color:#1c3a52; margin-top:6px;">${rxLines(opts.texte)}</div>`;
+  }
+
+  const body = `
+  <div style="display:flex; gap:16px; align-items:flex-start; border-bottom:2px solid #0072BC; padding-bottom:12px;">
+    ${medBlock}
+    <div style="flex:none; text-align:center;"><img src="chu-logo.webp" alt="CHU de Montpellier" style="height:66px; width:auto;"></div>
+    <div style="flex:1; text-align:right; ${F} color:#0d2b45;">
+      <div style="font-weight:700; font-size:13px;">${esc(svc.nom)}</div>
+      <div style="font-size:11px; color:#4a5b68; margin-top:3px; line-height:1.5;">80, avenue Augustin Fliche<br>34295 Montpellier Cedex 5<br>Tél. ${esc(svc.tel)} / 04 67 33 54 85<br>${esc(svc.mail)}</div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:14px; margin-top:12px; align-items:stretch;">
+    ${t["@@PATIENT_BOX@@"]}
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:6px; ${F}">
+      <div style="display:flex; align-items:center; gap:8px;">${code128svg(FINESS)}<span style="font-size:10px; color:#4a5b68;">FINESS ${FINESS}</span></div>
+    </div>
+    <div style="flex:none; ${F} font-size:12px; color:#4a5b68; text-align:right;">Le ${dotted(110)}</div>
+  </div>
+
+  <div style="text-align:center; margin-top:20px;">
+    <div style="display:inline-block; ${F} font-weight:800; font-size:26px; letter-spacing:.14em; color:#0d2b45; border-bottom:3px solid #EF7D00; padding-bottom:4px;">ORDONNANCE</div>
+  </div>
+
+  <div style="${F} color:#1c3a52; margin-top:4px;">
+    ${zones}
+    ${dureeLine}
+  </div>
+
+  <div style="display:flex; justify-content:flex-end; margin-top:30px;">
+    <div style="width:300px; ${F} color:#1c3a52;">
+      <div style="font-weight:700; font-size:14px; margin-top:10px;">${t["@@MED_NOM@@"]}</div>
+      <div style="font-size:11px; color:#4a5b68;">${t["@@MED_SPEC@@"]} — CHU de Montpellier</div>
+      <div style="border-top:1px dashed #9db4c6; margin-top:40px; padding-top:5px; font-size:10.5px; color:#8a9aa8; text-align:center;">Signature et cachet du prescripteur</div>
+    </div>
+  </div>`;
+
+  const footer = `<div style="display:flex; justify-content:space-between; align-items:center; ${F} font-size:9px; color:#7a8794; border-top:1px solid #d9e2ea; padding-top:5px;">
+    <span>CHU de Montpellier — ${esc(svc.nom)} · ${esc(svc.tel)}</span>
+    <span style="${FC} letter-spacing:.05em; text-transform:uppercase; color:#0072BC; font-weight:600;">Ordonnance</span>
+  </div>`;
+
+  return `<section class="doc">
+    <table class="frame">
+      <thead><tr><td><div class="hdr hdr-spacer"></div></td></tr></thead>
+      <tbody><tr><td class="bodycell">${body}</td></tr></tbody>
+      <tfoot><tr><td><div class="ftr">${footer}</div></td></tr></tfoot>
+    </table>
+  </section>`;
+}
+
+// ---------------------------------------------------------------------------
 // Fiches illustrées (pages A4 à gabarit fixe) — chargées à la demande
 // ---------------------------------------------------------------------------
 
@@ -351,6 +453,7 @@ export async function assembleDocs(items, ctx) {
     if (it.type === "note") parts.push(renderNote(it.slug, ctx));
     else if (it.type === "local") parts.push(renderNote(it.doc, ctx));
     else if (it.type === "ordo") parts.push(renderOrdo(it.key, ctx));
+    else if (it.type === "ordolibre") parts.push(renderOrdoLibre(it.opts, ctx));
     else if (it.type === "fiche") parts.push(await renderFiche(it.key, ctx));
   }
   return parts.join("\n");

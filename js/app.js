@@ -146,8 +146,25 @@ function currentPatient() {
 }
 
 // ------------------------------------------------------------------- aperçu
+function ordoLibreItem() {
+  if (!$("#chk-ordolibre").checked) return null;
+  return {
+    id: "ordolibre",
+    type: "ordolibre",
+    opts: {
+      mode: $("#ol-mode").value,
+      texte: $("#ol-texte").value,
+      textAld: $("#ol-ald").value,
+      textNonAld: $("#ol-nonald").value,
+      duree: $("#ol-duree").value.trim(),
+    },
+  };
+}
+
 function selectedItems() {
   const items = [];
+  const ol = ordoLibreItem();
+  if (ol) items.push(ol);
   for (const g of CATALOG) for (const it of g.items) if (selection.has(it.id)) items.push(it);
   return items;
 }
@@ -381,8 +398,20 @@ $("#sel-medecin").addEventListener("change", () => {
   $("#medecin-libre").style.display = $("#sel-medecin").value === "__libre" ? "block" : "none";
   refreshSoon();
 });
-["#ml-nom", "#ml-spec", "#ml-tel", "#ml-rpps", "#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen"]
+["#ml-nom", "#ml-spec", "#ml-tel", "#ml-rpps", "#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen",
+ "#ol-texte", "#ol-ald", "#ol-nonald", "#ol-duree"]
   .forEach((id) => $(id).addEventListener("input", refreshSoon));
+
+$("#chk-ordolibre").addEventListener("change", () => {
+  $("#ordolibre-fields").style.display = $("#chk-ordolibre").checked ? "block" : "none";
+  refreshSoon();
+});
+$("#ol-mode").addEventListener("change", () => {
+  const ald = $("#ol-mode").value === "ald";
+  $("#ol-zone-simple").style.display = ald ? "none" : "block";
+  $("#ol-zone-ald").style.display = ald ? "block" : "none";
+  refreshSoon();
+});
 $("#chk-generic").addEventListener("change", () => {
   $("#panel-patient").style.opacity = $("#chk-generic").checked ? ".45" : "1";
   refreshSoon();
