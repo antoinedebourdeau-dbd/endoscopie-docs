@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.2";
+export const APP_VERSION = "3.3";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -234,9 +234,19 @@ async function refresh() {
   const items = selectedItems();
   $("#btn-print").disabled = !items.length;
   $("#preview-empty").style.display = items.length ? "none" : "block";
-  const nCat = [...selection].length;
-  $("#sel-count").style.display = nCat ? "block" : "none";
-  if (nCat) $("#sel-count").innerHTML = `<strong>${nCat} document${nCat > 1 ? "s" : ""} coché${nCat > 1 ? "s" : ""}</strong> — <a href="#" id="clear-sel">tout décocher</a>`;
+  const selItems = [];
+  for (const g of CATALOG) for (const it of g.items) if (selection.has(it.id)) selItems.push(it);
+  $("#sel-count").style.display = selItems.length ? "block" : "none";
+  if (selItems.length) {
+    $("#sel-count").innerHTML =
+      `<div style="margin-bottom:4px;"><strong>${selItems.length} document${selItems.length > 1 ? "s" : ""} coché${selItems.length > 1 ? "s" : ""}</strong> — <a href="#" id="clear-sel">tout décocher</a></div>
+      <div style="display:flex; flex-wrap:wrap; gap:4px;">
+        ${selItems.map((it) => `<span style="display:inline-flex; align-items:center; gap:5px; background:var(--bleu-pale); border:1px solid #cfe1f0; border-radius:20px; padding:2px 4px 2px 9px; font-size:11px; color:var(--bleu-fonce); max-width:100%;">
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:240px;">${it.label}</span>
+          <a href="#" data-unsel="${it.id}" title="Décocher ce document" style="flex:none; width:15px; height:15px; border-radius:50%; background:#fff; color:var(--rouge); font-weight:800; font-size:10px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; border:1px solid #e7b3ab;">✕</a>
+        </span>`).join("")}
+      </div>`;
+  }
 
   const seq = ++renderSeq;
   const ctx = {
@@ -1372,8 +1382,16 @@ $("#etp-search").addEventListener("input", () => renderEtpModal($("#etp-search")
 // ------------------------------------------------------------------ recherche
 $("#search").addEventListener("input", applyCatalogVisibility);
 
-// « tout décocher » (lien du compteur de sélection)
+// compteur de sélection : « tout décocher » + décocher un document précis
 $("#sel-count").addEventListener("click", (e) => {
+  const unsel = e.target.closest("[data-unsel]");
+  if (unsel) {
+    e.preventDefault();
+    selection.delete(unsel.dataset.unsel);
+    renderCatalog();
+    refresh();
+    return;
+  }
   if (e.target.id !== "clear-sel") return;
   e.preventDefault();
   selection.clear();
