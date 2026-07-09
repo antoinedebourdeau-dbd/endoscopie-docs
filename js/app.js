@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "2.3";
+export const APP_VERSION = "2.4";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -677,11 +677,9 @@ $("#btn-emails").addEventListener("click", () => {
   if (!confirmDemandeWarnings()) return;
   generateAllEmails().catch((e) => toast("❌ " + e.message, 8000));
 });
-$("#btn-all").addEventListener("click", async () => {
+$("#btn-all").addEventListener("click", () => {
   if (!confirmDemandeWarnings()) return;
-  await refresh();
-  window.print(); // bloquant jusqu'à fermeture du dialogue
-  generateAllEmails().catch((e) => toast("❌ " + e.message, 8000));
+  openPrintChooser(true);
 });
 $("#chk-mail-patient").addEventListener("change", () => {
   $("#mail-patient-fields").style.display = $("#chk-mail-patient").checked ? "block" : "none";
@@ -1173,11 +1171,59 @@ $("#btn-reset").addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
+
+// ------------------------------------------------------- choix d'impression
+function itemLabel(it) {
+  if (it.label) return it.label;
+  if (it.type === "ordolibre") return "Ordonnance" + (it.opts.mode === "ald" ? " (ALD bizone)" : "");
+  if (it.type === "demande-endo") {
+    const ex = (it.opts.examens || []).map((k) => (EXAMENS_ENDO_UI.find(([kk]) => kk === k) || [])[1]).filter(Boolean);
+    return "Demande d'examen — " + (ex.join(", ") || "endoscopie");
+  }
+  return "Document";
+}
+
+let printItems = [];
+let printThenEmails = false;
+
+/** Ouvre le choix d'impression (direct si un seul document). */
+function openPrintChooser(thenEmails) {
+  printItems = selectedItems();
+  printThenEmails = !!thenEmails;
+  if (printItems.length <= 1) { doPrint(printItems); return; }
+  $("#print-list").innerHTML = printItems.map((it, i) => `
+    <label class="doc-item" style="padding:5px 6px;">
+      <input type="checkbox" data-print-idx="${i}" checked>
+      <span>${itemLabel(it)}</span>
+    </label>`).join("");
+  openModal("#modal-print");
+}
+
+async function doPrint(chosen) {
+  closeModals();
+  if (chosen.length) {
+    renderSeq++; // invalide les rendus en cours
+    const ctx = {
+      medecin: currentMedecin(), patient: currentPatient(),
+      dateDoc: $("#chk-generic").checked ? null : $("#doc-date").value || null,
+    };
+    $("#print-root").innerHTML = await assembleDocs(chosen, ctx);
+    window.print(); // bloquant jusqu'à fermeture du dialogue
+    refresh(); // restaure l'aperçu complet
+  }
+  if (printThenEmails) generateAllEmails().catch((e) => toast("❌ " + e.message, 8000));
+}
+
+$("#btn-print-go").addEventListener("click", () => {
+  const chosen = printItems.filter((_, i) => document.querySelector(`[data-print-idx="${i}"]`)?.checked);
+  if (!chosen.length && !printThenEmails) { toast("Aucun document coché.", 4000); return; }
+  doPrint(chosen);
+});
+
 // --------------------------------------------------------------- impression
-$("#btn-print").addEventListener("click", async () => {
+$("#btn-print").addEventListener("click", () => {
   if (!confirmDemandeWarnings()) return;
-  await refresh(); // aperçu à jour avant impression
-  window.print();
+  openPrintChooser(false);
 });
 
 // ------------------------------------------------------------------ liaison
