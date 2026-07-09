@@ -1008,8 +1008,8 @@ export function renderRegime(id, ctx) {
 }
 
 // ---------------------------------------------------------------------------
-// Fiches d'éducation thérapeutique (brief ETP HGE) — fiches cliniques + livrets
-// de rééducation à paliers. Pièce maîtresse : la carte feu tricolore.
+// Fiches d'éducation thérapeutique v2 (brief détaillé) — sections typées par
+// emoji ; carte feu tricolore = pièce de sécurité centrale.
 // ---------------------------------------------------------------------------
 
 export function findEtp(id) {
@@ -1021,15 +1021,15 @@ export function findEtp(id) {
 }
 
 function etpH2(t, color = "#0072BC", hc = "#0d2b45") {
-  return `<div style="display:flex; align-items:center; gap:9px; margin-top:15px;"><span style="flex:none; width:5px; height:17px; border-radius:2px; background:${color};"></span><h2 style="${F} font-weight:700; font-size:15px; color:${hc}; margin:0; line-height:1.15;">${t}</h2></div>`;
+  return `<div style="display:flex; align-items:center; gap:9px; margin-top:15px; break-inside:avoid;"><span style="flex:none; width:5px; height:17px; border-radius:2px; background:${color};"></span><h2 style="${F} font-weight:700; font-size:15px; color:${hc}; margin:0; line-height:1.15;">${t}</h2></div>`;
 }
 const etpLi = (t, accent = "#0072BC") =>
   `<div style="display:flex; gap:9px; margin-top:5px; ${F} font-size:12.5px; color:#1c3a52; line-height:1.5;"><span style="flex:none; width:6px; height:6px; border-radius:50%; background:${accent}; margin-top:6px;"></span><div style="flex:1;">${t}</div></div>`;
 const chkLine = (t) =>
   `<div style="display:flex; gap:9px; margin-top:6px; ${F} font-size:12.5px; color:#1c3a52; line-height:1.5;"><span style="flex:none; width:13px; height:13px; border:1.5px solid #0072BC; border-radius:3px; margin-top:2px;"></span><div style="flex:1;">${t}</div></div>`;
+const etpParas = (s) => (s.paras || []).map((p) => `<div style="${F} font-size:12.5px; color:#1c3a52; line-height:1.55; margin-top:7px;">${p}</div>`).join("");
 
-function carteFeu(feu) {
-  if (!feu) return "";
+function carteFeu(t, feu) {
   const row = (emoji, titre, items, color, bg) => items && items.length
     ? `<div style="display:flex; gap:10px; background:${bg}; padding:8px 12px; border-top:1px solid #fff;">
         <span style="flex:none; font-size:16px;">${emoji}</span>
@@ -1039,11 +1039,96 @@ function carteFeu(feu) {
         </div>
       </div>` : "";
   return `<div style="border:2px solid #0d2b45; border-radius:12px; overflow:hidden; margin-top:14px; break-inside:avoid;">
-    <div style="background:#0d2b45; color:#fff; padding:7px 14px; ${F} font-weight:700; font-size:13.5px;">🚦 Savoir réagir — ma carte feu tricolore</div>
+    <div style="background:#0d2b45; color:#fff; padding:7px 14px; ${F} font-weight:700; font-size:13.5px;">🚦 ${t}</div>
     ${row("🟢", "Tout va bien — je continue", feu.v, "#146c3a", "#E6F4EC")}
-    ${row("🟠", "Je surveille / j'adapte / je prends conseil", feu.o, "#b35a00", "#FFF4E6")}
+    ${row("🟠", "Je surveille / je prends conseil", feu.o, "#b35a00", "#FFF4E6")}
     ${row("🔴", "J'appelle / je vais aux urgences", feu.r, "#a5271a", "#FCECEA")}
   </div>`;
+}
+
+function renderEtpSection(s) {
+  switch (s.e) {
+    case "🎯":
+      return etpH2("🎯 " + s.t) + etpParas(s) + (s.items || []).map((o) => chkLine(o)).join("");
+    case "🧠":
+      return etpH2("🧠 " + s.t) + etpParas(s) + (s.items || []).map((i) => etpLi(i)).join("");
+    case "🩺":
+      return etpH2("🩺 " + s.t) +
+        `<div style="border:1px solid #cfe1f0; border-radius:10px; padding:8px 12px 10px; margin-top:7px; break-inside:avoid;">${etpParas(s)}${(s.items || []).map((i) => etpLi(i)).join("")}</div>`;
+    case "🚦":
+      return carteFeu(s.t, s.feu || { v: [], o: [], r: [] });
+    case "💊":
+      return `<div style="border:1.5px solid #0072BC; background:#EAF3FB; border-radius:10px; padding:9px 14px; margin-top:14px; break-inside:avoid;">
+        <div style="${FC} text-transform:uppercase; letter-spacing:.04em; font-weight:800; color:#0072BC; font-size:12px;">💊 ${s.t}</div>
+        ${etpParas(s)}${(s.items || []).map((i) => etpLi(i)).join("")}</div>`;
+    case "🌱":
+      return etpH2("🌱 " + s.t, "#146c3a") + etpParas(s) + (s.items || []).map((i) => etpLi(i, "#146c3a")).join("");
+    case "❌":
+      return etpH2("❌ " + s.t, "#C0392B", "#a5271a") +
+        (s.mythes || []).map((m) => `<div style="display:flex; gap:0; border:1px solid #f0d4cf; border-radius:9px; overflow:hidden; margin-top:6px; break-inside:avoid;">
+          <div style="flex:1; background:#FDF0EE; padding:7px 11px; ${F} font-size:12px; color:#8f2419; line-height:1.45;">${m.m}</div>
+          <div style="flex:1.2; background:#F4FBF6; padding:7px 11px; ${F} font-size:12px; color:#14532d; line-height:1.45;">${m.r}</div>
+        </div>`).join("");
+    case "❓":
+      return etpH2("❓ " + s.t) + etpParas(s) + (s.items || []).map((i) => etpLi(i)).join("");
+    case "✅": {
+      const items = s.quiz || [];
+      const reponses = items.map((q, i) => `${i + 1} : ${q.a || "—"}`).join(" · ");
+      return etpH2("✅ " + s.t, "#146c3a") +
+        items.map((q, i) => `<div style="display:flex; gap:9px; margin-top:6px; ${F} font-size:12.5px; color:#1c3a52; line-height:1.5;">
+          <span style="flex:none; font-weight:700; color:#0072BC;">${i + 1}.</span>
+          <div style="flex:1;">${q.q} ${q.note ? `<span style="color:#4a5b68; font-size:11px;">${q.note}</span>` : ""}</div>
+          <span style="flex:none; color:#4a5b68;">☐ Vrai&nbsp; ☐ Faux</span>
+        </div>`).join("") +
+        `<div style="${F} font-size:9.5px; color:#9aa8b4; margin-top:6px;">Réponses : ${reponses}</div>`;
+    }
+    case "🪜": {
+      let out = etpH2("🪜 Ma progression par paliers — je ne passe au suivant qu'après le critère de réussite", "#EF7D00");
+      (s.paliers || []).forEach((pal, i) => {
+        out += `<div style="border:1px solid #cfe1f0; border-radius:12px; overflow:hidden; margin-top:10px; break-inside:avoid;">
+          <div style="background:#0072BC; color:#fff; padding:7px 14px; display:flex; align-items:center; gap:10px;">
+            <span style="flex:none; width:26px; height:26px; border-radius:50%; background:#fff; color:#0072BC; font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center;">${i + 1}</span>
+            <span style="${F} font-weight:700; font-size:14px;">${pal.t}</span>
+          </div>
+          <div style="padding:9px 14px; ${F} font-size:12.5px; color:#1c3a52; line-height:1.55;">
+            ${pal.obj ? `<div><strong>🎯 Micro-objectif :</strong> ${pal.obj}</div>` : ""}
+            ${pal.comment ? `<div style="margin-top:5px;"><strong>Comment faire :</strong> ${pal.comment}</div>` : ""}
+            ${pal.freq ? `<div style="margin-top:5px;"><strong>Fréquence :</strong> ${pal.freq}</div>` : ""}
+            ${pal.critere ? `<div style="margin-top:6px; background:#E6F4EC; border-radius:8px; padding:6px 10px; color:#146c3a;"><strong>✅ Je passe au palier suivant quand :</strong> ${pal.critere}</div>` : ""}
+          </div>
+        </div>`;
+      });
+      return out;
+    }
+    case "⚠️":
+      return `<div style="background:#FCECEA; border:2px solid #C0392B; border-radius:10px; padding:9px 14px; margin-top:12px; break-inside:avoid;">
+        <div style="${FC} text-transform:uppercase; letter-spacing:.04em; font-weight:800; color:#C0392B; font-size:12.5px;">⛔ ${s.t}</div>
+        ${etpParas(s)}${(s.items || []).map((i) => etpLi(i, "#C0392B")).join("")}</div>`;
+    case "📈":
+      return `<div style="background:#E6F4EC; border:1px solid #b7dfc6; border-radius:10px; padding:8px 12px; margin-top:10px; ${F} font-size:12px; color:#14532d;"><strong>📈 ${s.t} :</strong> ${(s.paras || []).join(" ")}${(s.items || []).join(" ")}</div>`;
+    case "🧭":
+      return `<div style="background:#FFF4E6; border:1px solid #f3c98a; border-radius:10px; padding:8px 12px; margin-top:10px; ${F} font-size:12px; color:#6b4a1a;"><strong>🧭 ${s.t} :</strong> ${(s.paras || []).join(" ")}${(s.items || []).join(" ")}</div>`;
+    case "🗓": {
+      const desc = [(s.paras || []).join(" "), (s.items || []).join(" ")].filter(Boolean).join(" ");
+      let rows = "";
+      for (let sem = 1; sem <= 2; sem++) {
+        rows += `<tr><td colspan="3" style="padding:4px 8px; background:#EAF3FB; ${FC} text-transform:uppercase; font-size:10px; font-weight:700; color:#0072BC;">Semaine ${sem}</td></tr>`;
+        for (const j of ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"])
+          rows += `<tr><td style="padding:4px 8px; font-size:11px; border-top:1px solid #e3ebf2; color:#4a5b68; width:44px;">${j}</td><td style="border-top:1px solid #e3ebf2; border-left:1px solid #eef3f8; width:90px;">&nbsp;</td><td style="border-top:1px solid #e3ebf2; border-left:1px solid #eef3f8;">&nbsp;</td></tr>`;
+      }
+      return etpH2("🗓 Mon journal de bord") +
+        `<div style="${F} font-size:11.5px; color:#4a5b68; margin-top:5px;">${desc}</div>
+        <table style="width:100%; border-collapse:collapse; margin-top:8px; ${F} border:1px solid #cfe1f0;">
+          <tr><th style="padding:5px 8px; background:#0d2b45; color:#fff; font-size:10.5px; text-align:left;">Jour</th><th style="padding:5px 8px; background:#0d2b45; color:#fff; font-size:10.5px; text-align:center;">Fait ✓</th><th style="padding:5px 8px; background:#0d2b45; color:#fff; font-size:10.5px; text-align:left;">Observations</th></tr>
+          ${rows}
+        </table>
+        <div style="${F} font-size:10px; color:#7a8794; margin-top:4px;">Photocopiez ou réimprimez cette page pour les semaines suivantes.</div>`;
+    }
+    case "🔗":
+      return `<div style="${F} font-size:10.5px; color:#7a8794; margin-top:10px;">🔗 ${s.t ? s.t + " : " : "Voir aussi : "}${(s.paras || []).join(" ")}${(s.items || []).join(" · ")}</div>`;
+    default:
+      return etpH2(`${s.e} ${s.t}`) + etpParas(s) + (s.items || []).map((i) => etpLi(i)).join("");
+  }
 }
 
 export function renderEtp(id, ctx) {
@@ -1056,97 +1141,27 @@ export function renderEtp(id, ctx) {
     ? `${p.civ ? esc(p.civ) + " " : ""}<strong>${esc(patientNom(p))}</strong>`
     : "Madame, Monsieur";
   const doc = med ? `votre gastroentérologue, le <strong>${esc(med.nom)}</strong>` : "votre gastroentérologue";
-  const entete = `<div style="background:#EAF3FB; border-radius:10px; padding:12px 16px; margin-top:12px; ${F} font-size:13px; color:#1c3a52; line-height:1.55;">
+
+  let body = `<div style="${F}">
+    <div style="${FC} text-transform:uppercase; letter-spacing:.08em; color:#0072BC; font-weight:700; font-size:13px;">${f.type === "livret" ? "Livret de rééducation" : "Éducation thérapeutique"} — ${esc(f.axe)}</div>
+    <h1 style="font-weight:800; color:#0d2b45; font-size:23px; line-height:1.1; margin:4px 0 0; text-wrap:balance;">${esc(f.name)}</h1>
+    <div style="height:3px; width:64px; background:#EF7D00; border-radius:2px; margin-top:10px;"></div>
+  </div>
+  <div style="background:#EAF3FB; border-radius:10px; padding:12px 16px; margin-top:12px; ${F} font-size:13px; color:#1c3a52; line-height:1.55;">
     ${qui}, cette fiche a été préparée pour vous par ${doc}. Elle vous aide à <strong>comprendre</strong>, à <strong>vous surveiller</strong> et à <strong>savoir réagir</strong>. Elle complète — sans les remplacer — les explications données en consultation.
   </div>`;
 
-  let body = `<div style="${F}">
-    <div style="${FC} text-transform:uppercase; letter-spacing:.08em; color:#0072BC; font-weight:700; font-size:13px;">Éducation thérapeutique — ${esc(f.axe)}</div>
-    <h1 style="font-weight:800; color:#0d2b45; font-size:23px; line-height:1.1; margin:4px 0 0; text-wrap:balance;">${esc(f.name)}</h1>
-    <div style="height:3px; width:64px; background:#EF7D00; border-radius:2px; margin-top:10px;"></div>
-  </div>` + entete;
+  const hasQuiz = f.secs.some((s) => s.e === "✅");
+  for (const s of f.secs) body += renderEtpSection(s);
 
-  // Objectifs (checklist)
-  body += etpH2("Ce que je vais comprendre et savoir faire") +
-    f.objectifs.map((o) => chkLine(o)).join("");
-
-  // En clair
-  if (f.enclair) body += etpH2("Ma situation en clair") +
-    `<div style="${F} font-size:12.5px; color:#1c3a52; line-height:1.55; margin-top:7px;">${f.enclair}</div>`;
-
-  if (f.materiel) body += `<div style="${F} font-size:12px; color:#4a5b68; margin-top:8px;"><strong>Matériel :</strong> ${esc(f.materiel)}</div>`;
-
-  // Auto-surveillance
-  if (f.autosurv) body += etpH2("Ce que je surveille moi-même") +
-    `<div style="border:1px solid #cfe1f0; border-radius:10px; padding:8px 12px 10px; margin-top:7px;">${f.autosurv.map((s) => etpLi(s)).join("")}</div>`;
-
-  // Consignes de suites (péri-procédure)
-  if (f.consignes) body += `<div style="border:1.5px solid #0072BC; background:#EAF3FB; border-radius:10px; padding:9px 14px; margin-top:14px; break-inside:avoid;">
-    <div style="${FC} text-transform:uppercase; letter-spacing:.04em; font-weight:800; color:#0072BC; font-size:12px;">Consignes de suites</div>
-    ${f.consignes.map((c) => etpLi(c)).join("")}
-  </div>`;
-
-  // Carte feu
-  body += carteFeu(f.feu);
-
-  // Livret : paliers
-  if (f.type === "livret" && f.paliers) {
-    body += etpH2("Ma progression par paliers — je ne passe au suivant qu'après avoir atteint le critère de réussite", "#EF7D00");
-    f.paliers.forEach((pal, i) => {
-      body += `<div style="border:1px solid #cfe1f0; border-radius:12px; overflow:hidden; margin-top:10px; break-inside:avoid;">
-        <div style="background:#0072BC; color:#fff; padding:7px 14px; display:flex; align-items:center; gap:10px;">
-          <span style="flex:none; width:26px; height:26px; border-radius:50%; background:#fff; color:#0072BC; font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center;">${i + 1}</span>
-          <span style="${F} font-weight:700; font-size:14px;">${esc(pal.t)}</span>
-        </div>
-        <div style="padding:9px 14px; ${F} font-size:12.5px; color:#1c3a52; line-height:1.55;">
-          <div><strong>🎯 Micro-objectif :</strong> ${pal.obj}</div>
-          <div style="margin-top:5px;"><strong>Comment faire :</strong> ${pal.comment}</div>
-          ${pal.freq ? `<div style="margin-top:5px;"><strong>Fréquence :</strong> ${esc(pal.freq)}${pal.duree ? ` · <strong>Durée avant progression :</strong> ${esc(pal.duree)}` : ""}</div>` : (pal.duree ? `<div style="margin-top:5px;"><strong>Durée avant progression :</strong> ${esc(pal.duree)}</div>` : "")}
-          <div style="margin-top:6px; background:#E6F4EC; border-radius:8px; padding:6px 10px; color:#146c3a;"><strong>✅ Je passe au palier suivant quand :</strong> ${pal.critere}</div>
-        </div>
-      </div>`;
-    });
-    if (f.erreurs) body += `<div style="background:#FCECEA; border:2px solid #C0392B; border-radius:10px; padding:9px 14px; margin-top:12px; break-inside:avoid;">
-      <div style="${FC} text-transform:uppercase; letter-spacing:.04em; font-weight:800; color:#C0392B; font-size:12.5px;">⛔ Erreurs fréquentes à éviter</div>
-      ${f.erreurs.map((e2) => etpLi(e2, "#C0392B")).join("")}
-    </div>`;
-    if (f.orienter) body += `<div style="${F} font-size:12px; color:#1c3a52; background:#FFF4E6; border:1px solid #f3c98a; border-radius:10px; padding:8px 12px; margin-top:10px;"><strong>Quand se faire aider :</strong> ${f.orienter}</div>`;
-    if (f.journal) {
-      const cols = f.journal.cols;
-      const head = `<tr><th style="padding:5px 8px; background:#0d2b45; color:#fff; font-size:10.5px; text-align:left;">Jour</th>${cols.map((c) => `<th style="padding:5px 8px; background:#0d2b45; color:#fff; font-size:10.5px; text-align:center;">${esc(c)}</th>`).join("")}</tr>`;
-      let rows = "";
-      for (let s = 1; s <= 2; s++) {
-        rows += `<tr><td colspan="${cols.length + 1}" style="padding:4px 8px; background:#EAF3FB; ${FC} text-transform:uppercase; font-size:10px; font-weight:700; color:#0072BC;">Semaine ${s}</td></tr>`;
-        for (const j of ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]) {
-          rows += `<tr><td style="padding:4px 8px; font-size:11px; border-top:1px solid #e3ebf2; color:#4a5b68;">${j}</td>${cols.map(() => `<td style="border-top:1px solid #e3ebf2; border-left:1px solid #eef3f8;">&nbsp;</td>`).join("")}</tr>`;
-        }
-      }
-      body += etpH2(`Mon journal de bord (${esc(f.journal.duree)})`) +
-        `<table style="width:100%; border-collapse:collapse; margin-top:8px; ${F} border:1px solid #cfe1f0;">${head}${rows}</table>
-        <div style="${F} font-size:10px; color:#7a8794; margin-top:4px;">Photocopiez ou réimprimez cette page pour les semaines suivantes.</div>`;
-    }
+  // auto-évaluation générée si absente (à partir des objectifs)
+  if (!hasQuiz) {
+    const obj = f.secs.find((s) => s.e === "🎯");
+    if (obj && obj.items) body += etpH2("✅ Ai-je bien compris ? — je coche quand c'est acquis", "#146c3a") +
+      obj.items.map((o) => { let t = o.trim(); return chkLine("Je sais : " + t.charAt(0).toLowerCase() + t.slice(1)); }).join("");
   }
 
-  // Vivre avec
-  if (f.vivre) body += etpH2("Vivre avec au quotidien") + f.vivre.map((v) => etpLi(v)).join("");
-
-  // Alerte forte
-  if (f.alerte) body += `<div style="background:#FCECEA; border:2px solid #C0392B; border-radius:10px; padding:9px 14px; margin-top:12px; break-inside:avoid; ${F}">
-    <span style="font-weight:800; color:#C0392B;">⛔ Important :</span> <span style="font-size:12.5px; color:#1c3a52;">${f.alerte}</span></div>`;
-
-  // Illustrations (placeholders descriptifs)
-  if (f.illus) body += f.illus.map((d) => `<div style="border:1.5px dashed #9db4c6; border-radius:10px; padding:10px 14px; margin-top:10px; ${F} font-size:11.5px; color:#4a5b68; text-align:center;">🖼 Schéma expliqué en consultation : ${esc(d)}</div>`).join("");
-
-  // Auto-évaluation (checklist dérivée des objectifs)
-  body += etpH2("Ai-je bien compris ? — je coche quand c'est acquis", "#146c3a") +
-    f.objectifs.map((o) => {
-      let t = o.trim();
-      t = t.charAt(0).toLowerCase() + t.slice(1);
-      if (!/^(je|j'|l'|la|le|ne|savoir|comprendre|distinguer|repérer|identifier|adopter|pousser|relâcher|installer|localiser|développer|contracter|être|réaliser|respecter|utiliser|gérer|faire|fixer|fractionner|dédramatiser|tenir|surveiller|anticiper|planifier|connaître|reconnaître|adhérer|éviter|préparer|suivre|maîtriser|supprimer|manger|hydratation|photoprotection)/i.test(t)) t = t;
-      return chkLine("Je sais : " + t);
-    }).join("");
-
-  // Plan d'action
+  // plan d'action
   const dot = (w) => `<span style="display:inline-block; min-width:${w}px; border-bottom:1px dotted #9db4c6;">&nbsp;</span>`;
   body += `<div style="border:1.5px solid #0072BC; border-radius:12px; overflow:hidden; margin-top:16px; break-inside:avoid;">
     <div style="background:#0d2b45; color:#fff; padding:7px 14px; ${F} font-weight:700; font-size:13.5px;">📋 Mon plan d'action personnalisé (rempli en consultation)</div>
@@ -1159,9 +1174,12 @@ export function renderEtp(id, ctx) {
     </div>
   </div>`;
 
-  // Mention pied
   const nomAff = p ? `${p.civ ? esc(p.civ) + " " : ""}${esc(patientNom(p))}` : "vous";
   body += `<div style="${F} font-size:9.5px; color:#7a8794; margin-top:14px; line-height:1.5; border-top:1px solid #e3ebf2; padding-top:8px;">Ce document d'éducation thérapeutique a été préparé par le Dr Antoine Debourdeau, gastroentérologue${med && med.nom !== "Dr Antoine DEBOURDEAU" ? ", et remis par " + esc(med.nom) : ""}, pour ${nomAff}. Il ne remplace ni une consultation, ni une rééducation encadrée par un professionnel. En cas de doute, de symptôme nouveau ou d'aggravation (voir la carte 🔴), <strong>contactez votre médecin ou les urgences</strong>.</div>`;
+
+  // placeholders d'illustration
+  body = body.replace(/\{\{ILL:([^}]*)\}\}/g, (m, d2) =>
+    `<span style="display:block; border:1.5px dashed #9db4c6; border-radius:10px; padding:8px 12px; margin:8px 0 2px; ${F} font-size:11px; color:#4a5b68; text-align:center;">🖼 Schéma expliqué en consultation : ${d2.trim()}</span>`);
 
   const footer = `<div style="display:flex; justify-content:space-between; align-items:center; ${F} font-size:9px; color:#7a8794; border-top:1px solid #d9e2ea; padding-top:5px;">
     <span>CHU de Montpellier — Hépato-Gastroentérologie · Doc'HGE</span>

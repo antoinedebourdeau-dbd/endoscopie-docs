@@ -1,172 +1,546 @@
-// GÉNÉRÉ depuis le brief « ETP HGE » (contenu médical validé par A. Debourdeau — ne pas réécrire).
+// GÉNÉRÉ par tools/extract-etp.py depuis le brief détaillé v2 (contenu validé A. Debourdeau).
+// Sections typées par emoji : 🎯 objectifs · 🧠 comprendre · 🩺 surveillance · 🚦 feu ·
+// 💊 traitement · 🌱 vivre avec · ❌ mythes · ❓ FAQ · ✅ quiz · 🪜 paliers · 🔗 renvois…
 export const ETP = [
  {
-  "axe": "MICI (Crohn, RCH)",
+  "axe": "MICI (Maladie de Crohn / Rectocolite hémorragique)",
   "icon": "🟣",
   "items": [
    {
     "id": "mici_comprendre",
     "name": "Comprendre ma MICI : poussée et rémission",
-    "objectifs": [
-     "Distinguer poussée / rémission",
-     "Comprendre que la maladie évolue par cycles",
-     "Savoir que le traitement d'entretien se poursuit même quand tout va bien"
-    ],
-    "enclair": "Une MICI est une inflammation chronique de l'intestin qui alterne des périodes calmes (rémission) et des poussées. Le traitement de fond vise à <strong>prolonger la rémission</strong> et à éviter les complications ; l'arrêter parce qu'on va bien est la cause la plus fréquente de rechute.",
-    "autosurv": [
-     "Nombre et aspect des selles (glaires, sang)",
-     "Douleurs",
-     "Réveils nocturnes",
-     "Fatigue",
-     "Poids",
-     "Température"
-    ],
-    "feu": {
-     "v": [
-      "Selles habituelles, pas de sang, bon état général."
-     ],
-     "o": [
-      "Augmentation des selles, glaires / sang, douleurs, fatigue inhabituelle → contacter dans les jours."
-     ],
-     "r": [
-      "Fièvre élevée + douleur abdominale intense + ventre dur / ballonné + arrêt des gaz et selles, ou saignement abondant, ou déshydratation → urgences."
-     ]
-    },
-    "vivre": [
-     "Parler de sa maladie à ses proches.",
-     "Anticiper l'accès aux toilettes.",
-     "Gérer la fatigue."
-    ],
-    "alerte": "N'arrêtez jamais le traitement de fond de votre propre initiative."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Ce que cette fiche va vous apporter",
+      "items": [
+       "Comprendre ce qu'est une MICI et comment elle évolue.",
+       "Faire la différence entre une <strong>poussée</strong> et une <strong>rémission</strong>.",
+       "Comprendre pourquoi le traitement de fond continue <strong>même quand tout va bien</strong>.",
+       "Savoir ce que vous pouvez surveiller vous-même."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Une MICI (maladie de Crohn ou rectocolite hémorragique) est une <strong>inflammation chronique</strong> de l'intestin liée à une réaction anormale du système immunitaire, sur un terrain particulier, favorisée par l'environnement (tabac pour Crohn, microbiote…). Ce <strong>n'est pas</strong> dû à ce que vous avez « mal mangé » ni à un manque de volonté.",
+       "La maladie évolue par <strong>cycles</strong> : des périodes calmes (<strong>rémission</strong>, muqueuse cicatrisée, peu ou pas de symptômes) et des périodes actives (<strong>poussées</strong>). L'objectif du traitement moderne n'est pas seulement de faire disparaître les symptômes, mais d'obtenir une <strong>cicatrisation de la muqueuse</strong>, car c'est elle qui protège des complications à long terme (sténoses, chirurgie).",
+       "Point clé : on peut se sentir bien alors que l'inflammation persiste « en dessous ». C'est pour cela que le traitement et la surveillance continuent en rémission."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille moi-même",
+      "items": [
+       "<strong>Selles</strong> : nombre par jour, consistance, présence de <strong>glaires</strong> ou de <strong>sang</strong>, besoins urgents, réveils <strong>nocturnes</strong> pour aller à la selle (signal d'activité).",
+       "<strong>Douleurs</strong> abdominales : intensité, localisation.",
+       "<strong>État général</strong> : fatigue inhabituelle, fièvre, <strong>poids</strong> (une perte de poids est un signal).",
+       "<strong>Manifestations extra-digestives</strong> : douleurs articulaires, aphtes, atteintes de la peau ou des yeux (rougeur, douleur).",
+       "<em>Fréquence</em> : surveillance au quotidien de façon informelle ; <strong>notez</strong> dès qu'une tendance change pendant plusieurs jours."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [
+        "&lt;strong&gt;Tout va bien :&lt;/strong&gt; selles habituelles, pas de sang, bon état général, pas de réveil nocturne. → Je poursuis mon traitement."
+       ],
+       "o": [
+        "&lt;strong&gt;Je prends conseil (jours qui viennent) :&lt;/strong&gt; augmentation du nombre de selles, glaires, un peu de sang, douleurs, faux besoins, fatigue inhabituelle, douleurs articulaires. → Contacter le service/médecin, ne pas laisser traîner."
+       ],
+       "r": [
+        "&lt;strong&gt;Urgences :&lt;/strong&gt; fièvre élevée + douleur abdominale intense + <strong>ventre dur/ballonné</strong> + <strong>arrêt des gaz et des selles</strong>, ou <strong>saignement abondant</strong>, ou vomissements incoercibles, ou signes de déshydratation. → Urgences."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec au quotidien",
+      "items": [
+       "<strong>En dehors des poussées, pas de régime restrictif systématique</strong> : mangez varié et équilibré (souvent type méditerranéen). Les restrictions se limitent aux poussées/sténoses (voir module Régimes).",
+       "<strong>Tabac</strong> : très défavorable dans la maladie de Crohn → l'arrêt est un vrai « traitement ».",
+       "<strong>Fatigue</strong> : réelle et fréquente, même en rémission ; organisez repos et activité.",
+       "<strong>Vie sociale/toilettes</strong> : repérez les toilettes, la carte « urgence toilettes » peut aider.",
+       "<strong>Reconnaissance ALD</strong> : la maladie ouvre des droits ; parlez-en."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": [
+       {
+        "m": "<em>« Je vais bien, je peux arrêter mon traitement. »</em>",
+        "r": "<strong>Faux</strong> : l'arrêt non concerté est la première cause de rechute."
+       },
+       {
+        "m": "<em>« C'est le stress/mon alimentation qui a causé ma maladie. »</em>",
+        "r": "<strong>Non</strong> : ils peuvent influencer le confort, mais ne créent pas la maladie."
+       },
+       {
+        "m": "<em>« MICI = je vais forcément être opéré. »</em>",
+        "r": "<strong>Non</strong> : les traitements actuels réduisent nettement ce risque."
+       }
+      ]
+     },
+     {
+      "e": "❓",
+      "t": "Questions fréquentes",
+      "items": [
+       "<em>Vais-je transmettre la maladie à mes enfants ?</em> Le risque existe mais reste faible ; il ne contre-indique pas une grossesse.",
+       "<em>Puis-je faire du sport ?</em> Oui, l'activité physique est bénéfique.",
+       "<em>La MICI augmente-t-elle le risque de cancer ?</em> Après plusieurs années d'atteinte du côlon, un dépistage spécifique est organisé (voir F1.7)."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "En rémission, je peux arrêter mon traitement de fond",
+        "a": "Faux",
+        "note": ""
+       },
+       {
+        "q": "Du sang dans les selles ou des réveils nocturnes sont des signaux d'activité",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Fièvre + ventre dur + arrêt des gaz = je prends rendez-vous la semaine prochaine",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
+    ]
    },
    {
     "id": "mici_biotherapies",
     "name": "Mes biothérapies / immunosuppresseurs",
-    "objectifs": [
-     "Comprendre à quoi sert mon traitement",
-     "L'importance de l'observance et de la régularité",
-     "Réaliser mon auto-injection en sécurité",
-     "Savoir gérer un oubli"
-    ],
-    "enclair": "Ces traitements réduisent l'inflammation en agissant sur le système immunitaire. Leur efficacité dépend de la <strong>régularité</strong> ; un espacement des injections / perfusions peut faire perdre la réponse.",
-    "autosurv": [
-     "Dates d'injection / perfusion",
-     "Réactions au point d'injection",
-     "Signes d'infection",
-     "Bilans biologiques programmés"
-    ],
-    "feu": {
-     "v": [
-      "Traitement pris aux dates prévues, pas d'infection."
-     ],
-     "o": [
-      "Réaction locale, retard de dose, symptôme infectieux léger → prendre conseil."
-     ],
-     "r": [
-      "Fièvre élevée, infection sévère, réaction allergique (gêne respiratoire, urticaire diffus) → urgences / arrêt et appel."
-     ]
-    },
-    "vivre": [
-     "Conservation (chaîne du froid pour certains).",
-     "Organisation des rendez-vous, carnet de suivi."
-    ],
-    "illus": [
-     "Auto-injection pas à pas : sortir du réfrigérateur 30 min avant, sites de rotation, pli cutané"
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "items": [
+       "Comprendre à quoi sert mon traitement et comment il agit.",
+       "Comprendre pourquoi la <strong>régularité</strong> conditionne l'efficacité.",
+       "Réaliser une <strong>auto-injection</strong> en sécurité (si concerné).",
+       "Savoir gérer un <strong>oubli/retard</strong> et reconnaître une complication."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Les immunosuppresseurs et biothérapies (anti-TNF, anti-intégrines, anti-interleukines, petites molécules…) <strong>réduisent l'inflammation</strong> en ciblant le système immunitaire. Ils traitent la maladie <strong>de fond</strong> : ils demandent quelques semaines pour agir et se prennent au long cours pour <strong>maintenir la rémission</strong>. Leur efficacité dépend fortement de la <strong>régularité</strong> : un espacement des doses peut faire <strong>perdre la réponse</strong> (parfois définitivement pour certaines biothérapies)."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille moi-même",
+      "items": [
+       "<strong>Calendrier</strong> des injections/perfusions/prises (ne pas décaler sans avis).",
+       "<strong>Points d'injection</strong> : rougeur, douleur, gonflement.",
+       "<strong>Signes d'infection</strong> : fièvre, toux, brûlures urinaires, plaie qui traîne.",
+       "<strong>Bilans biologiques</strong> programmés (à ne pas manquer)."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [
+        "Traitement pris aux dates prévues, pas de fièvre ni d'infection."
+       ],
+       "o": [
+        "Réaction locale au point d'injection, retard de dose, symptôme infectieux léger, aphtes/éruption. → Prendre conseil."
+       ],
+       "r": [
+        "&lt;strong&gt;Fièvre élevée / infection sévère :&lt;/strong&gt; , réaction allergique (gêne respiratoire, urticaire diffus, malaise pendant/juste après une perfusion). → Urgences / appel immédiat."
+       ]
+      }
+     },
+     {
+      "e": "💊",
+      "t": "Mon traitement en pratique",
+      "items": [
+       "<strong>Auto-injection pas à pas</strong> : {{ILL:sortir le stylo/seringue du frigo 30 min avant, désinfecter, pli cutané abdomen/cuisse, rotation des sites, élimination dans le collecteur}}. Sortir du réfrigérateur <strong>30 min avant</strong> (moins douloureux), <strong>alterner les sites</strong>, ne jamais réutiliser.",
+       "<strong>Conservation</strong> : chaîne du froid pour les formes injectables ; sac isotherme en déplacement.",
+       "<strong>Oubli</strong> : ne pas doubler la dose ; contacter le service pour la conduite à tenir.",
+       "<strong>Avant une chirurgie/soin dentaire/infection</strong> : signalez toujours votre traitement."
+      ]
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "items": [
+       "<strong>Vaccins</strong> : mettre à jour <strong>avant</strong> si possible ; <strong>vaccins vivants contre-indiqués</strong> ensuite (voir F1.4).",
+       "<strong>Voyages</strong> : anticiper (transport du traitement, ordonnance, vaccins).",
+       "<strong>Grossesse/allaitement</strong> : la plupart des traitements sont compatibles, à <strong>planifier</strong> avec l'équipe (voir F1.6)."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": [
+       {
+        "m": "<em>« Immunosuppresseur = je serai tout le temps malade. »</em>",
+        "r": "Le sur-risque infectieux est <strong>réel mais gérable</strong> (hygiène, vaccins, vigilance)."
+       },
+       {
+        "m": "<em>« Je peux sauter une injection quand je vais bien. »</em>",
+        "r": "<strong>Non</strong> : risque de perte de réponse."
+       }
+      ]
+     },
+     {
+      "e": "❓",
+      "t": "FAQ",
+      "items": [
+       "<em>Puis-je faire mes vaccins ?</em> Inactivés oui (grippe, pneumocoque, COVID…) ; <strong>vivants non</strong>.",
+       "<em>Et si j'ai la grippe/une infection ?</em> Prenez conseil : on décale parfois une dose."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Je peux espacer les doses si je vais bien",
+        "a": "Faux",
+        "note": ""
+       },
+       {
+        "q": "Une fièvre élevée sous biothérapie doit m'alerter",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Je sors mon stylo du frigo au dernier moment",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ]
    },
    {
     "id": "mici_poussee_reagir",
     "name": "Reconnaître une poussée et savoir réagir",
-    "star": 1,
-    "objectifs": [
-     "Repérer précocement une poussée",
-     "Distinguer ce qui se gère en ville de ce qui relève de l'urgence",
-     "Ne pas retarder l'appel"
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "items": [
+       "Repérer <strong>précocement</strong> une poussée.",
+       "Distinguer ce qui se gère en ville de ce qui relève de <strong>l'urgence</strong>.",
+       "Ne pas retarder l'appel ; préparer les informations utiles."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Une poussée = réapparition ou aggravation des symptômes inflammatoires. <strong>Traitée tôt, elle se contrôle plus facilement</strong> et évite l'escalade (corticoïdes, hospitalisation). Guetter les premiers signes fait partie du traitement."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille (signes d'appel précoces)",
+      "paras": [
+       "Selles plus fréquentes, plus liquides, avec <strong>glaires/sang</strong> ; <strong>urgences</strong> et faux besoins ; <strong>réveils nocturnes</strong> ; douleurs ; fatigue ; fébricule ; perte d'appétit/de poids."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir (carte à garder)",
+      "feu": {
+       "v": [
+        "Symptômes stables et habituels."
+       ],
+       "o": [
+        "&lt;strong&gt;Sous 24–72 h :&lt;/strong&gt; plus de selles que d'habitude, glaires, un peu de sang, douleurs, faux besoins, fatigue inhabituelle. → Contacter le service/médecin."
+       ],
+       "r": [
+        "&lt;strong&gt;Urgences :&lt;/strong&gt; fièvre &gt; 38,5 °C, <strong>douleur abdominale intense</strong>, <strong>ventre dur</strong>, <strong>arrêt des gaz et des selles</strong>, vomissements, <strong>sang abondant</strong>, malaise/étourdissements."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "items": [
+       "Gardez <strong>les numéros utiles</strong> accessibles (service, secrétariat, urgences).",
+       "<strong>Notez</strong> l'évolution (nombre de selles, sang, fièvre, poids) : utile au téléphone et en consultation.",
+       "Ne démarrez pas de corticoïdes « en réserve » sans avis (voir F1.5)."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Des réveils nocturnes pour aller à la selle sont banals",
+        "a": "Faux",
+        "note": ""
+       },
+       {
+        "q": "Ventre dur + arrêt des gaz + fièvre = urgences",
+        "a": "Vrai",
+        "note": ""
+       }
+      ]
+     }
     ],
-    "enclair": "Une poussée = réapparition / aggravation des symptômes inflammatoires. Traitée tôt, elle est plus facile à contrôler.",
-    "feu": {
-     "v": [
-      "Symptômes stables, habituels."
-     ],
-     "o": [
-      "Plus de selles que d'habitude, glaires, un peu de sang, douleurs, faux besoins, fatigue → contacter le service / médecin sous 24–72 h."
-     ],
-     "r": [
-      "Fièvre > 38,5 °C, douleur abdominale intense, ventre dur, arrêt des gaz / selles, vomissements, sang abondant, malaise → urgences."
-     ]
-    },
-    "vivre": [
-     "Garder les numéros utiles accessibles.",
-     "Noter l'évolution pour la consultation."
-    ]
+    "star": 1
    },
    {
     "id": "mici_vaccins",
     "name": "Vaccins, infections et voyages sous immunosuppresseurs",
-    "objectifs": [
-     "Comprendre le sur-risque infectieux",
-     "Connaître les vaccins recommandés / contre-indiqués (vivants)",
-     "Préparer un voyage"
-    ],
-    "enclair": "Le traitement augmente le risque et la gravité de certaines infections. Les <strong>vaccins vivants sont généralement contre-indiqués</strong> ; les vaccins inactivés (dont grippe, pneumocoque, COVID) sont recommandés.",
-    "feu": {
-     "o": [
-      "Contage / épidémie, fièvre modérée → prendre conseil."
-     ],
-     "r": [
-      "Fièvre élevée, infection sévère → consulter rapidement."
-     ]
-    },
-    "vivre": [
-     "Consultation « voyage » anticipée, trousse, ordonnance de secours.",
-     "Éviter les zones à vaccins vivants obligatoires sans avis."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre le sur-risque infectieux ; connaître vaccins recommandés / contre-indiqués ; préparer un voyage en sécurité."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Le traitement augmente le <strong>risque et la gravité</strong> de certaines infections. On <strong>renforce donc la prévention</strong> : vaccins à jour, hygiène, vigilance. Les <strong>vaccins vivants</strong> (fièvre jaune, ROR, varicelle, BCG…) sont en général <strong>contre-indiqués</strong> sous immunosuppression ; on cherche à les faire <strong>avant</strong> l'instauration. Les <strong>vaccins inactivés</strong> (grippe <strong>chaque année</strong>, pneumocoque, COVID, hépatites, dTP…) sont <strong>recommandés</strong>."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Fièvre, signes urinaires/respiratoires/cutanés, contage (varicelle, zona, tuberculose), retour de voyage fébrile."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [
+        "Contage, épidémie, fièvre modérée, plaie qui s'infecte. → Prendre conseil."
+       ],
+       "r": [
+        "Fièvre élevée, infection sévère, éruption vésiculeuse étendue (varicelle/zona), retour de zone tropicale avec fièvre. → Consulter rapidement."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec / voyages",
+      "items": [
+       "<strong>Consultation « voyage » anticipée</strong> (≥ 4–6 semaines avant) : la fièvre jaune (vaccin vivant) peut contre-indiquer certaines destinations.",
+       "Trousse de secours, <strong>ordonnance de secours</strong>, eau/aliments sûrs, protection solaire (voir F8.2).",
+       "Carte de votre traitement sur vous."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Le vaccin contre la grippe est déconseillé sous biothérapie",
+        "a": "Faux",
+        "note": ""
+       },
+       {
+        "q": "Le vaccin fièvre jaune (vivant) nécessite un avis avant tout voyage concerné",
+        "a": "Vrai",
+        "note": ""
+       }
+      ]
+     }
     ]
    },
    {
     "id": "mici_corticoides",
     "name": "Corticoïdes : bon usage et sevrage",
-    "objectifs": [
-     "Comprendre que les corticoïdes traitent la poussée mais pas l'entretien",
-     "Ne jamais arrêter brutalement",
-     "Connaître les effets"
-    ],
-    "enclair": "Efficaces vite sur la poussée, ils ne doivent pas être pris au long cours (effets osseux, métaboliques…). Le <strong>sevrage est progressif</strong>, selon le schéma prescrit.",
-    "feu": {
-     "o": [
-      "Effets gênants (insomnie, glycémie, humeur)."
-     ],
-     "r": [
-      "Signes d'insuffisance surrénale à l'arrêt trop rapide (fatigue extrême, malaise, hypotension) → consulter."
-     ]
-    },
-    "vivre": [
-     "Sel / sucre modérés pendant la cure.",
-     "Calcium / vitamine D si prescrits.",
-     "Ne pas prolonger seul."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre que les corticoïdes traitent <strong>la poussée</strong> mais <strong>pas</strong> l'entretien ; ne jamais arrêter brutalement ; limiter et surveiller les effets."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Les corticoïdes agissent <strong>vite</strong> sur l'inflammation d'une poussée, mais <strong>ne maintiennent pas</strong> la rémission et exposent, au long cours, à des effets indésirables (os, glycémie, tension, humeur, infections, prise de poids). On les utilise donc <strong>le moins longtemps possible</strong>, avec un <strong>sevrage progressif</strong> selon un schéma précis. Un arrêt brutal après plusieurs semaines peut provoquer une <strong>insuffisance surrénale</strong>."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Poids, tension/glycémie si à risque, sommeil, humeur, signes d'infection ; respect du <strong>schéma de décroissance</strong>."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [
+        "Insomnie, irritabilité, glycémie élevée, œdèmes. → Prendre conseil (ne pas arrêter seul)."
+       ],
+       "r": [
+        "À l'arrêt trop rapide : <strong>fatigue extrême, malaise, hypotension, nausées</strong> (insuffisance surrénale). → Consulter."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Réduire sel et sucres rapides pendant la cure ; <strong>calcium/vitamine D</strong> si prescrits ; prise le matin ; ne jamais interrompre brutalement."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Je peux arrêter la cortisone d'un coup dès que je vais mieux",
+        "a": "Faux",
+        "note": ""
+       },
+       {
+        "q": "La cortisone remplace mon traitement de fond",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ]
    },
    {
     "id": "mici_vie",
     "name": "MICI et vie : fatigue, travail, sexualité, grossesse",
-    "objectifs": [
-     "Gérer la fatigue",
-     "Connaître ses droits (ALD)",
-     "Savoir que la grossesse se planifie en rémission et que la plupart des traitements sont compatibles"
-    ],
-    "enclair": "Une MICI bien contrôlée permet une vie, un travail et une grossesse normale ; c'est la <strong>maladie active</strong> — pas le traitement — qui est le principal risque en cas de grossesse.",
-    "vivre": [
-     "Planifier une grossesse <strong>en rémission</strong> et avec l'équipe.",
-     "Ne pas arrêter le traitement en découvrant une grossesse sans avis."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Gérer la fatigue ; connaître ses droits ; comprendre que <strong>grossesse et MICI sont compatibles</strong>, à condition de la <strong>planifier en rémission</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Une MICI <strong>bien contrôlée</strong> permet une vie personnelle, professionnelle et une <strong>grossesse normale</strong>. Le principal risque pour une grossesse est la <strong>maladie active</strong> — <strong>pas</strong> le traitement, dont la plupart sont compatibles. La fatigue est un symptôme à part entière, même en rémission (inflammation, anémie, sommeil, moral)."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Fatigue (rechercher une <strong>anémie/carence en fer</strong>), moral (anxiété/dépression fréquentes et à prendre en charge), activité sexuelle (douleurs, image de soi)."
+      ]
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "items": [
+       "<strong>Grossesse</strong> : la <strong>planifier en rémission</strong> avec l'équipe ; <strong>ne pas arrêter</strong> le traitement en découvrant une grossesse sans avis.",
+       "<strong>Travail</strong> : aménagements possibles, ALD, médecine du travail.",
+       "<strong>Soutien psychologique</strong> : légitime et utile ; associations de patients."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": [
+       {
+        "m": "<em>« Je dois arrêter mon traitement pour tomber enceinte. »</em>",
+        "r": "<strong>Non</strong>, l'arrêt non concerté est risqué."
+       },
+       {
+        "m": "<em>« La MICI empêche d'avoir des enfants. »</em>",
+        "r": "<strong>Non.</strong>"
+       }
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "La grossesse se prépare idéalement en rémission",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "En découvrant une grossesse, j'arrête tout de suite mon traitement",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ]
    },
    {
     "id": "mici_surveillance",
     "name": "Ma surveillance au long cours",
-    "objectifs": [
-     "Comprendre le rythme des bilans et des coloscopies",
-     "Comprendre le dépistage de la dysplasie après plusieurs années d'évolution"
-    ],
-    "enclair": "Une surveillance régulière permet d'adapter le traitement et de dépister précocement des lésions. Les rendez-vous se poursuivent <strong>même en rémission</strong>."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre le <strong>rythme</strong> des bilans/coloscopies et le <strong>dépistage de la dysplasie</strong> après plusieurs années."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "La surveillance permet de vérifier que la maladie est <strong>réellement</strong> contrôlée (parfois par des dosages biologiques ou une coloscopie, même sans symptôme) et d'<strong>adapter</strong> le traitement. Après plusieurs années d'atteinte du côlon, une <strong>surveillance endoscopique</strong> dépiste précocement d'éventuelles lésions (dysplasie)."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Mon <strong>calendrier</strong> de rendez-vous, bilans, coloscopies ; ne pas les manquer même en pleine forme."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
+    ]
    }
   ]
  },
@@ -177,145 +551,471 @@ export const ETP = [
    {
     "id": "cirrhose_autosurv",
     "name": "Vivre avec une cirrhose : mon auto-surveillance",
-    "star": 1,
-    "objectifs": [
-     "Comprendre ce qu'est la cirrhose",
-     "Me peser et me surveiller",
-     "Repérer une complication tôt"
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "items": [
+       "Comprendre ce qu'est la cirrhose et pourquoi elle se surveille.",
+       "Réaliser une <strong>auto-surveillance simple et quotidienne</strong>.",
+       "Repérer une complication <strong>tôt</strong> et savoir réagir."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "La cirrhose est une <strong>cicatrisation</strong> diffuse du foie (fibrose) qui gêne son fonctionnement et la circulation du sang à travers lui. Bien suivie et <strong>sans alcool</strong>, elle peut rester <strong>stable des années</strong>. Ses complications sont en grande partie <strong>prévisibles et repérables</strong> — d'où l'intérêt de l'auto-surveillance. La suppression <strong>totale</strong> de l'alcool et la mise à jour des <strong>vaccinations</strong> (grippe, pneumocoque, hépatites A/B) sont essentielles."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille moi-même",
+      "items": [
+       "<strong>Poids chaque jour</strong>, à heure fixe, après les toilettes : une <strong>prise de &gt; 2 kg en quelques jours</strong> évoque une <strong>rétention d'eau</strong>.",
+       "<strong>Périmètre abdominal</strong> (ventre qui se tend), <strong>jambes/chevilles</strong> qui gonflent.",
+       "<strong>Vigilance / sommeil</strong> : difficultés de concentration, somnolence anormale, <strong>inversion jour/nuit</strong>, tremblement des mains → signes d'<strong>encéphalopathie</strong> (l'entourage les repère souvent avant vous).",
+       "<strong>Couleur</strong> : urines foncées, selles décolorées, <strong>jaunisse</strong> (yeux/peau).",
+       "<strong>Selles</strong> : couleur <strong>noire</strong> (sang digéré) = signal grave."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [
+        "Poids stable, ventre souple, esprit clair, pas de saignement."
+       ],
+       "o": [
+        "&lt;strong&gt;Contacter (adapter le traitement) :&lt;/strong&gt; prise de poids &gt; 2 kg en quelques jours, jambes qui gonflent, ventre plus tendu, fatigue croissante."
+       ],
+       "r": [
+        "&lt;strong&gt;Urgences :&lt;/strong&gt; <strong>vomissement de sang ou selles noires</strong> ; <strong>confusion/somnolence anormale</strong> ; <strong>fièvre + douleur du ventre</strong> ; <strong>jaunisse qui s'aggrave</strong> ; urines très rares ; malaise."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "items": [
+       "<strong>Zéro alcool</strong> (le geste le plus protecteur).",
+       "<strong>Alimentation</strong> : voir modules Régimes <strong>hyposodé</strong> (ascite) et <strong>cirrhose (protéines maintenues)</strong> ; <strong>collation le soir</strong> pour éviter le jeûne nocturne.",
+       "<strong>Médicaments</strong> : évitez l'<strong>automédication</strong> (anti-inflammatoires <strong>AINS</strong> dangereux ; paracétamol à dose adaptée).",
+       "<strong>Vaccinations</strong> à jour."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": [
+       {
+        "m": "<em>« Cirrhose = forcément l'alcool. »</em>",
+        "r": "Non (hépatites virales, foie gras/MASH, etc.)."
+       },
+       {
+        "m": "<em>« Il faut réduire les protéines. »</em>",
+        "r": "<strong>Non</strong> : elles protègent les muscles (voir F2.2 et Régimes)."
+       },
+       {
+        "m": "<em>« Je peux prendre de l'ibuprofène pour une douleur. »</em>",
+        "r": "<strong>Non</strong> (AINS à éviter)."
+       }
+      ]
+     },
+     {
+      "e": "❓",
+      "t": "FAQ",
+      "items": [
+       "<em>Puis-je faire du sport ?</em> Oui, une activité adaptée entretient les muscles.",
+       "<em>La cirrhose est-elle réversible ?</em> La fibrose régresse peu, mais <strong>stabiliser</strong> évite les complications ; certaines causes traitées améliorent le foie."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Une prise de 2–3 kg en quelques jours doit m'alerter",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "En cas de cirrhose, je réduis mes protéines",
+        "a": "Faux",
+        "note": ""
+       },
+       {
+        "q": "Je peux prendre des anti-inflammatoires pour une douleur",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ],
-    "enclair": "La cirrhose est une cicatrisation du foie qui perturbe ses fonctions. Bien suivie, elle reste longtemps stable ; les complications sont <strong>prévisibles et repérables</strong>.",
-    "autosurv": [
-     "<strong>Poids chaque jour</strong> (à heure fixe)",
-     "Périmètre abdominal",
-     "Gonflement des jambes",
-     "Couleur des urines",
-     "Vigilance / sommeil",
-     "Coloration des yeux / de la peau"
-    ],
-    "feu": {
-     "v": [
-      "Poids stable, ventre souple, esprit clair."
-     ],
-     "o": [
-      "Prise de poids > 2 kg en quelques jours, jambes qui gonflent, ventre plus tendu → contacter (adapter diurétiques / hyposodé)."
-     ],
-     "r": [
-      "Vomissement ou selles noires / sang, confusion / somnolence anormale, fièvre + douleur du ventre, jaunisse qui s'aggrave, urines très rares → urgences."
-     ]
-    },
-    "vivre": [
-     "Zéro alcool.",
-     "Voir aussi les fiches régime <strong>hyposodé</strong> et <strong>cirrhose / protéines</strong>.",
-     "Vaccinations à jour."
-    ]
+    "star": 1
    },
    {
     "id": "cirrhose_complications",
     "name": "Reconnaître les complications de la cirrhose",
-    "star": 1,
-    "objectifs": [
-     "Identifier les 4 grandes complications",
-     "Connaître la conduite immédiate pour chacune"
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Identifier les <strong>4 grandes complications</strong> et la conduite immédiate pour chacune."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "La gêne à la circulation dans le foie (hypertension portale) et la baisse des fonctions hépatiques expliquent les complications. Les <strong>connaître</strong> permet de <strong>réagir vite</strong>, souvent avant l'aggravation."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir — par complication",
+      "feu": {
+       "v": [],
+       "o": [
+        "<strong>Ascite / rétention d'eau</strong> → 🟠 prise de poids, ventre tendu, jambes gonflées : <strong>contacter</strong> pour adapter diurétiques/sel. 🔴 si fièvre + douleur du ventre.",
+        "<strong>Infection du liquide d'ascite</strong> → 🔴 <strong>fièvre et/ou douleur abdominale</strong> chez une personne avec ascite : <strong>urgences</strong> (infection grave).",
+        "<strong>Encéphalopathie hépatique</strong> → 🔴 <strong>confusion, somnolence, désorientation, inversion jour/nuit, tremblement</strong> : urgences ; <strong>ne pas conduire</strong> ; rechercher un facteur déclenchant (constipation, infection, écart médicamenteux).",
+        "<strong>Hémorragie digestive</strong> (varices) → 🔴 <strong>vomissement de sang</strong> ou <strong>selles noires</strong> : <strong>urgence absolue</strong> (appeler le 15/112)."
+       ],
+       "r": []
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Traiter la <strong>constipation</strong> (facteur d'encéphalopathie) ; observance du <strong>bêtabloquant</strong> et du <strong>lactulose</strong> si prescrits ; entourage informé des signes."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Des selles noires imposent d'aller aux urgences",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "En cas d'encéphalopathie, je diminue les protéines",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ],
-    "enclair": "Quatre complications à connaître : l'ascite (rétention d'eau), l'encéphalopathie (confusion), l'hémorragie digestive et l'infection du liquide d'ascite.",
-    "feu": {
-     "o": [
-      "<strong>Ascite / rétention d'eau</strong> : prise de poids, ventre tendu → consulter pour adapter."
-     ],
-     "r": [
-      "<strong>Encéphalopathie</strong> : confusion, somnolence, inversion jour / nuit, tremblement → urgence, éviter la conduite.",
-      "<strong>Hémorragie digestive</strong> : vomissement de sang / selles noires → urgence absolue.",
-      "<strong>Infection du liquide d'ascite</strong> : fièvre + douleur abdominale → urgence."
-     ]
-    },
-    "alerte": "En cas d'encéphalopathie, ne réduisez pas vos protéines — voir la fiche régime correspondante."
+    "star": 1
    },
    {
     "id": "hepatites_bc",
     "name": "Hépatite chronique B / C : traitement et non-transmission",
-    "objectifs": [
-     "Comprendre le traitement (guérison possible pour la C ; contrôle pour la B)",
-     "L'observance",
-     "Éviter la transmission"
-    ],
-    "enclair": "L'hépatite C se <strong>guérit</strong> aujourd'hui par un traitement court ; l'hépatite B se <strong>contrôle</strong> par un traitement au long cours. L'observance protège le foie et l'entourage (vaccination des proches pour la B).",
-    "vivre": [
-     "Ne pas partager rasoir / coupe-ongles.",
-     "Protéger les rapports selon le statut.",
-     "Suivi même après guérison de la C si fibrose."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre que l'hépatite <strong>C se guérit</strong> et la <strong>B se contrôle</strong> ; l'importance de l'observance ; comment <strong>protéger l'entourage</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "L'<strong>hépatite C</strong> se traite aujourd'hui par un traitement <strong>court</strong> (quelques semaines) qui <strong>guérit</strong> la très grande majorité des patients. L'<strong>hépatite B</strong> ne se « guérit » pas mais se <strong>contrôle</strong> par un traitement au <strong>long cours</strong> qui bloque le virus et protège le foie. Dans les deux cas, l'observance protège le foie <strong>et</strong> limite la transmission ; la <strong>vaccination des proches</strong> protège de l'hépatite B."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Prise <strong>quotidienne</strong> régulière (hépatite B) ; bilans de contrôle ; pour la C, contrôle de la <strong>guérison</strong> puis suivi si fibrose."
+      ]
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec / non-transmission",
+      "items": [
+       "Ne pas partager <strong>rasoir, coupe-ongles, brosse à dents</strong>.",
+       "<strong>Protéger les rapports</strong> selon le statut/partenaire ; proposer le <strong>dépistage</strong> aux proches et la <strong>vaccination B</strong>.",
+       "Signaler son statut aux soignants (pas de honte, c'est une infection)."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": [
+       {
+        "m": "<em>« L'hépatite C, on ne peut pas en guérir. »</em>",
+        "r": "<strong>Faux</strong>, elle se guérit."
+       },
+       {
+        "m": "<em>« Guéri de l'hépatite C = plus aucun suivi. »</em>",
+        "r": "Si <strong>fibrose</strong> avancée, la surveillance du foie continue."
+       }
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "L'hépatite C se guérit par un traitement court",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Le traitement de l'hépatite B peut s'arrêter dès que je me sens bien",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ]
    },
    {
     "id": "masld_objectifs",
     "name": "Foie gras (MASLD / MASH) : mes objectifs",
-    "objectifs": [
-     "Comprendre le lien avec poids / sucres / alcool",
-     "Me fixer des objectifs atteignables"
-    ],
-    "enclair": "L'excès de graisse dans le foie peut régresser avec une <strong>perte de poids progressive</strong>, une alimentation méditerranéenne et la réduction de l'alcool et des boissons sucrées. Voir la fiche régime MASLD.",
-    "vivre": [
-     "Objectif de poids réaliste fixé avec le médecin.",
-     "Activité physique régulière et progressive."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre le lien avec <strong>poids, sucres, alcool</strong> ; fixer des objectifs <strong>atteignables</strong> ; savoir que l'atteinte peut <strong>régresser</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "L'excès de graisse dans le foie est lié au surpoids, au sucre (surtout <strong>boissons sucrées/fructose</strong>), à la sédentarité et à l'alcool. C'est souvent <strong>réversible</strong> : une <strong>perte de poids progressive</strong> (objectif ~<strong>7–10 %</strong> si surpoids), une alimentation <strong>méditerranéenne</strong> et l'activité physique peuvent faire régresser la « graisse » et l'inflammation."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Poids/tour de taille, activité physique hebdomadaire, consommation de boissons sucrées et d'alcool, bilans (foie, glycémie, lipides)."
+      ]
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Voir module <strong>Régime MASLD</strong> ; viser des changements <strong>durables</strong> plutôt qu'un régime express (une perte trop rapide est contre-productive) ; dépister/traiter diabète, HTA, cholestérol."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Le foie gras peut régresser avec la perte de poids",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Les boissons sucrées n'ont pas d'impact sur le foie",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ]
    },
    {
     "id": "betabloquant_vo",
-    "name": "Bêtabloquant et prévention de l'hémorragie",
-    "objectifs": [
-     "Comprendre le rôle du bêtabloquant (baisser la pression dans les veines de l'œsophage)",
-     "L'observance",
-     "Surveiller mon pouls"
-    ],
-    "enclair": "Le bêtabloquant diminue la pression dans les varices de l'œsophage et réduit le risque de saignement. Il se prend tous les jours, même sans symptôme.",
-    "autosurv": [
-     "Pouls au repos (cible fixée par le médecin)",
-     "Tension si demandée",
-     "Vertiges"
-    ],
-    "feu": {
-     "o": [
-      "Pouls trop lent, vertiges → prendre conseil."
-     ],
-     "r": [
-      "Vomissement de sang / selles noires → urgences."
-     ]
-    }
+    "name": "Bêtabloquant et prévention de l'hémorragie variqueuse",
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre le rôle du bêtabloquant ; l'observance ; <strong>surveiller le pouls</strong> ; reconnaître une hémorragie."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Quand la cirrhose crée des <strong>varices</strong> (veines dilatées dans l'œsophage/l'estomac), un <strong>bêtabloquant</strong> abaisse la pression dans ces veines et <strong>réduit le risque de saignement</strong>. Il agit en prévention, sans que vous « sentiez » son effet — d'où l'importance de le prendre <strong>tous les jours</strong>."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "<strong>Pouls</strong> (le traitement le ralentit ; un pouls trop bas ou des vertiges se signalent) ; tension ; tolérance."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [
+        "Pouls très lent, fatigue, vertiges, mains/pieds froids. → Prendre conseil (adaptation)."
+       ],
+       "r": [
+        "&lt;strong&gt;Vomissement de sang / selles noires :&lt;/strong&gt; → <strong>urgence absolue</strong>."
+       ]
+      }
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
+    ]
    },
    {
     "id": "alcool",
     "name": "Alcool : réduire ou arrêter",
-    "objectifs": [
-     "Faire le point sans jugement",
-     "Connaître les aides disponibles",
-     "Anticiper le sevrage"
-    ],
-    "enclair": "L'arrêt de l'alcool est le geste le plus protecteur pour le foie. Un sevrage peut nécessiter un accompagnement médical — des aides efficaces existent (consultations, traitements, associations), sans jugement.",
-    "feu": {
-     "r": [
-      "À l'arrêt brutal : tremblements majeurs, sueurs, confusion, hallucinations → urgences (risque de delirium)."
-     ]
-    },
-    "vivre": [
-     "Vous pouvez en parler librement en consultation : l'objectif se construit ensemble, à votre rythme."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Faire le point <strong>sans jugement</strong> ; connaître les aides ; anticiper un sevrage <strong>en sécurité</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "L'arrêt de l'alcool est le geste le <strong>plus protecteur</strong> pour le foie (et pour l'ensemble de la santé). La dépendance est une <strong>maladie</strong>, pas un manque de volonté : des <strong>accompagnements</strong> existent (consultation d'addictologie, médicaments, groupes d'entraide). En cas de consommation importante, <strong>l'arrêt brutal peut être dangereux</strong> et nécessite un cadre médical."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [],
+       "r": [
+        "À l'arrêt brutal chez un buveur important : <strong>tremblements majeurs, sueurs, agitation, confusion, hallucinations</strong> (risque de <strong>delirium tremens</strong>) → <strong>urgences</strong>."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Fixer un objectif réaliste (réduction puis arrêt), repérer les situations à risque, s'appuyer sur l'entourage et un professionnel. <strong>Aucune stigmatisation</strong> : demander de l'aide est une force."
+      ]
+     },
+     {
+      "e": "❓",
+      "t": "Ressources",
+      "paras": [
+       "Consultation d'addictologie, médecin traitant, lignes d'écoute et associations (à afficher/lien)."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "L'arrêt de l'alcool protège le foie",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Un gros buveur peut arrêter seul et brutalement sans risque",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ]
    },
    {
     "id": "greffe_foie",
     "name": "Après une greffe de foie",
-    "objectifs": [
-     "Comprendre l'importance vitale des immunosuppresseurs",
-     "Reconnaître un rejet / une infection"
-    ],
-    "enclair": "Le traitement immunosuppresseur empêche le rejet du greffon : il est <strong>vital</strong> et ne doit jamais être interrompu sans avis.",
-    "feu": {
-     "o": [
-      "Fatigue, fièvre modérée, anomalie de bilan → prendre conseil."
-     ],
-     "r": [
-      "Fièvre élevée, jaunisse, douleur du greffon → consulter en urgence."
-     ]
-    },
-    "alerte": "Ne jamais interrompre l'immunosuppression."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre le rôle <strong>vital</strong> des immunosuppresseurs ; reconnaître <strong>rejet</strong> et <strong>infection</strong> ; adhérer au suivi à vie."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Après greffe, les <strong>immunosuppresseurs</strong> empêchent le rejet du nouveau foie : ils se prennent <strong>à vie, à heure fixe, sans jamais interrompre</strong>. Ils augmentent le risque d'infections et de cancers cutanés (photoprotection)."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Prise <strong>régulière</strong> (mêmes horaires), fièvre, jaunisse, anomalies de bilan, tension/glycémie, peau (nouvelles lésions)."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [
+        "Fatigue, fièvre modérée, anomalie de bilan, oubli de prise. → Contacter l'équipe de greffe."
+       ],
+       "r": [
+        "&lt;strong&gt;Fièvre élevée, jaunisse, douleur sur le greffon, infection sévère :&lt;/strong&gt; → urgences / équipe de greffe."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Éviter le <strong>pamplemousse</strong> (interaction), photoprotection stricte, vaccins inactivés à jour, hygiène alimentaire."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Les immunosuppresseurs post-greffe se prennent à vie",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Le pamplemousse est sans effet sur mon traitement",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
+    ]
    }
   ]
  },
@@ -325,236 +1025,694 @@ export const ETP = [
   "items": [
    {
     "id": "sii_comprendre",
-    "name": "Comprendre le côlon irritable",
-    "objectifs": [
-     "Comprendre l'axe intestin-cerveau",
-     "Savoir que c'est une maladie réelle mais bénigne (pas de risque de cancer lié au SII)",
-     "Sortir de l'errance"
-    ],
-    "enclair": "Le SII vient d'une communication perturbée entre l'intestin et le cerveau (hypersensibilité, motricité), sans lésion. C'est chronique et fluctuant, mais <strong>non dangereux</strong> ; le but est le <strong>confort</strong>, pas la « guérison d'une lésion ».",
-    "feu": {
-     "r": [
-      "Signaux qui ne sont PAS du SII et imposent un avis : sang, amaigrissement, anémie, réveils nocturnes, début après 50 ans."
-     ]
-    },
-    "vivre": [
-     "Stress, sommeil, activité physique comptent autant que l'assiette.",
-     "Voir la fiche régime FODMAP (rappel : non absolu, réintroduction obligatoire)."
+    "name": "Comprendre le côlon irritable (SII)",
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre l'<strong>axe intestin-cerveau</strong> ; intégrer que le SII est <strong>réel</strong> mais <strong>bénin</strong> ; repérer les signes qui ne sont <strong>pas</strong> du SII."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Le SII est un <strong>trouble de l'interaction intestin-cerveau</strong> : les nerfs de l'intestin envoient des signaux <strong>trop intenses</strong> (hypersensibilité) et la motricité est perturbée, <strong>sans lésion</strong> de l'intestin. Ce n'est ni « dans la tête », ni dangereux : <strong>pas de sur-risque de cancer</strong> lié au SII. La maladie est <strong>chronique et fluctuante</strong> ; l'objectif est le <strong>confort</strong>, pas de « réparer une lésion » (il n'y en a pas)."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Douleurs (soulagées ou non par la selle), <strong>ballonnements</strong>, transit (diarrhée/constipation/alternance), <strong>déclencheurs</strong> (aliments, stress, sommeil, règles)."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir — signes qui ne sont PAS du SII (à signaler)",
+      "feu": {
+       "v": [],
+       "o": [],
+       "r": [
+        "&lt;strong&gt;Sang :&lt;/strong&gt; dans les selles, <strong>amaigrissement</strong>, <strong>anémie</strong>, <strong>réveils nocturnes</strong> par les symptômes, <strong>fièvre</strong>, <strong>début après 50 ans</strong>, antécédents familiaux de cancer/MICI. → Consulter (bilan)."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Sommeil, activité physique, gestion du <strong>stress</strong> (l'axe intestin-cerveau est bidirectionnel) ; alimentation : <strong>FODMAP encadré</strong> (non absolu, <strong>réintroduction obligatoire</strong> — voir Régimes) ; les <strong>neuromodulateurs</strong> (voir F3.4) ne sont pas « psy » mais <strong>antidouleur du ventre</strong>."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": [
+       {
+        "m": "<em>« C'est psychologique / imaginaire. »</em>",
+        "r": "<strong>Non</strong>, mécanisme physiologique réel."
+       },
+       {
+        "m": "<em>« Je risque un cancer. »</em>",
+        "r": "<strong>Non</strong>, le SII n'y prédispose pas."
+       },
+       {
+        "m": "<em>« Il faut supprimer plein d'aliments à vie. »</em>",
+        "r": "<strong>Non</strong> : régime <strong>personnalisé</strong>, pas d'exclusion définitive large."
+       }
+      ]
+     },
+     {
+      "e": "❓",
+      "t": "FAQ",
+      "paras": [
+       "<em>Vais-je en guérir ?</em> Les symptômes évoluent par périodes ; on vise un <strong>bon contrôle</strong> durable."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Le SII augmente le risque de cancer du côlon",
+        "a": "Faux",
+        "note": ""
+       },
+       {
+        "q": "Du sang dans les selles n'est pas un symptôme de SII et doit être exploré",
+        "a": "Vrai",
+        "note": ""
+       }
+      ]
+     }
     ]
    },
    {
     "id": "sii_poussees",
     "name": "Gérer mes poussées de SII",
-    "objectifs": [
-     "Identifier mes déclencheurs",
-     "Disposer d'une boîte à outils (respiration, antispasmodique à la demande, adaptation transitoire)",
-     "Ne pas me sur-restreindre"
-    ],
-    "enclair": "Les poussées se gèrent avec des outils simples utilisés tôt : respiration, antispasmodique à la demande, adaptation alimentaire transitoire — sans s'imposer de restrictions durables.",
-    "vivre": [
-     "Tenir un carnet déclencheurs / symptômes.",
-     "Voir le livret « Respiration diaphragmatique » (rééducation)."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Identifier ses <strong>déclencheurs</strong> ; se constituer une <strong>boîte à outils</strong> ; ne pas <strong>sur-restreindre</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Les symptômes surviennent par <strong>poussées</strong>, souvent liées à des déclencheurs individuels (repas riches en FODMAP, stress, fatigue, hormones). On agit sur <strong>plusieurs leviers</strong> à la fois : alimentation adaptée <strong>temporairement</strong>, gestion du stress, antispasmodique <strong>à la demande</strong>, parfois neuromodulateur de fond."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Tenir un <strong>carnet déclencheurs/symptômes</strong> (aliments, stress, sommeil, règles) pour repérer <strong>vos</strong> facteurs."
+      ]
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec — ma boîte à outils",
+      "items": [
+       "<strong>Respiration diaphragmatique</strong> (Livret F10.0) en cas de crise.",
+       "<strong>Antispasmodique</strong> à la demande sur la douleur.",
+       "<strong>Adaptation alimentaire transitoire</strong> (réduire temporairement les FODMAP, puis réélargir).",
+       "<strong>Activité physique</strong> régulière, <strong>sommeil</strong>."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
     ]
    },
    {
     "id": "rgo_vivre",
-    "name": "Vivre avec un RGO au-delà des médicaments",
-    "objectifs": [
-     "Comprendre les mesures non médicamenteuses",
-     "Utiliser les IPP à bon escient",
-     "Envisager la déprescription"
-    ],
-    "enclair": "Les mesures de mode de vie (repas, poids, tête de lit) traitent la cause des remontées ; les IPP se réévaluent régulièrement. Voir la fiche régime anti-reflux et la fiche « IPP au long cours ».",
-    "vivre": [
-     "Dernier repas ≥ 3 h avant le coucher, tête de lit surélevée.",
-     "Réévaluer le traitement avec le médecin — ne pas l'augmenter seul."
+    "name": "Vivre avec un RGO au-delà des IPP",
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Connaître les mesures <strong>non médicamenteuses</strong> ; utiliser les IPP <strong>à bon escient</strong> ; envisager la <strong>déprescription</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Le reflux est favorisé par certaines habitudes et le surpoids. Les <strong>IPP</strong> réduisent l'acidité et soulagent, mais ne suppriment pas la cause : les <strong>mesures de mode de vie</strong> (poids, horaires, position) diminuent les épisodes et permettent souvent d'en <strong>réduire la dose</strong>."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Fréquence des brûlures/régurgitations, lien avec repas/position, efficacité et <strong>nécessité réelle</strong> de l'IPP."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [],
+       "r": [
+        "&lt;strong&gt;difficulté à avaler, amaigrissement, vomissements de sang, anémie :&lt;/strong&gt; → consulter (endoscopie)."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Voir <strong>Régime anti-reflux</strong> ; <strong>perte de poids</strong> = mesure la plus efficace ; dernier repas <strong>≥ 3 h</strong> avant le coucher ; <strong>tête de lit surélevée</strong> ; réévaluer l'IPP régulièrement (voir F8.1)."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "La perte de poids peut réduire le reflux",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Une difficulté à avaler est banale dans le reflux",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ]
    },
    {
     "id": "neuromodulateurs",
     "name": "Les neuromodulateurs (ex. Laroxyl) : pourquoi un « antidépresseur » pour le ventre",
-    "star": 1,
-    "objectifs": [
-     "Comprendre qu'à faible dose ce médicament agit sur la douleur du ventre (et non comme antidépresseur)",
-     "Accepter la titration lente",
-     "Gérer les effets"
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre l'action <strong>antidouleur</strong> à <strong>faible dose</strong> ; accepter la <strong>titration lente</strong> ; gérer les effets et l'arrêt."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "À <strong>petite dose</strong>, l'amitriptyline (Laroxyl®) n'est <strong>pas</strong> utilisée comme antidépresseur mais comme <strong>modulateur de la douleur</strong> : elle <strong>atténue les signaux douloureux</strong> échangés entre l'intestin et le cerveau. L'effet met <strong>4 à 6 semaines</strong> à s'installer ; les effets indésirables du début (bouche sèche, somnolence) <strong>s'atténuent</strong> ensuite. C'est pourquoi on <strong>augmente progressivement</strong> la dose."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Douleur (échelle 0–10), sommeil, transit (peut <strong>constiper</strong>), bouche sèche, tolérance."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [
+        "Bouche sèche, constipation, somnolence diurne. → Ajuster (hydratation, horaire, dose)."
+       ],
+       "r": [
+        "&lt;strong&gt;Palpitations, rétention d'urine, confusion :&lt;/strong&gt; → arrêter et consulter."
+       ]
+      }
+     },
+     {
+      "e": "💊",
+      "t": "En pratique",
+      "paras": [
+       "Prise <strong>le soir</strong> (l'effet sédatif aide le sommeil) ; <strong>ne pas conduire</strong> au début ; forme <strong>buvable en gouttes</strong> pour ajuster finement ; <strong>ne jamais arrêter brutalement</strong> (diminuer progressivement)."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": [
+       {
+        "m": "<em>« On me prend pour un dépressif. »</em>",
+        "r": "<strong>Non</strong> : c'est un <strong>antidouleur</strong> à dose faible."
+       },
+       {
+        "m": "<em>« Ça marche tout de suite ou jamais. »</em>",
+        "r": "<strong>Faux</strong> : il faut <strong>4–6 semaines</strong>."
+       }
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "À faible dose, ce médicament agit sur la douleur du ventre",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Je peux l'arrêter d'un coup si je n'ai plus mal",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ],
-    "enclair": "À petite dose, l'amitriptyline <strong>calme les signaux douloureux</strong> entre l'intestin et le cerveau. L'effet met <strong>4 à 6 semaines</strong> ; les effets indésirables initiaux (bouche sèche, somnolence) s'atténuent.",
-    "autosurv": [
-     "Douleur (échelle simple 0–10)",
-     "Sommeil",
-     "Transit",
-     "Bouche sèche"
-    ],
-    "feu": {
-     "o": [
-      "Bouche sèche, constipation, somnolence diurne → ajuster."
-     ],
-     "r": [
-      "Palpitations, rétention d'urine, confusion → arrêter et consulter."
-     ]
-    },
-    "vivre": [
-     "Prise le soir.",
-     "Ne pas conduire au début.",
-     "Ne pas arrêter brutalement."
-    ]
+    "star": 1
    },
    {
     "id": "dyspepsie_quotidien",
     "name": "Dyspepsie / gastroparésie au quotidien",
-    "objectifs": [
-     "Fractionner mes repas",
-     "Gérer nausées et satiété précoce"
-    ],
-    "enclair": "Des repas petits, fréquents et pauvres en graisses limitent les symptômes. Voir les fiches régime dyspepsie et gastroparésie.",
-    "vivre": [
-     "Manger lentement, dans le calme.",
-     "Rester droit après les repas."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Fractionner les repas ; gérer <strong>nausées</strong> et <strong>satiété précoce</strong> ; savoir quand consulter."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Dans la <strong>dyspepsie</strong>, l'estomac est <strong>hypersensible</strong> et se vide de façon inconfortable ; dans la <strong>gastroparésie</strong>, il se <strong>vide trop lentement</strong>. Dans les deux cas, des repas <strong>petits, fréquents et pauvres en graisses</strong> réduisent lourdeurs, nausées et satiété rapide."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Nausées, vomissements, satiété précoce, poids (une perte est un signal), équilibre du diabète (aggrave la gastroparésie)."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [],
+       "r": [
+        "vomissements persistants, amaigrissement, déshydratation, sang. → Consulter."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Voir <strong>Régimes dyspepsie / gastroparésie</strong> ; rester <strong>assis</strong> après les repas ; boire les calories si les solides passent mal."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
     ]
    }
   ]
  },
  {
-  "axe": "Autour d'un geste endoscopique",
+  "axe": "Autour d'un geste endoscopique (péri-procédure)",
   "icon": "🔬",
   "items": [
    {
     "id": "esd_emr",
     "name": "Ma dissection / mucosectomie (ESD / EMR)",
-    "star": 1,
-    "objectifs": [
-     "Comprendre le geste (retrait d'une lésion par voie endoscopique)",
-     "Connaître la reprise alimentaire progressive",
-     "Reconnaître hémorragie et perforation",
-     "Adapter l'activité et les anticoagulants"
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre le geste ; suivre la <strong>reprise alimentaire</strong> et les <strong>restrictions d'effort</strong> ; reconnaître <strong>hémorragie</strong> et <strong>perforation</strong> ; gérer les <strong>anticoagulants</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "On retire une <strong>lésion superficielle</strong> (polype étendu, lésion précoce) <strong>par voie endoscopique</strong>, sans chirurgie. La zone laisse une <strong>« plaie » interne</strong> qui cicatrise en <strong>quelques semaines</strong>. Deux risques, <strong>rares mais à connaître</strong> : le <strong>saignement</strong> (parfois <strong>retardé</strong>, jusqu'à ~1–2 semaines) et la <strong>perforation</strong>."
+      ]
+     },
+     {
+      "e": "💊",
+      "t": "Consignes de suites",
+      "items": [
+       "<strong>Alimentation</strong> : selon consignes, souvent <strong>liquide/léger 24–48 h</strong> puis <strong>élargissement progressif</strong> sur quelques jours (éviter alcool, aliments épicés/irritants un temps).",
+       "<strong>Effort</strong> : <strong>pas d'effort intense, port de charges lourdes, ni long voyage</strong> pendant la durée indiquée (risque de saignement retardé).",
+       "<strong>Anticoagulants/antiagrégants</strong> : <strong>reprise uniquement à la date fixée</strong> par le médecin."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [
+        "Légère gêne, un filet de sang au premier passage."
+       ],
+       "o": [
+        "Fébricule, douleur modérée persistante, petit saignement qui se répète. → Prendre conseil."
+       ],
+       "r": [
+        "&lt;strong&gt;Vomissement de sang / selles noires abondantes :&lt;/strong&gt; , <strong>douleur abdominale ou thoracique intense</strong>, <strong>fièvre</strong>, <strong>ventre dur</strong> → <strong>urgences</strong> (hémorragie / perforation)."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Gardez la fiche et <strong>les numéros</strong> ; le <strong>résultat d'analyse</strong> (anatomopathologie) et le <strong>rythme de surveillance</strong> vous seront précisés ensuite."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Un saignement peut survenir plusieurs jours après le geste",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Je reprends mes anticoagulants quand je veux",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ],
-    "enclair": "On retire une lésion superficielle sans chirurgie. La zone cicatrise en quelques semaines ; deux risques principaux, <strong>rares mais à connaître</strong> : le saignement et la perforation.",
-    "consignes": [
-     "<strong>Alimentation</strong> : selon consignes, souvent liquide / léger 24–48 h puis élargissement progressif sur quelques jours.",
-     "<strong>Activité</strong> : pas d'effort intense, de port de charges, ni de voyage lointain pendant la période indiquée (risque de saignement retardé, parfois jusqu'à ~1–2 semaines).",
-     "<strong>Anticoagulants / antiagrégants</strong> : reprise <strong>uniquement</strong> à la date fixée par le médecin."
-    ],
-    "feu": {
-     "v": [
-      "Légère gêne, un peu de sang au premier passage : surveiller."
-     ],
-     "o": [
-      "Fébricule, douleur modérée persistante → prendre conseil."
-     ],
-     "r": [
-      "Vomissement de sang ou selles noires abondantes, douleur abdominale / thoracique intense, fièvre, ventre dur → urgences (hémorragie / perforation)."
-     ]
-    },
-    "vivre": [
-     "Garder la fiche et les numéros.",
-     "Le résultat d'analyse (anatomopathologie) et le suivi vous seront expliqués ensuite."
-    ]
+    "star": 1
    },
    {
     "id": "poem",
     "name": "Après une POEM / G-POEM",
-    "objectifs": [
-     "Comprendre le geste (section d'un muscle pour faciliter le passage / la vidange)",
-     "Suivre la réintroduction alimentaire",
-     "Repérer une complication"
-    ],
-    "enclair": "Le muscle trop serré a été sectionné par voie endoscopique pour faciliter le passage des aliments (POEM) ou la vidange de l'estomac (G-POEM).",
-    "consignes": [
-     "Progression des textures (liquide → mou → normal) selon le protocole remis.",
-     "IPP parfois prescrits.",
-     "Éviter les efforts pendant la période indiquée."
-    ],
-    "feu": {
-     "o": [
-      "Douleur thoracique modérée, gêne → prendre conseil."
-     ],
-     "r": [
-      "Douleur intense + fièvre, difficulté à respirer, vomissement de sang → urgences."
-     ]
-    }
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre le geste ; suivre la <strong>progression alimentaire</strong> ; repérer une complication."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "On <strong>sectionne un muscle</strong> par voie endoscopique pour <strong>faciliter le passage</strong> des aliments (POEM, achalasie) ou <strong>la vidange</strong> de l'estomac (G-POEM, gastroparésie). Les suites imposent une <strong>reprise alimentaire progressive</strong> et parfois des <strong>IPP</strong>."
+      ]
+     },
+     {
+      "e": "💊",
+      "t": "Consignes",
+      "paras": [
+       "Textures <strong>liquide → mou → normal</strong> selon protocole ; éviter les efforts un temps ; IPP si prescrits (protection de la zone)."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [
+        "Douleur thoracique modérée, gêne à avaler transitoire. → Prendre conseil."
+       ],
+       "r": [
+        "&lt;strong&gt;Douleur intense + fièvre :&lt;/strong&gt; , <strong>difficulté à respirer</strong>, <strong>vomissement de sang</strong> → <strong>urgences</strong>."
+       ]
+      }
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
+    ]
    },
    {
     "id": "cpre_prothese",
     "name": "Après une CPRE + prothèse biliaire",
-    "star": 1,
-    "objectifs": [
-     "Comprendre le drainage de la bile",
-     "Reconnaître une angiocholite",
-     "Reconnaître une pancréatite post-CPRE"
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre le <strong>drainage de la bile</strong> ; reconnaître <strong>angiocholite</strong> et <strong>pancréatite post-CPRE</strong> ; ne pas manquer le <strong>changement de prothèse</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "La CPRE lève un <strong>obstacle</strong> sur les voies biliaires (calcul, rétrécissement) et pose parfois une <strong>prothèse</strong> pour laisser la bile s'écouler. Deux complications à connaître : l'<strong>infection de la bile</strong> (<strong>angiocholite</strong>) et l'<strong>inflammation du pancréas</strong> (<strong>pancréatite post-CPRE</strong>, plus fréquente dans les heures qui suivent)."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Fièvre/frissons, jaunisse, douleur abdominale (surtout <strong>irradiant dans le dos</strong>), nausées/vomissements, couleur des selles/urines."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [
+        "Légère gêne, retour progressif à la normale."
+       ],
+       "o": [
+        "Douleur abdominale modérée, nausées. → Surveiller / prendre conseil."
+       ],
+       "r": [
+        "&lt;strong&gt;Fièvre/frissons + jaunisse + douleur :&lt;/strong&gt; (<strong>angiocholite</strong>) ; ou <strong>douleur abdominale intense irradiant dans le dos + vomissements</strong> (<strong>pancréatite</strong>) ; ou <strong>selles noires</strong> → <strong>urgences</strong>."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Les <strong>prothèses plastiques</strong> se <strong>changent à date programmée</strong> (risque d'obstruction/infection) : <strong>ne manquez pas le rendez-vous</strong>, même si tout va bien."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Fièvre + jaunisse + douleur après CPRE = urgences",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Une prothèse plastique reste en place indéfiniment sans risque",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ],
-    "enclair": "On a levé un obstacle sur les voies biliaires (calcul, sténose) et parfois posé une prothèse. Deux complications à connaître : l'infection de la bile (angiocholite) et l'inflammation du pancréas.",
-    "feu": {
-     "v": [
-      "Légère gêne, retour à la normale."
-     ],
-     "o": [
-      "Douleur abdominale modérée, nausées → surveiller / prendre conseil."
-     ],
-     "r": [
-      "Fièvre / frissons + jaunisse + douleur (angiocholite), ou douleur abdominale intense irradiant dans le dos + vomissements (pancréatite), ou selles noires → urgences."
-     ]
-    },
-    "vivre": [
-     "Certaines prothèses (plastique) doivent être <strong>changées à date programmée</strong> : ne manquez pas le rendez-vous même si tout va bien."
-    ]
+    "star": 1
    },
    {
     "id": "drainage_biliaire",
-    "name": "Vivre avec un drainage biliaire (prothèse, drainage écho-guidé)",
-    "objectifs": [
-     "Comprendre le rôle de la prothèse",
-     "Surveiller la réapparition d'un ictère / d'une fièvre (obstruction / infection)",
-     "Connaître le calendrier de changement"
-    ],
-    "enclair": "La prothèse maintient l'écoulement de la bile. Si elle se bouche ou s'infecte, la jaunisse ou la fièvre réapparaissent : il faut consulter sans tarder.",
-    "feu": {
-     "r": [
-      "Fièvre + jaunisse (prothèse bouchée / infectée) → consulter en urgence."
-     ]
-    }
+    "name": "Vivre avec un drainage biliaire (prothèse / drainage écho-guidé)",
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre le rôle de la prothèse/du drain ; surveiller une <strong>ré-obstruction</strong> ou une <strong>infection</strong> ; connaître le <strong>calendrier</strong> de changement."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "La prothèse maintient l'écoulement de la bile. Avec le temps, elle peut se <strong>boucher</strong> ou s'<strong>infecter</strong>, ce qui se manifeste par le <strong>retour d'un ictère</strong> et/ou une <strong>fièvre</strong>."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Réapparition d'une <strong>jaunisse</strong>, urines foncées/selles décolorées, <strong>fièvre</strong>, démangeaisons, douleur ; état d'un <strong>drain externe</strong> s'il y en a un (fixation, écoulement)."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [],
+       "r": [
+        "&lt;strong&gt;fièvre + jaunisse :&lt;/strong&gt; (prothèse bouchée/infectée), drain arraché/qui ne coule plus → consulter en <strong>urgence</strong>."
+       ]
+      }
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
+    ]
    },
    {
     "id": "gpe_soins",
     "name": "Ma gastrostomie (GPE) : soins et complications",
-    "objectifs": [
-     "Réaliser les soins de l'orifice",
-     "Utiliser la sonde / le bouton",
-     "Reconnaître infection, fuite, obstruction, retrait accidentel"
-    ],
-    "enclair": "La gastrostomie permet de nourrir directement l'estomac. Des soins simples et quotidiens évitent la plupart des complications.",
-    "consignes": [
-     "Soins quotidiens de l'orifice, rotation de la sonde.",
-     "Rinçages réguliers pour éviter l'obstruction."
-    ],
-    "illus": [
-     "Nettoyage péristomial et rotation de la sonde"
-    ],
-    "feu": {
-     "o": [
-      "Rougeur, écoulement, fuite → soins / conseil."
-     ],
-     "r": [
-      "Sonde arrachée (agir vite : l'orifice se referme en quelques heures), douleur abdominale + fièvre, saignement → urgences."
-     ]
-    }
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Réaliser les <strong>soins de l'orifice</strong> ; utiliser la sonde/le bouton ; reconnaître <strong>infection, fuite, obstruction, retrait accidentel</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "La gastrostomie est une sonde qui permet d'<strong>alimenter directement l'estomac</strong>. Des soins simples et réguliers évitent la plupart des complications."
+      ]
+     },
+     {
+      "e": "💊",
+      "t": "En pratique",
+      "items": [
+       "<strong>Soins quotidiens</strong> de la peau autour de l'orifice (nettoyage doux, séchage), <strong>rotation</strong> de la sonde si indiqué. {{ILL:nettoyage péristomial, rotation de la sonde, rinçage}}",
+       "<strong>Rincer</strong> la sonde avant/après chaque utilisation et les médicaments (éviter l'<strong>obstruction</strong>).",
+       "Médicaments de préférence <strong>liquides</strong>/bien écrasés."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [
+        "Rougeur, écoulement, petite fuite, bourgeon charnu. → Soins / prendre conseil."
+       ],
+       "r": [
+        "&lt;strong&gt;Sonde arrachée :&lt;/strong&gt; (l'orifice peut se <strong>refermer en quelques heures</strong> — agir vite), <strong>douleur abdominale + fièvre</strong>, saignement, sonde totalement bouchée. → <strong>Urgences / contact rapide</strong>."
+       ]
+      }
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Une sonde arrachée est une situation à traiter rapidement",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Je peux passer des comprimés entiers sans rincer",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
+    ]
    },
    {
     "id": "anticoag_geste",
     "name": "Mes anticoagulants / antiagrégants autour d'un geste",
-    "star": 1,
-    "objectifs": [
-     "Comprendre pourquoi on arrête / poursuit / relaie ces traitements",
-     "Respecter les dates d'arrêt et de reprise",
-     "Ne jamais arrêter seul un antiagrégant après stent cardiaque sans avis"
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre pourquoi on <strong>arrête/poursuit/relaie</strong> ces traitements ; <strong>respecter les dates</strong> d'arrêt et de reprise ; ne jamais arrêter seul un antiagrégant après <strong>stent cardiaque</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Ces médicaments <strong>fluidifient le sang</strong> : ils augmentent le risque de <strong>saignement</strong> pendant/après un geste, mais les arrêter augmente le risque de <strong>caillot</strong> (AVC, infarctus, phlébite). L'équilibre est <strong>décidé au cas par cas</strong>, selon le geste et votre cœur/vos vaisseaux. Un <strong>relais</strong> (par une injection) est parfois nécessaire."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "La <strong>consigne écrite</strong> : quelle molécule, <strong>dernière prise avant</strong> le geste, <strong>date de reprise</strong>, relais éventuel."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [],
+       "r": [
+        "&lt;strong&gt;Après reprise :&lt;/strong&gt; saignement abondant (selles noires, sang rouge, saignement qui ne s'arrête pas). → Urgences.",
+        "&lt;strong&gt;Pendant l'arrêt :&lt;/strong&gt; signes de caillot — <strong>douleur thoracique</strong>, <strong>paralysie/trouble de la parole</strong> (AVC), <strong>jambe douloureuse et gonflée</strong> (phlébite). → Urgences."
+       ]
+      }
+     },
+     {
+      "e": "🗓",
+      "t": "PlanAction spécifique",
+      "paras": [
+       "Tableau à remplir en consultation : <em>molécule · dernière prise avant le geste · date/heure de reprise · relais (oui/non, modalités) · qui appeler.</em>"
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Arrêter un antiagrégant après stent sans avis est risqué",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Je choisis moi-même quand reprendre mon anticoagulant",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
     ],
-    "enclair": "Ces traitements augmentent le risque de saignement pendant / après le geste, mais les arrêter augmente le risque de caillot : l'équilibre est <strong>décidé au cas par cas</strong>.",
-    "feu": {
-     "r": [
-      "Après reprise : saignement abondant → urgences.",
-      "Pendant l'arrêt : signes de caillot (douleur thoracique, déficit neurologique, jambe douloureuse et gonflée) → urgences."
-     ]
-    },
+    "star": 1,
     "planTable": true
    }
   ]
@@ -566,44 +1724,148 @@ export const ETP = [
    {
     "id": "polype_surveillance",
     "name": "Après l'ablation d'un polype : pourquoi refaire une coloscopie",
-    "objectifs": [
-     "Comprendre la séquence polype → cancer (lente, interrompue par l'ablation)",
-     "Comprendre l'intérêt de la surveillance à intervalle adapté",
-     "Ne pas manquer la date"
-    ],
-    "enclair": "Retirer un polype prévient un cancer. Le rythme de la coloscopie suivante dépend du <strong>nombre, de la taille et du type</strong> des polypes retirés — il vous est indiqué personnellement."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre la séquence <strong>polype → cancer</strong> ; l'intérêt d'une <strong>surveillance</strong> au bon intervalle ; ne pas manquer la date."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "La plupart des cancers du côlon naissent d'un <strong>polype</strong> qui évolue <strong>lentement</strong> (années). <strong>Retirer</strong> le polype <strong>interrompt</strong> ce processus : c'est de la <strong>prévention</strong>. Le <strong>délai</strong> avant la coloscopie suivante dépend du <strong>nombre, de la taille et du type</strong> de polypes retirés — il vous est indiqué <strong>personnellement</strong>."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "La <strong>date</strong> de la prochaine coloscopie ; entre-temps : sang dans les selles, transit modifié durablement, amaigrissement (à signaler)."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
+    ]
    },
    {
     "id": "barrett",
     "name": "Endobrachyœsophage (Barrett) : le sens de la surveillance",
-    "objectifs": [
-     "Comprendre pourquoi on surveille (dépister tôt une transformation)",
-     "Comprendre l'importance des IPP et du rythme des endoscopies"
-    ],
-    "enclair": "L'endobrachyœsophage est une transformation de la muqueuse liée au reflux. La surveillance endoscopique régulière permet de détecter très tôt toute évolution et d'agir efficacement."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre pourquoi on surveille ; le rôle des <strong>IPP</strong> ; le <strong>rythme</strong> des endoscopies."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Le Barrett est une <strong>transformation</strong> de la muqueuse du bas de l'œsophage due au <strong>reflux</strong> chronique. Il est <strong>le plus souvent bénin</strong>, mais justifie une <strong>surveillance endoscopique</strong> régulière pour dépister <strong>très tôt</strong> une éventuelle évolution — traitable par voie endoscopique si prise à temps. Les <strong>IPP</strong> protègent la muqueuse."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Symptômes de reflux, <strong>respect du rythme</strong> des endoscopies, prise régulière de l'IPP."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
+    ]
    },
    {
     "id": "depistage_ccr",
     "name": "Dépistage du cancer colorectal",
-    "objectifs": [
-     "Comprendre le test immunologique (tous les 2 ans) et l'indication de coloscopie",
-     "Reconnaître les situations à risque (antécédents familiaux) justifiant un dépistage spécifique"
-    ],
-    "enclair": "Le test immunologique détecte des traces de sang invisibles dans les selles. S'il est positif, la coloscopie recherche des polypes pour les retirer avant toute transformation.",
-    "feu": {
-     "r": [
-      "Sang dans les selles, amaigrissement, anémie → consulter (ne pas attendre le test)."
-     ]
-    }
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre le <strong>test immunologique</strong> (tous les 2 ans) et l'indication de <strong>coloscopie</strong> ; identifier les situations à <strong>risque élevé</strong> (antécédents familiaux)."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Le cancer colorectal se <strong>dépiste</strong> : à risque moyen (50–74 ans, sans symptôme), un <strong>test de recherche de sang</strong> dans les selles est proposé <strong>tous les 2 ans</strong> ; s'il est positif, une <strong>coloscopie</strong> est réalisée. En cas d'<strong>antécédents familiaux</strong> ou de maladie prédisposante, un dépistage <strong>par coloscopie</strong> débute plus tôt."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [],
+       "r": [
+        "&lt;strong&gt;Sang dans les selles, amaigrissement, anémie, changement durable du transit :&lt;/strong&gt; → consulter <strong>sans attendre</strong> le prochain test."
+       ]
+      }
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Le test de dépistage se refait tous les 2 ans",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Du sang dans les selles peut attendre le prochain test",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
+    ]
    },
    {
     "id": "surveillance_post_ttt",
     "name": "La surveillance après traitement endoscopique curatif",
-    "objectifs": [
-     "Comprendre que la surveillance fait partie du traitement",
-     "Tenir mon calendrier"
-    ],
-    "enclair": "Après un traitement endoscopique réussi, les contrôles programmés vérifient la cicatrisation et l'absence de récidive : ils font partie intégrante du traitement."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre que la <strong>surveillance fait partie du traitement</strong> ; tenir son calendrier."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Après le <strong>retrait curatif</strong> d'une lésion, une <strong>surveillance</strong> vérifie l'absence de récidive et dépiste de nouvelles lésions. Elle est <strong>programmée</strong> même si tout va bien."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
+    ]
    }
   ]
  },
@@ -614,40 +1876,140 @@ export const ETP = [
    {
     "id": "pc_douleur",
     "name": "Pancréatite chronique : douleur, alcool, tabac",
-    "objectifs": [
-     "Comprendre l'origine de la douleur",
-     "Savoir que l'arrêt de l'alcool ET du tabac ralentit la maladie",
-     "Gérer la douleur"
-    ],
-    "enclair": "L'inflammation chronique et la pression dans les canaux expliquent la douleur. L'arrêt de l'alcool <strong>et</strong> du tabac est le geste le plus efficace pour ralentir la maladie.",
-    "feu": {
-     "r": [
-      "Douleur intense + vomissements + fièvre → urgences (poussée)."
-     ]
-    }
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre l'origine de la <strong>douleur</strong> ; savoir que l'arrêt de <strong>l'alcool ET du tabac</strong> ralentit la maladie ; gérer les douleurs et repérer une poussée."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "La pancréatite chronique est une <strong>inflammation prolongée</strong> qui abîme peu à peu le pancréas (douleurs, puis mauvaise digestion et diabète). L'<strong>arrêt de l'alcool et du tabac</strong> est le levier <strong>le plus efficace</strong> pour ralentir l'évolution et réduire les douleurs."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Douleurs (fréquence/intensité), <strong>poids</strong> (amaigrissement = signal), diarrhée grasse (voir F6.2), glycémie."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [],
+       "r": [
+        "&lt;strong&gt;douleur intense + vomissements + fièvre :&lt;/strong&gt; → urgences (poussée aiguë)."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Sevrage alcool/tabac (accompagnement possible, voir F2.6) ; alimentation fractionnée (voir Régime PC) ; ne pas banaliser une douleur nouvelle."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
+    ]
    },
    {
     "id": "ipe_enzymes",
     "name": "Insuffisance pancréatique : bien prendre mes extraits pancréatiques",
-    "objectifs": [
-     "Comprendre pourquoi (mauvaise digestion des graisses)",
-     "Prendre les enzymes pendant les repas et adapter la dose",
-     "Ne pas supprimer les graisses"
-    ],
-    "enclair": "Les enzymes se prennent <strong>au cours</strong> du repas (et des collations grasses) ; sans elles, diarrhée grasse et amaigrissement. Voir la fiche régime pancréatite chronique.",
-    "alerte": "Ne supprimez pas les graisses — augmentez plutôt la dose d'enzymes avec votre médecin."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre <strong>pourquoi</strong> (mauvaise digestion des graisses) ; <strong>prendre les enzymes pendant les repas</strong> ; <strong>adapter la dose</strong> ; <strong>ne pas supprimer les graisses</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Le pancréas ne fabrique plus assez d'enzymes : les <strong>graisses sont mal digérées</strong> → diarrhée grasse (selles graisseuses, flottantes, malodorantes), amaigrissement, carences en vitamines. La solution n'est <strong>pas</strong> de supprimer les graisses, mais de <strong>les digérer</strong> grâce aux <strong>extraits pancréatiques</strong>."
+      ]
+     },
+     {
+      "e": "💊",
+      "t": "En pratique",
+      "items": [
+       "Prendre les enzymes <strong>pendant</strong> le repas (au début et au milieu pour un repas long) et <strong>à chaque collation grasse</strong>.",
+       "<strong>Adapter la dose</strong> au contenu en graisses (repas gras = plus d'enzymes).",
+       "<strong>Ne pas les prendre à jeun</strong> sans aliment."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Selles (aspect graisseux), <strong>poids</strong>, digestion, signes de carences."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Les enzymes se prennent pendant le repas",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Je dois supprimer toutes les graisses",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
+    ]
    },
    {
     "id": "diabete_pancreas",
     "name": "Diabète du pancréas : particularités",
-    "objectifs": [
-     "Comprendre les spécificités (fragilité glycémique, enzymes associées)",
-     "Surveiller les hypoglycémies"
-    ],
-    "enclair": "Le diabète lié au pancréas est plus instable : les hypoglycémies sont plus fréquentes. La surveillance glycémique et la coordination avec le diabétologue sont essentielles.",
-    "autosurv": [
-     "Glycémies selon le schéma prescrit",
-     "Épisodes d'hypoglycémie (malaise, sueurs, tremblements)"
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre pourquoi ce diabète est <strong>particulier</strong> ; surveiller les <strong>hypoglycémies</strong> ; associer enzymes et équilibre glycémique."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Quand le pancréas est atteint, il fabrique moins d'<strong>insuline</strong> mais aussi moins de <strong>glucagon</strong> (hormone qui remonte le sucre) : la glycémie peut être <strong>instable</strong>, avec un risque accru d'<strong>hypoglycémie</strong>. Le traitement (souvent insuline) doit tenir compte de la <strong>digestion</strong> (enzymes) et de l'alimentation."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Glycémies, signes d'<strong>hypoglycémie</strong> (sueurs, tremblements, malaise), poids, digestion."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
     ]
    }
   ]
@@ -658,47 +2020,147 @@ export const ETP = [
   "items": [
    {
     "id": "stomie_vivre",
-    "name": "Vivre avec une stomie (iléo / colostomie)",
-    "objectifs": [
-     "Être autonome pour l'appareillage",
-     "Hydratation et apports de sel (iléostomie)",
-     "Réintroduire progressivement les aliments",
-     "Reconnaître déshydratation / occlusion"
-    ],
-    "enclair": "Avec un appareillage adapté et quelques repères, la stomie permet une vie normale. En cas d'iléostomie, l'eau et le sel se surveillent de près. Voir la fiche régime stomies.",
-    "feu": {
-     "o": [
-      "Débit élevé, peau irritée → soins / conseil (stomathérapeute)."
-     ],
-     "r": [
-      "Arrêt du débit + douleur / vomissements (occlusion), signes de déshydratation → urgences."
-     ]
-    }
+    "name": "Vivre avec une stomie (iléostomie / colostomie)",
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Gagner en <strong>autonomie</strong> d'appareillage ; assurer <strong>hydratation et sel</strong> (iléostomie) ; <strong>réintroduire</strong> les aliments progressivement ; reconnaître <strong>déshydratation</strong> et <strong>occlusion</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Une stomie dérive les selles vers une <strong>poche</strong> sur l'abdomen. En <strong>iléostomie</strong>, le débit est <strong>liquide et abondant</strong> → risque de <strong>perte d'eau et de sel</strong>. L'alimentation se réintroduit <strong>par étapes</strong> selon la tolérance."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "<strong>Débit</strong> (volume/consistance), <strong>hydratation</strong> (urines foncées, soif, fatigue = déshydratation), peau autour de la stomie, gaz/odeurs, tolérance des aliments."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [
+        "Débit très élevé, peau irritée, fuites. → Soins / stomathérapeute."
+       ],
+       "r": [
+        "&lt;strong&gt;Arrêt du débit + douleurs/vomissements :&lt;/strong&gt; (occlusion), <strong>signes de déshydratation</strong> (peu d'urines, malaise). → <strong>Urgences</strong>."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Bien <strong>s'hydrater et saler</strong> (iléostomie) ; réintroduire les <strong>fibres progressivement</strong> ; <strong>mâcher longuement</strong> les aliments filandreux ; accompagnement par une <strong>infirmière stomathérapeute</strong> ; vie sociale/sportive possible."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "En iléostomie, l'hydratation et le sel sont essentiels",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Un arrêt du débit avec douleurs est banal",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
+    ]
    },
    {
     "id": "denutrition",
     "name": "Lutter contre la dénutrition : enrichir mon alimentation",
-    "objectifs": [
-     "Repérer la perte de poids",
-     "Enrichir sans augmenter le volume (matières grasses, poudre de lait, œuf, fromage)",
-     "Fractionner"
-    ],
-    "enclair": "Quand l'appétit baisse, chaque bouchée doit compter : on enrichit les plats (beurre, crème, fromage, œuf, poudre de lait) sans augmenter les quantités.",
-    "autosurv": [
-     "Poids hebdomadaire",
-     "Appétit",
-     "Portions terminées"
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Repérer une <strong>perte de poids</strong> ; <strong>enrichir</strong> sans augmenter le volume ; fractionner."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "La dénutrition (fréquente en HGE : MICI, cirrhose, cancer, post-chirurgie) affaiblit les muscles, l'immunité et retarde la guérison. Quand l'appétit est petit, on <strong>enrichit</strong> les plats pour apporter <strong>plus de calories et de protéines</strong> dans un <strong>petit volume</strong>."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "<strong>Poids chaque semaine</strong>, appétit, portions terminées, force/fatigue."
+      ]
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec — enrichir en pratique",
+      "paras": [
+       "Ajouter <strong>fromage râpé, œuf, poudre de lait, crème, huile, purée d'oléagineux, jambon</strong> dans purées, soupes, laitages ; <strong>fractionner</strong> (collations) ; boissons <strong>caloriques</strong> ; ne pas « sauter » de repas."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
     ]
    },
    {
     "id": "cno",
-    "name": "Les compléments nutritionnels oraux : bon usage",
-    "objectifs": [
-     "Savoir quand et comment les prendre (entre les repas, frais, à petites gorgées)",
-     "Varier les saveurs",
-     "Ne pas remplacer les repas"
-    ],
-    "enclair": "Les compléments s'ajoutent aux repas, ils ne les remplacent pas. Pris frais, entre les repas, à petites gorgées, ils sont mieux tolérés et plus efficaces."
+    "name": "Les compléments nutritionnels oraux (CNO) : bon usage",
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Savoir <strong>quand</strong> et <strong>comment</strong> les prendre ; <strong>varier</strong> ; ne pas remplacer les repas."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Les CNO apportent, dans un petit volume, calories, protéines et vitamines. Ils <strong>complètent</strong> l'alimentation (ils ne la remplacent pas)."
+      ]
+     },
+     {
+      "e": "💊",
+      "t": "En pratique",
+      "paras": [
+       "Les prendre <strong>entre les repas</strong> (ou en collation), <strong>frais</strong>, <strong>à petites gorgées</strong> sur 20–30 min ; <strong>varier saveurs et textures</strong> (crèmes, boissons) ; les intégrer dans des recettes."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
+    ]
    }
   ]
  },
@@ -709,480 +2171,967 @@ export const ETP = [
    {
     "id": "ipp_longcours",
     "name": "IPP au long cours : bénéfices, risques, déprescription",
-    "objectifs": [
-     "Comprendre l'indication réelle",
-     "Savoir que beaucoup d'IPP peuvent être diminués / arrêtés quand ils ne sont plus nécessaires",
-     "Gérer l'effet rebond par décroissance progressive"
-    ],
-    "enclair": "Utiles et sûrs dans les bonnes indications, mais pas toujours « à vie ». On <strong>réévalue</strong> régulièrement ; l'arrêt se fait <strong>progressivement</strong> pour éviter l'effet rebond."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre l'<strong>indication réelle</strong> ; savoir que beaucoup d'IPP peuvent être <strong>diminués/arrêtés</strong> ; gérer l'<strong>effet rebond</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Les IPP sont <strong>efficaces et globalement sûrs</strong> dans les <strong>bonnes indications</strong> (ulcère, œsophagite, Barrett, protection sous certains traitements…). Mais ils ne sont <strong>pas toujours nécessaires à vie</strong> : pris sans indication, ils exposent à des inconvénients. On <strong>réévalue</strong> donc régulièrement ; l'arrêt se fait <strong>progressivement</strong>, car un arrêt brutal peut provoquer un <strong>rebond acide</strong> transitoire."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Symptômes à l'arrêt/diminution, <strong>nécessité réelle</strong> du traitement (à rediscuter avec le médecin)."
+      ]
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Associer les <strong>mesures de mode de vie</strong> (voir F3.3/Régime reflux) ; ne pas arrêter seul un IPP <strong>prescrit pour protéger</strong> l'estomac (ex. sous anticoagulant/AINS)."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": [
+       {
+        "m": "<em>« IPP = danger, j'arrête tout de suite. »</em>",
+        "r": "<strong>Non</strong> : ni diabolisation, ni arrêt brutal ; on <strong>réévalue</strong>."
+       },
+       {
+        "m": "<em>« IPP = à vie forcément. »</em>",
+        "r": "<strong>Non</strong> dans beaucoup de cas."
+       }
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Un IPP peut souvent être réévalué et diminué",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "J'arrête toujours mon IPP d'un coup",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
+    ]
    },
    {
     "id": "immunosup_peau",
-    "name": "Immunosuppresseurs : surveillance, peau, soleil",
-    "objectifs": [
-     "Respecter les bilans biologiques",
-     "Photoprotection stricte (risque de cancers cutanés)",
-     "Surveillance dermatologique"
-    ],
-    "enclair": "Sous immunosuppresseur, la peau est plus vulnérable au soleil : protection systématique (crème indice 50, vêtements) et contrôle dermatologique régulier.",
-    "feu": {
-     "o": [
-      "Lésion cutanée nouvelle / qui change → dermatologue."
-     ],
-     "r": [
-      "Infection sévère → urgences."
-     ]
-    }
+    "name": "Immunosuppresseurs : surveillance, peau et soleil",
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Respecter les <strong>bilans</strong> ; <strong>se protéger du soleil</strong> ; surveiller sa <strong>peau</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Sous immunosuppression, deux points de vigilance au long cours : les <strong>infections</strong> (voir F1.4) et un <strong>sur-risque de cancers de la peau</strong>. La <strong>photoprotection</strong> et la <strong>surveillance dermatologique</strong> réduisent ce risque."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "<strong>Bilans biologiques</strong> réguliers (à ne pas manquer) ; <strong>peau</strong> : nouvelle lésion, tache/grain de beauté qui <strong>change</strong>, plaie qui ne cicatrise pas."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [
+        "lésion cutanée nouvelle/évolutive → dermatologue. 🔴 infection sévère → urgences."
+       ],
+       "r": []
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "<strong>Crème solaire indice élevé</strong> toute l'année, vêtements couvrants, éviter les expositions fortes ; <strong>examen de la peau</strong> régulier."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
+    ]
    },
    {
     "id": "anticoag_hge",
     "name": "Mes anticoagulants en HGE",
-    "objectifs": [
-     "Comprendre le bénéfice / risque",
-     "Reconnaître un saignement digestif",
-     "Ne pas arrêter seul",
-     "Gérer autour des gestes"
-    ],
-    "enclair": "L'anticoagulant protège des caillots mais expose au saignement digestif : il faut savoir le reconnaître, et ne jamais modifier le traitement seul. Voir la fiche « anticoagulants autour d'un geste ».",
-    "feu": {
-     "r": [
-      "Selles noires, vomissement de sang, saignement qui ne s'arrête pas → urgences."
-     ]
-    }
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre le <strong>bénéfice/risque</strong> ; reconnaître un <strong>saignement digestif</strong> ; ne pas arrêter seul ; gérer les gestes (→ F4.6)."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Les anticoagulants <strong>préviennent les caillots</strong> mais augmentent le risque de <strong>saignement</strong>, notamment digestif. Le bon usage = <strong>observance</strong>, <strong>surveillance</strong>, et coordination autour des gestes."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Selles <strong>noires</strong>, sang rouge, <strong>fatigue/pâleur</strong> (anémie), saignements inhabituels (gencives, nez)."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [],
+       "r": [
+        "&lt;strong&gt;selles noires, vomissement de sang, saignement qui ne s'arrête pas, malaise :&lt;/strong&gt; → <strong>urgences</strong>."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Éviter l'<strong>automédication</strong> (AINS ++), signaler le traitement à tout soignant, carte/kit d'information."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Des selles noires sous anticoagulant = urgences",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Je peux prendre de l'ibuprofène librement",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
+    ]
    }
   ]
  },
  {
-  "axe": "Proctologie",
+  "axe": "Proctologie & motilité",
   "icon": "🍑",
   "items": [
    {
     "id": "hemorroides",
     "name": "Maladie hémorroïdaire",
-    "objectifs": [
-     "Comprendre le rôle du transit (traiter la constipation)",
-     "Hygiène locale",
-     "Savoir quand un geste devient utile"
-    ],
-    "enclair": "Le premier traitement des hémorroïdes est la régularisation du transit. L'hygiène locale douce complète ; un geste n'est utile qu'en cas d'échec ou de complication.",
-    "feu": {
-     "o": [
-      "Saignement récidivant → consulter (ne pas tout attribuer aux hémorroïdes)."
-     ],
-     "r": [
-      "Douleur aiguë intense (thrombose), saignement abondant → consulter."
-     ]
-    }
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Comprendre le rôle du <strong>transit</strong> ; adopter une <strong>hygiène</strong> adaptée ; savoir <strong>quand consulter</strong> et quand un geste est utile."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Les hémorroïdes sont des <strong>coussinets vasculaires normaux</strong> ; elles deviennent symptomatiques (saignement, douleur, gonflement) en cas de <strong>constipation, poussées, grossesse</strong>. Le premier traitement est la <strong>régularisation du transit</strong> (fibres, hydratation) et l'hygiène ; les gestes (instrumentaux/chirurgie) sont réservés aux formes rebelles."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Saignement (couleur, fréquence), douleur, gonflement, transit."
+      ]
+     },
+     {
+      "e": "🚦",
+      "t": "Savoir réagir",
+      "feu": {
+       "v": [],
+       "o": [
+        "&lt;strong&gt;Saignement récidivant :&lt;/strong&gt; → consulter (ne pas tout attribuer aux hémorroïdes : un saignement doit être <strong>expliqué</strong>)."
+       ],
+       "r": [
+        "Douleur aiguë intense (thrombose), saignement abondant, association à un amaigrissement/anémie. → Consulter."
+       ]
+      }
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Traiter la <strong>constipation</strong> (voir Régime fibres + Livret F10.5 si dyschésie) ; hygiène douce, éviter les efforts de poussée prolongés ; limiter le temps aux toilettes."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Régulariser le transit est le premier traitement",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Un saignement récidivant n'a pas besoin d'avis",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
+    ]
    },
    {
     "id": "incontinence",
     "name": "Incontinence anale : comprendre et rééduquer",
-    "objectifs": [
-     "Dédramatiser, comprendre les mécanismes",
-     "Adhérer à la rééducation périnéale"
-    ],
-    "enclair": "L'incontinence anale est fréquente et <strong>se rééduque</strong>. Voir le livret de rééducation « Incontinence anale » (module Rééducation)."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Dédramatiser ; comprendre les mécanismes ; <strong>adhérer à la rééducation</strong>."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "L'incontinence anale (fuites de gaz/selles) est <strong>fréquente</strong> et <strong>sous-déclarée</strong> par gêne. Elle <strong>se traite</strong>, souvent efficacement, par la <strong>rééducation périnéale</strong> (renforcement + coordination + sensibilité). En parler est la première étape."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Type de fuites (gaz/liquide/solide), circonstances (urgence, effort), impact sur la vie."
+      ]
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Régulariser le transit, protections adaptées le temps de la rééducation, exercices quotidiens.",
+       "<strong>🔗 Renvois</strong> : <strong>Livret de rééducation F10.6</strong> (exercices détaillés)."
+      ]
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": []
+     }
+    ]
    },
    {
     "id": "constipation_chronique",
     "name": "Constipation chronique : au-delà des laxatifs",
-    "objectifs": [
-     "Distinguer constipation de transit et dyschésie (trouble de l'évacuation)",
-     "Comprendre quand la rééducation est indiquée"
-    ],
-    "enclair": "Quand l'évacuation est le problème (poussée inefficace), les laxatifs ne suffisent pas : c'est la <strong>rééducation</strong> qui corrige le geste. Voir le livret « Dyschésie » et la fiche régime correspondante."
+    "secs": [
+     {
+      "e": "🎯",
+      "t": "Objectifs",
+      "paras": [
+       "Distinguer <strong>constipation de transit</strong> et <strong>dyschésie</strong> (trouble de l'évacuation) ; comprendre quand la <strong>rééducation</strong> est indiquée."
+      ]
+     },
+     {
+      "e": "🧠",
+      "t": "Comprendre",
+      "paras": [
+       "Toutes les constipations ne se ressemblent pas : certaines relèvent d'un <strong>transit lent</strong> (les selles progressent lentement → laxatifs, fibres), d'autres d'un <strong>trouble de l'évacuation/dyschésie</strong> (les selles sont là mais <strong>sortent mal</strong>, par mauvaise coordination) → dans ce cas, les <strong>laxatifs seuls ne suffisent pas</strong> et la <strong>rééducation (biofeedback)</strong> est le traitement clé."
+      ]
+     },
+     {
+      "e": "🩺",
+      "t": "Ce que je surveille",
+      "paras": [
+       "Sensation d'évacuation <strong>incomplète</strong>, efforts de poussée, manœuvres digitales, réponse (ou non) aux laxatifs."
+      ]
+     },
+     {
+      "e": "🌱",
+      "t": "Vivre avec",
+      "paras": [
+       "Voir <strong>Régime constipation de transit</strong> et <strong>Régime dyschésie</strong> ; <strong>Livret de rééducation F10.5</strong> si dyschésie."
+      ]
+     },
+     {
+      "e": "❌",
+      "t": "Idées reçues",
+      "mythes": []
+     },
+     {
+      "e": "✅",
+      "t": "Ai-je bien compris ?",
+      "quiz": [
+       {
+        "q": "Une sensation d'évacuation incomplète oriente vers une dyschésie",
+        "a": "Vrai",
+        "note": ""
+       },
+       {
+        "q": "Plus de laxatifs = solution d'une dyschésie",
+        "a": "Faux",
+        "note": ""
+       }
+      ]
+     }
+    ]
    }
   ]
  },
  {
-  "axe": "Rééducation & exercices fonctionnels",
+  "axe": "RÉÉDUCATION & EXERCICES FONCTIONNELS (livrets multi-pages)",
   "icon": "🧘",
   "items": [
    {
     "id": "resp_diaphragme",
-    "name": "La respiration diaphragmatique (livret socle)",
-    "star": 1,
-    "type": "livret",
-    "objectifs": [
-     "Savoir déclencher volontairement une respiration abdominale lente, pour l'utiliser comme « outil anti-symptôme »"
-    ],
-    "enclair": "En occupant volontairement le diaphragme et en relâchant le ventre, on neutralise les mécanismes anormaux (aspiration d'air, contraction abdominale) à l'origine des éructations, de la rumination et des ballonnements.",
-    "materiel": "Un endroit calme, une chaise ou un lit, 5 minutes.",
-    "paliers": [
+    "name": "La respiration diaphragmatique",
+    "secs": [
      {
-      "t": "Sentir le mouvement",
-      "obj": "Percevoir le ventre se gonfler à l'inspiration, sans bouger le thorax.",
-      "comment": "Semi-allongé, <strong>une main sur le ventre, une sur la poitrine</strong>. Inspirez lentement <strong>par le nez</strong> → seule la main du ventre monte. <em>[Schéma : position des mains ventre / thorax, gonflement abdominal]</em>",
-      "critere": "La main du thorax reste quasi immobile pendant 5 respirations d'affilée.",
-      "freq": "5 min, 2×/j",
-      "duree": "3–5 jours"
+      "e": "🎯",
+      "t": "Objectif global",
+      "paras": [
+       "Savoir déclencher volontairement une <strong>respiration abdominale lente</strong>, à utiliser comme « <strong>outil anti-symptôme</strong> » (éructations, rumination, ballonnement, stress digestif)."
+      ]
      },
      {
-      "t": "Allonger l'expiration",
-      "obj": "Expirer plus longtemps que l'on inspire.",
-      "comment": "Inspirez par le nez (~3–4 s), <strong>expirez par la bouche lèvres pincées</strong> (~5–6 s), le ventre rentre doucement. <em>[Schéma : lèvres pincées, expiration lente]</em>",
-      "critere": "Tenir une expiration régulière plus longue que l'inspiration, sans essoufflement.",
-      "freq": "5 min, 2–3×/j",
-      "duree": "3–5 jours"
+      "e": "🧠",
+      "t": "En clair",
+      "paras": [
+       "En <strong>occupant volontairement le diaphragme</strong> et en <strong>relâchant le ventre</strong>, on <strong>neutralise</strong> les mécanismes anormaux (aspiration d'air, contraction abdominale) responsables de nombreux symptômes fonctionnels. C'est une <strong>compétence</strong> qui s'acquiert par l'entraînement <strong>au calme</strong>, avant de l'utiliser en situation."
+      ]
      },
      {
-      "t": "Ralentir le rythme",
-      "obj": "Atteindre ~5–6 respirations / minute.",
-      "comment": "Même technique, en ralentissant progressivement. On peut s'aider d'un repère visuel ou sonore.",
-      "critere": "Rester détendu à ce rythme pendant 5 min.",
-      "freq": "5–10 min, 2–3×/j",
-      "duree": "1 semaine"
+      "e": "🧰",
+      "t": "Matériel",
+      "paras": [
+       "Un endroit calme, une chaise ou un lit, 5 minutes. Optionnel : une appli/repère visuel de rythme."
+      ]
      },
      {
-      "t": "Utiliser l'outil en situation",
-      "obj": "Déclencher la respiration dès le symptôme (envie d'éructer, remontée, ballonnement).",
-      "comment": "Dès le signal, enchaînez 5–10 respirations diaphragmatiques.",
-      "critere": "Réussir à réduire ou différer le symptôme au moins une fois."
+      "e": "🪜",
+      "t": "Paliers",
+      "paliers": [
+       {
+        "t": "Sentir le mouvement",
+        "obj": "percevoir le <strong>ventre</strong> se gonfler à l'inspiration, thorax immobile",
+        "comment": "semi-allongé, <strong>une main sur le ventre, une sur la poitrine</strong> ; inspirez <strong>par le nez</strong> → seule la main du ventre monte. {{ILL:mains ventre/thorax, gonflement abdominal}}",
+        "freq": "5 min ×2/j",
+        "critere": "thorax quasi immobile sur 5 respirations. <em>Durée :</em> 3–5 jours"
+       },
+       {
+        "t": "Allonger l'expiration",
+        "obj": "expirer <strong>plus longtemps</strong> qu'on inspire",
+        "comment": "inspiration nez ~3–4 s, <strong>expiration bouche lèvres pincées</strong> ~5–6 s, le ventre rentre. {{ILL:expiration lèvres pincées}}",
+        "freq": "5 min ×2–3/j",
+        "critere": "expiration régulière plus longue que l'inspiration, sans essoufflement. <em>Durée :</em> 3–5 jours"
+       },
+       {
+        "t": "Ralentir le rythme",
+        "obj": "~<strong>5–6 respirations/min</strong>",
+        "comment": "même technique, ralentie",
+        "freq": "5–10 min ×2–3/j",
+        "critere": "rester détendu 5 min à ce rythme. <em>Durée :</em> 1 semaine"
+       },
+       {
+        "t": "Utiliser l'outil en situation",
+        "obj": "déclencher <strong>dès le symptôme</strong>",
+        "comment": "5–10 respirations diaphragmatiques dès le signal",
+        "freq": "",
+        "critere": "réduire/différer le symptôme au moins une fois"
+       }
+      ]
+     },
+     {
+      "e": "⚠️",
+      "t": "Erreurs fréquentes",
+      "paras": [
+       "Gonfler thorax/épaules ; <strong>forcer/bloquer</strong> la respiration ; ne s'exercer qu'en crise (il faut <strong>s'entraîner au calme d'abord</strong>)."
+      ]
+     },
+     {
+      "e": "📈",
+      "t": "Signes que ça marche",
+      "paras": [
+       "On atteint le rythme lent sans effort ; on parvient à <strong>calmer</strong> un symptôme naissant."
+      ]
+     },
+     {
+      "e": "🗓",
+      "t": "Journal de bord",
+      "paras": [
+       "Cases matin / soir / en situation, sur 2 semaines."
+      ]
+     },
+     {
+      "e": "❓",
+      "t": "FAQ",
+      "paras": [
+       "<em>Combien de temps pour que ce soit « automatique » ?</em> En général <strong>2–3 semaines</strong> d'entraînement régulier.",
+       "---"
+      ]
      }
     ],
-    "erreurs": [
-     "Gonfler le thorax / les épaules.",
-     "Forcer ou bloquer la respiration.",
-     "S'exercer seulement en crise : il faut <strong>s'entraîner au calme d'abord</strong>."
-    ],
-    "journal": {
-     "duree": "2 semaines",
-     "cols": [
-      "Matin",
-      "Soir",
-      "En situation"
-     ]
-    }
+    "star": 1,
+    "type": "livret"
    },
    {
     "id": "eructations",
-    "name": "Éructations excessives (supragastriques)",
-    "star": 2,
-    "type": "livret",
-    "objectifs": [
-     "Comprendre le mécanisme",
-     "Supprimer les comportements aérophages",
-     "Maîtriser la position anti-aspiration",
-     "Utiliser la respiration et la parole comme diversion"
-    ],
-    "enclair": "L'air est aspiré puis immédiatement rejeté — <strong>il n'atteint pas l'estomac</strong>. C'est un réflexe comportemental, majoré par l'attention et le stress, <strong>absent quand vous parlez ou dormez</strong>. Bonne nouvelle : ce qui est appris peut être <strong>désappris</strong>.",
-    "paliers": [
+    "name": "Éructations excessives (éructations supragastriques)",
+    "secs": [
      {
-      "t": "Comprendre et observer (semaine 1)",
-      "obj": "Repérer quand surviennent les rots (situations, émotions).",
-      "comment": "Tenir un mini-journal (heure, contexte, ressenti).",
-      "critere": "Identifier au moins 2 situations déclenchantes récurrentes."
+      "e": "🎯",
+      "t": "Objectif global",
+      "paras": [
+       "Réduire les rots répétés en <strong>empêchant l'aspiration d'air</strong> dans l'œsophage."
+      ]
      },
      {
-      "t": "Supprimer les comportements aérophages",
-      "obj": "Retirer les gestes qui font entrer de l'air.",
-      "comment": "Stop <strong>chewing-gum, paille, boissons gazeuses, grandes gorgées, manger vite, parler en mangeant</strong> ; petites bouchées, bouche fermée.",
-      "critere": "Une journée entière sans ces comportements."
+      "e": "🧠",
+      "t": "En clair",
+      "paras": [
+       "L'air est <strong>aspiré puis immédiatement rejeté</strong> : <strong>il n'atteint pas l'estomac</strong>. C'est un <strong>réflexe comportemental</strong> (pas une maladie de l'estomac), majoré par l'<strong>attention</strong> et le <strong>stress</strong>, et <strong>absent quand vous parlez ou dormez</strong>. Ce qui est appris peut être <strong>désappris</strong>."
+      ]
      },
      {
-      "t": "Position anti-aspiration + respiration nasale",
-      "obj": "Neutraliser l'appel d'air au repos.",
-      "comment": "<strong>Bouche légèrement entrouverte, respiration lente par le nez, langue posée au palais</strong> (derrière les incisives). Associez la respiration diaphragmatique (livret socle), incompatible avec l'aspiration. <em>[Schéma : langue au palais, respiration nasale]</em>",
-      "critere": "Faire disparaître ou reculer une envie d'éructer grâce à la manœuvre.",
-      "freq": "5 min, 3×/j + dès l'envie d'éructer"
+      "e": "🪜",
+      "t": "Paliers",
+      "paliers": [
+       {
+        "t": "Comprendre et observer (S1)",
+        "obj": "repérer <strong>quand</strong> surviennent les rots",
+        "comment": "mini-journal (heure, contexte, émotion)",
+        "freq": "",
+        "critere": "identifier ≥ 2 situations déclenchantes"
+       },
+       {
+        "t": "Supprimer les comportements aérophages",
+        "obj": "retirer les gestes qui font entrer de l'air",
+        "comment": "stop <strong>chewing-gum, paille, boissons gazeuses, grandes gorgées, manger vite, parler en mangeant</strong> ; petites bouchées, bouche fermée",
+        "freq": "",
+        "critere": "une journée entière sans ces comportements"
+       },
+       {
+        "t": "Position anti-aspiration + respiration nasale",
+        "obj": "neutraliser l'appel d'air au repos",
+        "comment": "<strong>bouche légèrement entrouverte, respiration lente par le nez, langue au palais</strong> (derrière les incisives) + <strong>respiration diaphragmatique</strong> (F10.0). {{ILL:langue au palais, respiration nasale}}",
+        "freq": "5 min ×3/j + dès l'envie d'éructer",
+        "critere": "faire reculer une envie d'éructer"
+       },
+       {
+        "t": "Diversion par la parole",
+        "obj": "utiliser un mécanisme <strong>incompatible</strong> avec l'éructation",
+        "comment": "dès l'envie, <strong>lire/parler à voix haute</strong> quelques phrases",
+        "freq": "",
+        "critere": "interrompre une salve par la parole"
+       },
+       {
+        "t": "Automatiser en situations difficiles",
+        "obj": "appliquer les outils dans les situations du palier 1 (stress, réunions)",
+        "comment": "",
+        "freq": "",
+        "critere": "<strong>baisse nette de la fréquence</strong> sur une semaine (comparer au journal)"
+       }
+      ]
      },
      {
-      "t": "Diversion par la parole",
-      "obj": "Utiliser un mécanisme physiquement incompatible avec l'éructation.",
-      "comment": "Quand l'envie monte, <strong>lisez ou parlez à voix haute</strong> quelques phrases (expiration prolongée). On ne peut pas aspirer d'air en parlant.",
-      "critere": "Interrompre une salve d'éructations par la parole."
+      "e": "⚠️",
+      "t": "Erreurs fréquentes",
+      "paras": [
+       "Croire que « c'est l'estomac » et se sur-médiquer ; <strong>forcer</strong> le rot pour « évacuer » (entretient le réflexe) ; ne s'exercer qu'en crise."
+      ]
      },
      {
-      "t": "Automatiser en situations difficiles",
-      "obj": "Appliquer les outils dans les situations repérées au palier 1 (stress, réunions…).",
-      "comment": "Anticipez : avant la situation, 1 minute de respiration ; pendant, langue au palais et parole.",
-      "critere": "Réduction nette de la fréquence sur une semaine (comparer au journal)."
+      "e": "📈",
+      "t": "Signes que ça marche",
+      "paras": [
+       "Les rots s'espacent, surtout quand on est <strong>occupé/en train de parler</strong>."
+      ]
+     },
+     {
+      "e": "🧭",
+      "t": "Quand orienter",
+      "paras": [
+       "Persistance malgré l'entraînement → <strong>orthophoniste</strong> (thérapie comportementale) ; discuter d'un traitement médical (2ᵉ intention)."
+      ]
+     },
+     {
+      "e": "🗓",
+      "t": "Journal de bord",
+      "paras": [
+       "Fréquence quotidienne + outil utilisé, sur 3 semaines."
+      ]
+     },
+     {
+      "e": "❓",
+      "t": "FAQ",
+      "paras": [
+       "<em>Pourquoi je n'éructe pas la nuit ?</em> Parce que le <strong>réflexe</strong> disparaît quand l'attention et l'éveil baissent — preuve que ce n'est pas l'estomac.",
+       "---"
+      ]
      }
     ],
-    "erreurs": [
-     "Croire que « c'est l'estomac » et se sur-médiquer.",
-     "Forcer le rot pour « évacuer » (entretient le réflexe).",
-     "Ne s'exercer qu'en crise."
-    ],
-    "orienter": "Persistance malgré l'entraînement → <strong>orthophoniste</strong> (thérapie comportementale) ; discuter d'un traitement médical (2ᵉ intention) avec le médecin.",
-    "journal": {
-     "duree": "3 semaines",
-     "cols": [
-      "Fréquence estimée / jour",
-      "Outil utilisé"
-     ]
-    }
+    "star": 2,
+    "type": "livret"
    },
    {
     "id": "rumination",
     "name": "Syndrome de rumination",
-    "star": 2,
-    "type": "livret",
-    "objectifs": [
-     "Comprendre le mécanisme",
-     "Maîtriser la respiration diaphragmatique",
-     "L'appliquer systématiquement après chaque repas et dès la remontée"
-    ],
-    "enclair": "Les aliments récemment avalés remontent <strong>sans effort</strong> et <strong>sans acidité</strong>, à cause d'une contraction involontaire de la paroi abdominale, souvent inconsciente. La <strong>respiration diaphragmatique post-repas</strong> empêche cette contraction — c'est le traitement de référence.",
-    "paliers": [
+    "secs": [
      {
-      "t": "Maîtriser l'outil au repos",
-      "obj": "Respiration diaphragmatique fluide en dehors des repas.",
-      "comment": "Validez d'abord les paliers 1 à 3 du livret socle « Respiration diaphragmatique ».",
-      "critere": "5 min de respiration abdominale lente sans effort."
+      "e": "🎯",
+      "t": "Objectif global",
+      "paras": [
+       "Faire disparaître les remontées d'aliments en rendant la <strong>contraction abdominale</strong> impossible après les repas."
+      ]
      },
      {
-      "t": "Appliquer après un repas « test »",
-      "obj": "Pratiquer 15–20 min juste après un repas léger.",
-      "comment": "Dès la fin du repas, assis, respiration diaphragmatique lente en continu. <em>[Schéma : posture assise post-repas, respiration abdominale]</em>",
-      "critere": "Passer le post-repas sans remontée, ou remontées réduites."
+      "e": "🧠",
+      "t": "En clair",
+      "paras": [
+       "Des aliments <strong>récemment avalés</strong> remontent <strong>sans effort</strong> et <strong>sans acidité</strong>, à cause d'une <strong>contraction involontaire</strong> de la paroi abdominale, souvent <strong>inconsciente</strong>. La <strong>respiration diaphragmatique post-repas</strong> empêche cette contraction : c'est le <strong>traitement de référence</strong>, très efficace."
+      ]
      },
      {
-      "t": "Intervenir dès la sensation de remontée",
-      "obj": "Déclencher l'outil au premier signal (avant que ça remonte en bouche).",
-      "comment": "Dès la sensation, 5–10 respirations diaphragmatiques + langue au palais.",
-      "critere": "Bloquer une remontée « à la source »."
+      "e": "🪜",
+      "t": "Paliers",
+      "paliers": [
+       {
+        "t": "Maîtriser l'outil au repos",
+        "obj": "respiration diaphragmatique fluide <strong>hors repas</strong> (valider F10.0 P1–3)",
+        "comment": "",
+        "freq": "",
+        "critere": "5 min de respiration abdominale sans effort"
+       },
+       {
+        "t": "Appliquer après un repas « test »",
+        "obj": "pratiquer <strong>15–20 min juste après</strong> un repas léger",
+        "comment": "assis, respiration diaphragmatique <strong>en continu</strong> dès la fin du repas. {{ILL:posture assise post-repas}}",
+        "freq": "",
+        "critere": "post-repas sans remontée (ou réduites)"
+       },
+       {
+        "t": "Intervenir dès la sensation de remontée",
+        "obj": "déclencher l'outil <strong>au premier signal</strong>",
+        "comment": "5–10 respirations diaphragmatiques + langue au palais",
+        "freq": "",
+        "critere": "bloquer une remontée « à la source »"
+       },
+       {
+        "t": "Généraliser aux 3 repas",
+        "obj": "appliquer après <strong>chaque</strong> repas et collation",
+        "comment": "",
+        "freq": "",
+        "critere": "diminution nette des épisodes sur une semaine"
+       }
+      ]
      },
      {
-      "t": "Généraliser aux 3 repas",
-      "obj": "Appliquer systématiquement après chaque repas et collation.",
-      "comment": "Programmez le réflexe : fin du repas = 15 min de respiration, sans exception.",
-      "critere": "Nette diminution des épisodes sur une semaine (journal)."
+      "e": "⚠️",
+      "t": "Erreurs fréquentes",
+      "paras": [
+       "Confondre avec un reflux et se sur-médiquer ; pratiquer trop rarement ; manger <strong>trop vite/trop copieux</strong>."
+      ]
+     },
+     {
+      "e": "📈",
+      "t": "Signes que ça marche",
+      "paras": [
+       "Les remontées deviennent rares, surtout si l'on respire <strong>systématiquement</strong> après manger."
+      ]
+     },
+     {
+      "e": "🧭",
+      "t": "Quand orienter",
+      "paras": [
+       "Échec de l'auto-rééducation → <strong>biofeedback</strong> (EMG abdominal) ; réévaluation médicale."
+      ]
+     },
+     {
+      "e": "🗓",
+      "t": "Journal de bord",
+      "paras": [
+       "Épisodes par repas + application de l'outil, sur 3 semaines."
+      ]
+     },
+     {
+      "e": "❓",
+      "t": "FAQ",
+      "paras": [
+       "<em>Est-ce dangereux ?</em> Non, mais gênant et parfois responsable d'amaigrissement : la rééducation est le bon traitement.",
+       "---"
+      ]
      }
     ],
-    "erreurs": [
-     "Confondre avec un reflux et se sur-médiquer.",
-     "Ne pratiquer qu'occasionnellement.",
-     "Manger trop vite / trop copieux."
-    ],
-    "orienter": "Échec de l'auto-rééducation → <strong>biofeedback</strong> (EMG abdominal) ; réévaluation médicale.",
-    "journal": {
-     "duree": "3 semaines",
-     "cols": [
-      "Épisodes / repas",
-      "Outil appliqué"
-     ]
-    }
+    "star": 2,
+    "type": "livret"
    },
    {
     "id": "ballonnement",
     "name": "Ballonnement et ventre gonflé (distension fonctionnelle)",
-    "star": 1,
-    "type": "livret",
-    "objectifs": [
-     "Comprendre le mécanisme",
-     "Réapprendre à rentrer / gainer la paroi",
-     "Associer respiration et posture"
-    ],
-    "enclair": "Souvent, le ventre gonfle non pas à cause d'un excès de gaz, mais parce que le <strong>diaphragme descend</strong> et la <strong>paroi abdominale se relâche</strong> anormalement (dyssynergie abdomino-phrénique) : le peu de gaz présent est « poussé » vers l'avant.",
-    "paliers": [
+    "secs": [
      {
-      "t": "Prendre conscience de la paroi",
-      "obj": "Sentir la différence entre ventre relâché et ventre légèrement rentré.",
-      "comment": "Debout devant un miroir, alternez « ventre relâché » / « nombril rentré doucement vers la colonne » (sans bloquer la respiration). <em>[Schéma : profil avant / après, nombril rentré]</em>",
-      "critere": "Rentrer la paroi tout en respirant normalement."
+      "e": "🎯",
+      "t": "Objectif global",
+      "paras": [
+       "Réduire la distension <strong>visible</strong> en corrigeant la <strong>coordination diaphragme / paroi abdominale</strong>."
+      ]
      },
      {
-      "t": "Gainage doux + respiration",
-      "obj": "Maintenir une légère contraction du transverse pendant la respiration diaphragmatique.",
-      "comment": "Nombril légèrement rentré + respiration diaphragmatique (livret socle) + <strong>redressement postural</strong> (grandir le dos).",
-      "critere": "Tenir 5 min sans laisser le ventre « ressortir ».",
-      "freq": "5 min, 3×/j"
+      "e": "🧠",
+      "t": "En clair",
+      "paras": [
+       "Souvent, le ventre gonfle <strong>non pas</strong> à cause d'un excès de gaz, mais parce que le <strong>diaphragme descend</strong> et la <strong>paroi abdominale se relâche</strong> anormalement (<strong>dyssynergie abdomino-phrénique</strong>) : le peu de gaz présent est « poussé » vers l'avant. On <strong>réapprend</strong> à gainer doucement la paroi."
+      ]
      },
      {
-      "t": "Corriger en situation post-prandiale",
-      "obj": "Appliquer quand le ventre gonfle (souvent après les repas).",
-      "comment": "Dès la distension : posture + gainage doux + respiration, 5–10 min.",
-      "critere": "Diminuer visiblement la distension au moins une fois."
+      "e": "🪜",
+      "t": "Paliers",
+      "paliers": [
+       {
+        "t": "Prendre conscience de la paroi",
+        "obj": "sentir « ventre relâché » vs « nombril rentré »",
+        "comment": "devant un miroir, alterner les deux <strong>sans bloquer la respiration</strong>. {{ILL:profil avant/après, rentrer le nombril}}",
+        "freq": "",
+        "critere": "rentrer la paroi tout en respirant"
+       },
+       {
+        "t": "Gainage doux + respiration",
+        "obj": "légère contraction du transverse pendant la respiration diaphragmatique",
+        "comment": "nombril légèrement rentré + F10.0 + <strong>redressement postural</strong>",
+        "freq": "5 min ×3/j",
+        "critere": "tenir 5 min sans laisser le ventre ressortir"
+       },
+       {
+        "t": "Corriger en post-repas",
+        "obj": "appliquer <strong>quand le ventre gonfle</strong>",
+        "comment": "posture + gainage doux + respiration, 5–10 min",
+        "freq": "",
+        "critere": "diminuer visiblement la distension au moins une fois"
+       },
+       {
+        "t": "Intégrer au quotidien",
+        "obj": "maintenir posture/gainage assis/en marchant",
+        "comment": "",
+        "freq": "",
+        "critere": "réduction du ballonnement sur la journée (journal)"
+       }
+      ]
      },
      {
-      "t": "Intégrer aux gestes du quotidien",
-      "obj": "Maintenir la posture / le gainage en marchant, assis au bureau.",
-      "comment": "Rappels réguliers (alarmes discrètes) : posture + nombril.",
-      "critere": "Réduction du ballonnement sur la journée (journal)."
+      "e": "⚠️",
+      "t": "Erreurs fréquentes",
+      "paras": [
+       "<strong>Bloquer</strong> la respiration en gainant ; serrer <strong>trop fort</strong> ; négliger la <strong>posture</strong>."
+      ]
+     },
+     {
+      "e": "📈",
+      "t": "Signes que ça marche",
+      "paras": [
+       "Le ventre « dégonfle » quand on applique la correction ; distension moins marquée l'après-midi."
+      ]
+     },
+     {
+      "e": "🧭",
+      "t": "Quand orienter",
+      "paras": [
+       "Distension objectivée et rebelle → <strong>biofeedback</strong> (contrôle diaphragme/paroi)."
+      ]
+     },
+     {
+      "e": "🗓",
+      "t": "Journal de bord",
+      "paras": [
+       "Intensité (0–10) matin / après-repas / soir, sur 2–3 semaines."
+      ]
+     },
+     {
+      "e": "❓",
+      "t": "FAQ",
+      "paras": [
+       "<em>Pourquoi mon ventre gonfle surtout le soir ?</em> La dyssynergie s'accentue au fil de la journée ; la correction posturale aide.",
+       "---"
+      ]
      }
     ],
-    "erreurs": [
-     "Bloquer la respiration en gainant.",
-     "Serrer trop fort.",
-     "Négliger la posture."
-    ],
-    "orienter": "Distension objectivée et rebelle → <strong>biofeedback</strong> (contrôle diaphragme / paroi) ; réévaluer les causes digestives.",
-    "journal": {
-     "duree": "2–3 semaines",
-     "cols": [
-      "Matin (0–10)",
-      "Après repas (0–10)",
-      "Soir (0–10)"
-     ]
-    }
+    "star": 1,
+    "type": "livret"
    },
    {
     "id": "aerophagie",
     "name": "Aérophagie",
-    "type": "livret",
-    "objectifs": [
-     "Repérer les moments où l'on avale de l'air",
-     "Manger lentement bouche fermée",
-     "Supprimer gazeux, paille, chewing-gum, tabac",
-     "Utiliser la respiration diaphragmatique"
-    ],
-    "enclair": "L'aérophagie est l'excès d'air avalé, souvent lié à des habitudes (repas rapides, boissons gazeuses, stress). En corrigeant ces comportements, l'air avalé — et les symptômes — diminuent.",
-    "paliers": [
+    "secs": [
      {
-      "t": "Repérer",
-      "obj": "Identifier les moments où l'on avale de l'air.",
-      "comment": "Observez : repas rapides, stress, parler en mangeant. Notez-les.",
-      "critere": "Identifier ses principaux moments aérophages."
+      "e": "🎯",
+      "t": "Objectif global",
+      "paras": [
+       "Réduire l'<strong>air avalé</strong> (rots, ballonnements, gaz)."
+      ]
      },
      {
-      "t": "Manger « lentement, bouche fermée »",
-      "obj": "Réduire l'air avalé pendant les repas.",
-      "comment": "Petites bouchées, poser les couverts entre deux, ne pas parler en mâchant.",
-      "critere": "Une journée entière en respectant la consigne."
+      "e": "🧠",
+      "t": "En clair",
+      "paras": [
+       "Manger vite, parler en mangeant, mâcher du chewing-gum, boire à la paille ou gazeux, fumer, ou avaler sa salive de façon répétée font <strong>entrer de l'air</strong>. En corrigeant ces gestes, on réduit les symptômes."
+      ]
      },
      {
-      "t": "Supprimer les sources d'air",
-      "obj": "Retirer boissons gazeuses, paille, chewing-gum, tabac.",
-      "comment": "Remplacez : eau plate, verre sans paille.",
-      "critere": "Une journée sans le comportement ciblé."
+      "e": "🪜",
+      "t": "Paliers",
+      "paliers": []
      },
      {
-      "t": "Respiration + gestion du stress",
-      "obj": "Utiliser la respiration diaphragmatique dans les moments tendus.",
-      "comment": "Livret socle « Respiration diaphragmatique » ; pratiquez avant les situations stressantes.",
-      "critere": "Réduction des rots / ballonnements sur le journal."
+      "e": "⚠️",
+      "t": "Erreurs fréquentes",
+      "paras": [
+       "Boire de grandes gorgées en mangeant ; « forcer » des rots."
+      ]
+     },
+     {
+      "e": "🗓",
+      "t": "Journal de bord",
+      "paras": [
+       "Comportements aérophages cochés + symptômes, sur 2 semaines.",
+       "---"
+      ]
      }
     ],
-    "erreurs": [
-     "Compenser par des « évacuations forcées » d'air.",
-     "Garder les boissons gazeuses « light » (le gaz est le problème)."
-    ],
-    "journal": {
-     "duree": "2 semaines",
-     "cols": [
-      "Comportements évités",
-      "Symptômes (0–10)"
-     ]
-    }
+    "type": "livret"
    },
    {
     "id": "dyschesie_reeduc",
     "name": "Dyschésie / dyssynergie de défécation (anisme)",
-    "star": 2,
-    "type": "livret",
-    "objectifs": [
-     "Adopter la position d'exonération",
-     "Pousser sans bloquer la respiration",
-     "Relâcher le périnée à la poussée",
-     "Installer une routine"
-    ],
-    "enclair": "La constipation est ici un problème de <strong>coordination</strong> : au moment de pousser, le plancher pelvien et le sphincter, au lieu de se <strong>relâcher</strong>, se <strong>contractent</strong> et ferment la sortie. On réapprend le bon geste — souvent avec l'aide d'un <strong>biofeedback</strong> (capteur qui montre en direct si l'on relâche bien).",
-    "paliers": [
+    "secs": [
      {
-      "t": "La bonne position",
-      "obj": "Installer une position qui ouvre l'angle du rectum.",
-      "comment": "<strong>Pieds surélevés sur un marchepied</strong>, buste penché en avant, coudes sur les cuisses, <strong>genoux plus hauts que les hanches</strong>, dos droit. <em>[Schéma : position physiologique aux toilettes avec marchepied]</em>",
-      "critere": "Adopter systématiquement cette position."
+      "e": "🎯",
+      "t": "Objectif global",
+      "paras": [
+       "Réapprendre à <strong>coordonner poussée et relâchement</strong> pour évacuer <strong>sans effort</strong>."
+      ]
      },
      {
-      "t": "Pousser sans bloquer (technique du souffle)",
-      "obj": "Remplacer le blocage respiratoire (Valsalva) par une expiration active.",
-      "comment": "Inspirez, puis <strong>poussez en expirant lentement, lèvres pincées</strong> (comme pour gonfler un ballon), en dirigeant la poussée « vers le bas ». Pas d'apnée prolongée, pas de poussée en force. <em>[Schéma : expiration lèvres pincées pendant la poussée]</em>",
-      "critere": "Pousser en soufflant sans se bloquer, sans forcer excessivement."
+      "e": "🧠",
+      "t": "En clair",
+      "paras": [
+       "Ici, la constipation est un problème de <strong>coordination</strong> : au moment de pousser, le plancher pelvien et le sphincter, au lieu de se <strong>relâcher</strong>, se <strong>contractent</strong> et ferment la sortie. On réapprend le bon geste — souvent avec l'aide d'un <strong>biofeedback</strong> (capteur montrant en direct si l'on relâche bien). <strong>Ce livret accompagne une rééducation prescrite ; il ne remplace pas le rééducateur.</strong>"
+      ]
      },
      {
-      "t": "Relâcher le périnée à la poussée",
-      "obj": "Sentir et obtenir le relâchement de l'anus au moment de pousser (l'inverse du réflexe erroné).",
-      "comment": "Au moment de la poussée-souffle, <strong>laissez l'anus s'ouvrir / se détendre</strong> (ne pas serrer). Le biofeedback, s'il est prescrit, guide ce relâchement.",
-      "critere": "Percevoir un relâchement (ou visualiser le bon signal en biofeedback)."
+      "e": "🪜",
+      "t": "Paliers",
+      "paliers": [
+       {
+        "t": "La bonne position",
+        "obj": "ouvrir l'angle du rectum",
+        "comment": "<strong>pieds surélevés (marchepied)</strong>, buste penché en avant, coudes sur les cuisses, <strong>genoux plus hauts que les hanches</strong>, dos droit. {{ILL:position physiologique + marchepied}}",
+        "freq": "",
+        "critere": "adopter systématiquement cette position"
+       },
+       {
+        "t": "Pousser sans bloquer (technique du souffle)",
+        "obj": "remplacer l'apnée (Valsalva) par une <strong>expiration active</strong>",
+        "comment": "inspirez, puis <strong>poussez en expirant lentement, lèvres pincées</strong> (comme pour gonfler un ballon), poussée dirigée <strong>vers le bas</strong>, sans forcer. {{ILL:expiration lèvres pincées + flèche vers le bas}}",
+        "freq": "",
+        "critere": "pousser en soufflant, sans se bloquer"
+       },
+       {
+        "t": "Relâcher le périnée à la poussée",
+        "obj": "<strong>laisser l'anus s'ouvrir</strong> au moment de pousser (l'inverse du réflexe erroné)",
+        "comment": "au moment de la poussée-souffle, <strong>détendre</strong> l'anus (ne pas serrer) ; le biofeedback guide ce relâchement",
+        "freq": "",
+        "critere": "percevoir un relâchement (ou bon signal en biofeedback)"
+       },
+       {
+        "t": "La routine d'exonération",
+        "obj": "profiter du <strong>réflexe</strong> après repas",
+        "comment": "toilettes <strong>~20–30 min après un repas</strong> (souvent le matin), au calme, <strong>sans écran</strong>, <strong>sans différer</strong> le besoin, <strong>≤ 5 min</strong> sans forcer",
+        "freq": "",
+        "critere": "évacuation plus facile/régulière"
+       },
+       {
+        "t": "(si prescrit) Rééducation de la sensibilité",
+        "obj": "mieux <strong>ressentir</strong> le besoin (hyposensibilité)",
+        "comment": "exercices au <strong>ballonnet</strong> guidés par le rééducateur",
+        "freq": "",
+        "critere": "percevoir le besoin plus tôt"
+       }
+      ]
      },
      {
-      "t": "La routine d'exonération",
-      "obj": "Profiter du réflexe naturel après les repas.",
-      "comment": "Aux toilettes <strong>~20–30 min après un repas</strong> (souvent le matin), au calme, <strong>sans écran</strong>, <strong>sans différer</strong> le besoin, <strong>≤ 5 min</strong> sans forcer. Si ça ne vient pas : ne pas insister, réessayer plus tard.",
-      "critere": "Exonération plus facile / plus régulière sur la semaine."
+      "e": "⚠️",
+      "t": "Erreurs fréquentes",
+      "paras": [
+       "Pousser en <strong>bloquant</strong> la respiration ; <strong>forcer</strong> longtemps ; rester trop longtemps aux toilettes ; <strong>différer/ignorer</strong> le besoin."
+      ]
      },
      {
-      "t": "(Si prescrit) Rééducation de la sensibilité",
-      "obj": "Mieux ressentir le besoin (hyposensibilité rectale).",
-      "comment": "Exercices au <strong>ballonnet</strong> guidés par le rééducateur (biofeedback sensitif).",
-      "critere": "Percevoir le besoin plus tôt."
+      "e": "📈",
+      "t": "Signes que ça marche",
+      "paras": [
+       "Moins d'efforts, sensation d'évacuation <strong>complète</strong>, moins de manœuvres."
+      ]
+     },
+     {
+      "e": "🧭",
+      "t": "Quand orienter",
+      "paras": [
+       "<strong>Biofeedback ano-rectal</strong> = traitement de référence de la dyssynergie ; ce livret le complète."
+      ]
+     },
+     {
+      "e": "🗓",
+      "t": "Journal de bord",
+      "paras": [
+       "Selles (facilité 0–10) + position/souffle utilisés, sur 3–4 semaines."
+      ]
+     },
+     {
+      "e": "❓",
+      "t": "FAQ",
+      "paras": [
+       "<em>Les laxatifs suffisent-ils ?</em> Non pour une dyschésie : c'est la <strong>coordination</strong> qu'il faut rééduquer. → Renvoi Régime dyschésie, F9.3.",
+       "---"
+      ]
      }
     ],
-    "erreurs": [
-     "Pousser en bloquant la respiration.",
-     "Forcer longtemps.",
-     "Rester trop longtemps aux toilettes.",
-     "Ignorer / différer le besoin."
-    ],
-    "orienter": "Ce livret <strong>accompagne</strong> une prescription de <strong>biofeedback ano-rectal</strong> (traitement de référence de la dyssynergie) : il ne remplace pas le rééducateur. Voir aussi la fiche régime dyschésie.",
-    "journal": {
-     "duree": "3–4 semaines",
-     "cols": [
-      "Facilité des selles (0–10)",
-      "Position + souffle utilisés"
-     ]
-    }
+    "star": 2,
+    "type": "livret"
    },
    {
     "id": "incontinence_reeduc",
     "name": "Incontinence anale",
-    "star": 1,
-    "type": "livret",
-    "objectifs": [
-     "Localiser et contracter le bon muscle",
-     "Développer force et endurance",
-     "Contracter « au bon moment »",
-     "Installer un programme quotidien"
-    ],
-    "enclair": "L'incontinence anale est fréquente et <strong>se rééduque</strong>. On renforce le muscle qui ferme l'anus, on apprend à le contracter au bon moment, et on améliore la perception du besoin. La <strong>rééducation périnéale</strong> (kinésithérapeute / sage-femme) et le <strong>biofeedback</strong> sont au cœur du traitement.",
-    "paliers": [
+    "secs": [
      {
-      "t": "Trouver le bon muscle",
-      "obj": "Contracter l'anus sans serrer fessiers, cuisses ni abdominaux, sans bloquer la respiration.",
-      "comment": "Imaginez « <strong>retenir un gaz</strong> » : l'anus se resserre et se soulève légèrement. Vérifiez que le ventre et les fesses restent détendus. <em>[Schéma : contraction ciblée du sphincter, fessiers / abdos relâchés]</em>",
-      "critere": "Obtenir une contraction isolée, identifiable."
+      "e": "🎯",
+      "t": "Objectif global",
+      "paras": [
+       "<strong>Renforcer</strong> et <strong>coordonner</strong> le sphincter et le plancher pelvien pour mieux se <strong>retenir</strong>."
+      ]
      },
      {
-      "t": "Contractions courtes (force)",
-      "obj": "Contractions brèves et fortes.",
-      "comment": "Contractez 2–3 s, relâchez <strong>autant</strong>. Séries de 8–10, <strong>2–3×/j</strong>. Le relâchement complet est aussi important que la contraction.",
-      "critere": "Enchaîner une série sans fatigue ni compensation."
+      "e": "🧠",
+      "t": "En clair",
+      "paras": [
+       "L'incontinence anale est <strong>fréquente</strong> et <strong>se rééduque</strong>. On renforce le muscle qui ferme l'anus, on apprend à le contracter <strong>au bon moment</strong>, et on améliore la <strong>perception</strong> du besoin. La <strong>rééducation périnéale</strong> (kiné/sage-femme) et le <strong>biofeedback</strong> sont au cœur du traitement ; <strong>ce livret les accompagne</strong>."
+      ]
      },
      {
-      "t": "Contractions tenues (endurance)",
-      "obj": "Maintenir la contraction plus longtemps.",
-      "comment": "Tenez 5 s (puis progressez vers 8–10 s), relâchez le double. Séries de 8–10, 2–3×/j.",
-      "critere": "Tenir 10 s sans lâcher ni compenser."
+      "e": "🪜",
+      "t": "Paliers",
+      "paliers": [
+       {
+        "t": "Trouver le bon muscle",
+        "obj": "contracter l'anus <strong>sans</strong> serrer fessiers/cuisses/abdos ni bloquer la respiration",
+        "comment": "imaginez « <strong>retenir un gaz</strong> » : l'anus se resserre et se soulève légèrement ; vérifiez que ventre et fesses restent détendus. {{ILL:contraction ciblée du sphincter, fessiers/abdos relâchés}}",
+        "freq": "",
+        "critere": "obtenir une contraction <strong>isolée</strong>"
+       },
+       {
+        "t": "Contractions courtes (force)",
+        "obj": "contractions <strong>brèves et fortes</strong>",
+        "comment": "contractez 2–3 s, relâchez <strong>autant</strong> ; séries de 8–10, <strong>2–3×/j</strong> (le relâchement complet compte autant)",
+        "freq": "",
+        "critere": "enchaîner une série sans compensation"
+       },
+       {
+        "t": "Contractions tenues (endurance)",
+        "obj": "<strong>maintenir</strong> la contraction",
+        "comment": "tenez 5 s (puis 8–10 s), relâchez le double ; séries de 8–10, 2–3×/j",
+        "freq": "",
+        "critere": "tenir 10 s sans lâcher ni compenser"
+       },
+       {
+        "t": "Contracter au bon moment (le « verrou »)",
+        "obj": "contracter <strong>avant</strong> l'effort qui fait fuir",
+        "comment": "<strong>serrer juste avant</strong> toux/éternuement/port de charge/lever, et à la <strong>sensation d'urgence</strong> (temporiser jusqu'aux toilettes)",
+        "freq": "",
+        "critere": "réussir à retenir lors d'une urgence/effort"
+       },
+       {
+        "t": "Intégrer au quotidien",
+        "obj": "exercices dans des routines (feux rouges, brossage de dents) + <strong>programmation des selles</strong>",
+        "comment": "",
+        "freq": "",
+        "critere": "diminution des fuites (journal)"
+       }
+      ]
      },
      {
-      "t": "Contracter au bon moment (le « verrou »)",
-      "obj": "Contracter avant un effort qui fait fuir (toux, éternuement, port de charge, se lever).",
-      "comment": "Prenez l'habitude de <strong>serrer juste avant</strong> l'effort et à la <strong>sensation de besoin urgent</strong> (temporiser jusqu'aux toilettes).",
-      "critere": "Réussir à retenir lors d'une urgence ou d'un effort."
+      "e": "⚠️",
+      "t": "Erreurs fréquentes",
+      "paras": [
+       "Serrer <strong>fessiers/abdos</strong> ; <strong>bloquer</strong> la respiration ; <strong>ne pas relâcher</strong> entre les contractions ; s'entraîner de façon irrégulière."
+      ]
      },
      {
-      "t": "Intégrer au quotidien",
-      "obj": "Exercices intégrés à des routines + programmation des selles.",
-      "comment": "Associez les séries à des routines (feux rouges, brossage de dents…).",
-      "critere": "Diminution des fuites sur le journal."
+      "e": "📈",
+      "t": "Signes que ça marche",
+      "paras": [
+       "Fuites moins fréquentes, meilleure capacité à <strong>temporiser</strong> une urgence."
+      ]
+     },
+     {
+      "e": "🧭",
+      "t": "Quand orienter",
+      "paras": [
+       "Ce livret <strong>accompagne</strong> une <strong>rééducation périnéale prescrite</strong> (+ biofeedback / rééducation de la sensibilité). → Renvoi F9.2."
+      ]
+     },
+     {
+      "e": "🗓",
+      "t": "Journal de bord",
+      "paras": [
+       "Épisodes de fuite (type/urgence) + séances réalisées, sur 3–4 semaines."
+      ]
+     },
+     {
+      "e": "❓",
+      "t": "FAQ",
+      "paras": [
+       "<em>Combien de temps avant de voir un résultat ?</em> Souvent <strong>quelques semaines</strong> d'exercices réguliers.",
+       "---",
+       "---"
+      ]
      }
     ],
-    "erreurs": [
-     "Serrer les fessiers / abdominaux.",
-     "Bloquer la respiration.",
-     "Ne pas relâcher entre les contractions.",
-     "S'entraîner de façon irrégulière."
-    ],
-    "orienter": "Ce livret <strong>accompagne</strong> une <strong>rééducation périnéale prescrite</strong> (+ biofeedback / rééducation de la sensibilité rectale). Voir aussi la fiche « Incontinence anale : comprendre et rééduquer ».",
-    "journal": {
-     "duree": "3–4 semaines",
-     "cols": [
-      "Fuites (nombre / type)",
-      "Séances réalisées"
-     ]
-    }
+    "star": 1,
+    "type": "livret"
    }
   ]
  }

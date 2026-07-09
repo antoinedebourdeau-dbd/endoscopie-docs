@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.6";
+export const APP_VERSION = "3.7";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -1679,7 +1679,7 @@ function renderEtpModal(query = "") {
   $("#etp-list").innerHTML = ETP.map((ax) => {
     const items = ax.items.filter((f) => {
       if (!q) return true;
-      const hay = norm(f.name + " " + ax.axe + " " + (f.enclair || "") + " " + (f.objectifs || []).join(" "));
+      const hay = norm(f.name + " " + ax.axe + " " + (f.secs || []).map((s) => s.t + " " + (s.paras || []).join(" ") + " " + (s.items || []).join(" ")).join(" "));
       return words.every((w) => hay.includes(w));
     });
     if (!items.length) return "";

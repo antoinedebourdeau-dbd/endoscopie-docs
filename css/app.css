@@ -177,6 +177,7 @@ textarea.mono { font: 12px/1.5 ui-monospace, 'SF Mono', Menlo, monospace; min-he
   box-shadow: 0 -6px 18px rgba(13, 43, 69, .10);
   border: 1px solid var(--bord);
   margin-bottom: 0;
+  padding: 8px 10px;
 }
 
 /* ------------------------------------------------------------- responsive -- */

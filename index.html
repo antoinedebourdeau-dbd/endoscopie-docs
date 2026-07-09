@@ -105,16 +105,21 @@
       </label>
     </div>
 
-    <!-- IMPRESSION (zone collante) -->
+    <!-- liens utilitaires (hors zone collante) -->
+    <div class="hint" style="padding:0 4px 8px;"><a href="https://github.com/antoinedebourdeau-dbd/endoscopie-docs/releases/latest/download/endoscopie-docs-hors-ligne.zip">⬇ Version hors-ligne</a> · <a href="#" id="btn-affiche">🖼 Affiche QR</a></div>
+
+    <!-- IMPRESSION (zone collante, compacte) -->
     <div class="panel" id="actions-panel">
-      <label class="field"><span class="lbl">Date du document (« Fait à Montpellier, le… »)</span>
-        <input type="date" id="doc-date">
-      </label>
-      <button class="big" id="btn-print" disabled>🖨 Imprimer / Enregistrer en PDF</button>
-      <button class="big orange" id="btn-emails" style="display:none; margin-top:8px;">📧 Générer les e-mails (PJ incluses)</button>
-      <button class="big" id="btn-all" style="display:none; margin-top:8px; background:var(--bleu-fonce);">⚡ Tout générer (impression + e-mails)</button>
-      <div class="hint">Un seul flux d'impression : chaque document démarre sur une nouvelle page. Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF » pour obtenir le fichier.</div>
-      <div class="hint" style="margin-top:10px;"><a href="https://github.com/antoinedebourdeau-dbd/endoscopie-docs/releases/latest/download/endoscopie-docs-hors-ligne.zip">⬇ Télécharger la version hors-ligne</a> (dossier à copier sur un poste sans internet) · <a href="#" id="btn-affiche">🖼 Affiche QR du service</a></div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <label class="field" style="flex:none; width:150px; margin:0;" title="Date du document (« Fait à Montpellier, le… »)">
+          <input type="date" id="doc-date" style="padding:6px 8px; font-size:12.5px;">
+        </label>
+        <button id="btn-print" disabled style="flex:1;" title="Imprimer / Enregistrer en PDF (Ctrl+Entrée) — un flux, chaque document sur sa page">🖨 Imprimer / PDF</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:6px;">
+        <button class="orange" id="btn-emails" style="display:none; flex:1; padding:7px 10px; font-size:12.5px;" title="Un brouillon par destinataire, PDF téléchargés">📧 E-mails</button>
+        <button id="btn-all" style="display:none; flex:1; padding:7px 10px; font-size:12.5px; background:var(--bleu-fonce);" title="Impression puis e-mails en un clic">⚡ Tout générer</button>
+      </div>
     </div>
   </aside>
 
