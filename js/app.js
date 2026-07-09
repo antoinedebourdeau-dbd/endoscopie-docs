@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "2.0";
+export const APP_VERSION = "2.1";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -986,7 +986,7 @@ function confirmDemandeWarnings() {
 }
 
 // ---------------------------------------------------------------- affiche QR
-const SITE_URL = "https://antoinedebourdeau-dbd.github.io/endoscopie-docs/";
+const SITE_URL = "https://dochge.pages.dev/";
 $("#btn-affiche").addEventListener("click", async (e) => {
   e.preventDefault();
   await loadScript("vendor/qrcode.min.js");
