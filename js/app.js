@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "1.8";
+export const APP_VERSION = "2.0";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -304,14 +304,21 @@ $("#med-form").addEventListener("submit", (e) => {
   const errBox = $("#mf-err");
   if (err) { errBox.textContent = err; errBox.style.display = "block"; return; }
   errBox.style.display = "none";
-  saveMedecin({
+  const saved = saveMedecin({
     id: $("#mf-id").value || undefined,
     nom: $("#mf-nom").value, specialite: $("#mf-spec").value,
     tel: $("#mf-tel").value, fax: $("#mf-fax").value, rpps: $("#mf-rpps").value,
     mail: $("#mf-mail").value,
   });
+  const prof = getProfile();
+  if (prof?.type === "medecin" && !prof.medecinId) {
+    setProfile({ type: "medecin", medecinId: saved.id });
+    localStorage.setItem(LASTMED_KEY, saved.id);
+    renderMedecinSelect();
+    $("#sel-medecin").value = saved.id;
+  }
   $("#med-form").style.display = "none";
-  renderMedList(); renderMedecinSelect(); refreshSoon();
+  renderMedList(); renderMedecinSelect(); renderProfileChip(); refreshSoon();
 });
 $("#btn-med-export").addEventListener("click", () => download("medecins-endoscopie-chu.json", exportMedecins()));
 $("#btn-med-import").addEventListener("click", () => pickFile((txt) => {
@@ -989,7 +996,7 @@ $("#btn-affiche").addEventListener("click", async (e) => {
   const svg = qr.createSvgTag({ cellSize: 6, margin: 2 });
   const logo = new URL("chu-logo.webp", location.href).href;
   const w = window.open("", "_blank");
-  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Affiche — Documents patients endoscopie</title>
+  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Affiche — Doc'HGE</title>
     <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
     <style>@page{size:A4;margin:0} *{box-sizing:border-box} body{margin:0;font-family:'Barlow',sans-serif}
     .page{width:210mm;height:297mm;padding:22mm 20mm;display:flex;flex-direction:column;align-items:center;text-align:center}
@@ -998,7 +1005,7 @@ $("#btn-affiche").addEventListener("click", async (e) => {
     <div class="page">
       <img src="${logo}" style="height:64px;">
       <div style="font-family:'Barlow Condensed';text-transform:uppercase;letter-spacing:.08em;color:#0072BC;font-weight:700;font-size:17px;margin-top:20px;">CHU de Montpellier · Hépato-Gastroentérologie</div>
-      <h1 style="font-weight:800;color:#0d2b45;font-size:37px;line-height:1.1;margin:8px 0 0;">Documents patients<br>Endoscopie digestive</h1>
+      <h1 style="font-weight:800;color:#0d2b45;font-size:37px;line-height:1.1;margin:8px 0 0;">Doc'HGE<br>Documents patients</h1>
       <div style="height:4px;width:90px;background:#EF7D00;border-radius:2px;margin:16px 0 22px;"></div>
       <div style="font-size:17px;color:#1c3a52;line-height:1.6;max-width:150mm;">Notes d'information &amp; consentement · ordonnances de préparation colique · ordonnances · demandes d'examen — <strong>au nom de chaque médecin</strong>, imprimables et envoyables par e-mail en quelques clics.</div>
       <div style="margin:26px 0 10px;">${svg.replace("<svg ", '<svg style="width:70mm;height:70mm;" ')}</div>
@@ -1249,7 +1256,27 @@ $("#chk-generic").addEventListener("change", () => {
   refreshSoon();
 });
 
-// ------------------------------------------------------------ bienvenue
+// ------------------------------------------------- profils & bienvenue
+const PROFILE_KEY = "endoc.profile.v1";
+const getProfile = () => {
+  try { return JSON.parse(localStorage.getItem(PROFILE_KEY)); } catch (_) { return null; }
+};
+function setProfile(p) {
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+  renderProfileChip();
+}
+function renderProfileChip() {
+  const p = getProfile();
+  let label = "Choisir mon profil";
+  if (p?.type === "secretariat") label = "🗂 Secrétariat";
+  if (p?.type === "medecin") {
+    const m = listMedecins().find((x) => x.id === p.medecinId);
+    label = "👨‍⚕️ " + (m ? m.nom : "Médecin");
+  }
+  $("#profile-chip").textContent = label;
+}
+$("#profile-chip").addEventListener("click", () => openModal("#modal-welcome"));
+
 if (!localStorage.getItem("endoc.welcomed")) {
   openModal("#modal-welcome");
 }
@@ -1257,12 +1284,21 @@ $("#wl-close").addEventListener("click", () => {
   localStorage.setItem("endoc.welcomed", "1");
   closeModals();
 });
-$("#wl-add-me").addEventListener("click", () => {
+$("#wl-medecin").addEventListener("click", () => {
   localStorage.setItem("endoc.welcomed", "1");
   closeModals();
+  const p = getProfile();
+  if (p?.type === "medecin" && p.medecinId) return; // déjà configuré
+  setProfile({ type: "medecin", medecinId: null }); // complété à l'enregistrement de la fiche
   renderMedList();
   openModal("#modal-medecins");
   $("#btn-med-add").click();
+});
+$("#wl-secretariat").addEventListener("click", () => {
+  localStorage.setItem("endoc.welcomed", "1");
+  setProfile({ type: "secretariat" });
+  closeModals();
+  toast("🗂 Profil secrétariat : tous les médecins de la liste sont disponibles. Pensez à importer la liste du service (« Gérer les médecins » → Importer).", 9000);
 });
 
 // Date du document : pré-remplie à aujourd'hui (fuseau local)
@@ -1271,6 +1307,7 @@ $("#doc-date").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padSta
 $("#doc-date").addEventListener("input", refreshSoon);
 
 document.querySelector(".topbar .t2").textContent += ` · v${APP_VERSION}`;
+renderProfileChip();
 
 renderCatalog();
 renderMedecinSelect();

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/png" href="favicon.png">
-<title>Documents patients — Endoscopie digestive · CHU de Montpellier</title>
+<title>Doc'HGE — Documents patients · Hépato-Gastroentérologie · CHU de Montpellier</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
@@ -16,9 +16,10 @@
 <header class="topbar no-print">
   <img src="chu-logo.webp" alt="CHU de Montpellier">
   <div class="titles">
-    <div class="t1">Documents patients — Endoscopie digestive</div>
-    <div class="t2">CHU de Montpellier · Hépato-Gastroentérologie</div>
+    <div class="t1">Doc'HGE — Documents patients</div>
+    <div class="t2">Hépato-Gastroentérologie · CHU de Montpellier</div>
   </div>
+  <button class="ghost" id="profile-chip" style="background:#fff;" title="Changer de profil (médecin / secrétariat)">Choisir mon profil</button>
   <button class="ghost" id="btn-reset" style="background:#fff;" title="Tout remettre à zéro : documents, ordonnances, demandes, patient">↺ Nouveau</button>
   <button class="ghost" id="btn-new-doc" style="background:#fff;">✏️ Rédiger un document</button>
   <button class="ghost" id="btn-medecins" style="background:#fff;">Gérer les médecins</button>
@@ -298,14 +299,17 @@
 <div class="modal-back no-print" id="modal-welcome">
   <div class="modal">
     <h3>👋 Bienvenue</h3>
-    <div class="mhint">Documents patients d'endoscopie digestive — CHU de Montpellier. Trois choses à savoir :</div>
+    <div class="mhint">Doc'HGE — les documents patients d'Hépato-Gastroentérologie du CHU de Montpellier. Trois choses à savoir :</div>
     <div class="pill-info" style="margin-bottom:8px;"><strong>1 · Ajoutez-vous comme médecin</strong> (une seule fois) : nom, secrétariat, RPPS, BALF — vos documents et ordonnances seront automatiquement à votre en-tête.</div>
     <div class="pill-info" style="margin-bottom:8px;"><strong>2 · Préparez un dossier</strong> : « ⚡ Parcours types » pour tout préparer en un clic, ou choisissez vos documents ; renseignez le patient (optionnel).</div>
     <div class="pill-info" style="margin-bottom:14px;"><strong>3 · Imprimez ou envoyez</strong> : PDF en un clic, envoi par e-mail au secrétariat et au patient. Aucune donnée patient ne quitte votre poste.</div>
+    <div class="mhint" style="font-weight:700; color:var(--bleu-fonce);">Vous êtes ?</div>
     <div class="btnrow">
-      <button id="wl-add-me">👨‍⚕️ Ajouter ma fiche médecin</button>
-      <button class="subtle" id="wl-close">C'est parti</button>
+      <button id="wl-medecin">👨‍⚕️ Médecin</button>
+      <button id="wl-secretariat">🗂 Secrétariat</button>
+      <button class="subtle" id="wl-close">Plus tard</button>
     </div>
+    <div class="hint" style="margin-top:8px;">Médecin : créez votre fiche (une fois) — vos documents seront à votre nom par défaut. Secrétariat : accès à tous les médecins de la liste pour générer leurs documents.</div>
   </div>
 </div>
 
