@@ -414,6 +414,22 @@ function demandeCtx() {
   return { medecin: currentMedecin(), patient: currentPatient(), dateDoc: $("#doc-date").value || null };
 }
 
+/** Encodage quoted-printable (UTF-8) — accents fiables dans Outlook. */
+function qpEncode(s) {
+  const bytes = new TextEncoder().encode(s.replace(/\r?\n/g, "\r\n"));
+  let out = "", line = "";
+  for (const b of bytes) {
+    if (b === 13) continue;
+    if (b === 10) { out += line + "\r\n"; line = ""; continue; }
+    const tok = (b >= 33 && b <= 126 && b !== 61) || b === 32 || b === 9
+      ? String.fromCharCode(b)
+      : "=" + b.toString(16).toUpperCase().padStart(2, "0");
+    if (line.length + tok.length >= 74) { out += line + "=\r\n"; line = ""; }
+    line += tok;
+  }
+  return out + line;
+}
+
 /** Construit et télécharge un brouillon .eml (X-Unsent) avec le PDF en pièce jointe. */
 async function downloadEml(to, sujet, corps, pdfBlob, fichierPdf) {
   const b64 = await new Promise((ok) => {
@@ -427,20 +443,22 @@ async function downloadEml(to, sujet, corps, pdfBlob, fichierPdf) {
     `To: ${to}`,
     `Subject: =?UTF-8?B?${b64utf8(sujet)}?=`,
     "MIME-Version: 1.0",
-    'Content-Type: multipart/mixed; boundary="ENDOC-BOUNDARY"',
+    'Content-Type: multipart/mixed; boundary="=_ENDOC_1"',
     "",
-    "--ENDOC-BOUNDARY",
-    'Content-Type: text/plain; charset="UTF-8"',
-    "Content-Transfer-Encoding: base64",
+    "--=_ENDOC_1",
+    "Content-Type: text/plain; charset=utf-8",
+    "Content-Transfer-Encoding: quoted-printable",
     "",
-    b64utf8(corps).replace(/(.{76})/g, "$1\r\n"),
-    "--ENDOC-BOUNDARY",
+    qpEncode(corps),
+    "",
+    "--=_ENDOC_1",
     `Content-Type: application/pdf; name="${fichierPdf}"`,
     "Content-Transfer-Encoding: base64",
     `Content-Disposition: attachment; filename="${fichierPdf}"`,
     "",
     b64.replace(/(.{76})/g, "$1\r\n"),
-    "--ENDOC-BOUNDARY--",
+    "--=_ENDOC_1--",
+    "",
   ].join("\r\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([eml], { type: "message/rfc822" }));
@@ -449,17 +467,17 @@ async function downloadEml(to, sujet, corps, pdfBlob, fichierPdf) {
   setTimeout(() => URL.revokeObjectURL(a.href), 30000);
 }
 
-/** Brouillon secrétariat : la demande en PJ. */
-async function generateDemandeEml(d) {
+/** Prépare le job d'envoi d'une demande (PDF généré, mail rédigé). */
+async function buildDemandeJob(d) {
   const to = (d.opts.sendTo || mailCfg().endo).trim();
   const { sujet, corps, fichier } = mailTexts(d);
   const item = { type: "demande-endo", opts: { ...d.opts, telPatient: $("#pt-tel").value.trim() } };
   const { blob } = await docsToPdf([item], demandeCtx(), fichier);
-  await downloadEml(to, sujet, corps, blob, fichier);
+  return { label: sujet, to, sujet, corps, fichier, blob };
 }
 
-/** Brouillon patient : tous les documents cochés (hors demandes) en un PDF joint. */
-async function generatePatientEml() {
+/** Prépare le job d'envoi au patient (tous les documents cochés, hors demandes). */
+async function buildPatientJob() {
   const to = $("#pt-mail").value.trim();
   if (!to || !to.includes("@")) throw new Error("Renseignez l'e-mail du patient.");
   const items = selectedItems().filter((it) => it.type !== "demande-endo");
@@ -481,22 +499,56 @@ Merci de les lire attentivement et d'apporter les documents signés le jour de l
 Cordialement,
 ${med ? med.nom : ""}${med?.tel ? "\nSecrétariat : " + med.tel : ""}${med?.mail ? "\n" + med.mail : ""}`;
   const { blob } = await docsToPdf(items, demandeCtx(), fichier);
-  await downloadEml(to, sujet, corps, blob, fichier);
+  return { label: `Documents pour le patient${nomAff ? " — " + nomAff : ""}`, to, sujet, corps, fichier, blob };
 }
 
-/** Bouton « Générer les e-mails » : un brouillon par envoi coché. */
+/** Bouton « Générer les e-mails » : PDF téléchargés + modale guidée. */
+let sendJobs = [];
 async function generateAllEmails() {
-  const jobs = demandes.filter((d) => d.type && d.opts.sendMail);
-  const withPatient = $("#chk-mail-patient").checked;
-  let n = 0;
-  toast("⏳ Génération des e-mails…", 60000);
-  for (const d of jobs) {
-    await generateDemandeEml(d);
-    n++;
-    await new Promise((ok) => setTimeout(ok, 700)); // téléchargements successifs
+  toast("⏳ Génération des PDF…", 60000);
+  const jobs = [];
+  for (const d of demandes.filter((x) => x.type && x.opts.sendMail)) jobs.push(await buildDemandeJob(d));
+  if ($("#chk-mail-patient").checked) jobs.push(await buildPatientJob());
+  if (!jobs.length) throw new Error("Aucun envoi coché.");
+  for (const j of jobs) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(j.blob); a.download = j.fichier; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    await new Promise((ok) => setTimeout(ok, 600)); // téléchargements successifs
   }
-  if (withPatient) { await generatePatientEml(); n++; }
-  toast(`📧 <strong>${n} brouillon(s) .eml téléchargé(s)</strong> (PDF en pièce jointe).<br>Double-cliquez chaque fichier : il s'ouvre dans Outlook prêt à envoyer.`, 12000);
+  sendJobs = jobs;
+  $("#toast").style.display = "none";
+  renderSendModal();
+  openModal("#modal-send");
+}
+
+function renderSendModal() {
+  $("#send-list").innerHTML = sendJobs.map((j, i) => `
+    <div class="med-row" style="align-items:flex-start;">
+      <div class="info">
+        <div class="nom">${j.label}</div>
+        <div class="det">À : ${j.to}<br>PJ à glisser : <strong>${j.fichier}</strong> <span style="color:#146c3a;">(téléchargé ✓)</span></div>
+      </div>
+      <button class="small" data-open-mail="${i}">📧 Ouvrir le mail</button>
+    </div>`).join("") +
+    `<div class="hint" style="margin-top:10px;">Selon votre version d'Outlook, vous pouvez aussi essayer le <a href="#" id="send-eml-all">brouillon .eml avec PJ déjà incluse</a> (double-cliquer le fichier téléchargé) — si le texte ou la pièce jointe s'affichent mal, restez sur la méthode ci-dessus.</div>`;
+
+  $$("#send-list [data-open-mail], #modal-send [data-open-mail]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const j = sendJobs[Number(b.dataset.openMail)];
+      const url = `mailto:${encodeURIComponent(j.to)}?subject=${encodeURIComponent(j.sujet)}&body=${encodeURIComponent(j.corps)}`;
+      window.__lastMailto = url; // témoin pour les tests automatisés
+      location.href = url;
+      b.textContent = "✓ mail ouvert";
+    }));
+  const emlAll = document.querySelector("#send-eml-all");
+  if (emlAll) emlAll.addEventListener("click", async (e) => {
+    e.preventDefault();
+    for (const j of sendJobs) {
+      await downloadEml(j.to, j.sujet, j.corps, j.blob, j.fichier);
+      await new Promise((ok) => setTimeout(ok, 600));
+    }
+  });
 }
 
 function updateEmailButton() {
