@@ -443,6 +443,30 @@ function demandeCtx() {
   return { medecin: currentMedecin(), patient: currentPatient(), dateDoc: $("#doc-date").value || null };
 }
 
+/**
+ * Encodage d'un composant mailto. Outlook Windows décode les liens mailto en
+ * ANSI (cp1252), pas en UTF-8 → sur Windows on encode les accents en latin-1
+ * et on remplace les caractères typographiques absents (— ’ « » …).
+ */
+const MAILTO_SUBST = { "—": "-", "–": "-", "’": "'", "‘": "'", "«": '"', "»": '"', "…": "...", "•": "-", "œ": "oe", "Œ": "OE", "€": "EUR", " ": " ", "☑": "[x]", "☐": "[ ]" };
+function mailtoEncode(s) {
+  s = String(s).replace(/[—–’‘«»…•œŒ€ ☑☐]/g, (c) => MAILTO_SUBST[c] ?? "");
+  s = s.replace(/\r?\n/g, "\r\n");
+  if (!/Windows/i.test(navigator.userAgent)) return encodeURIComponent(s);
+  let out = "";
+  for (const ch of s) {
+    let cp = ch.codePointAt(0);
+    if (cp > 255) {
+      const ascii = ch.normalize("NFD").replace(/[̀-ͯ]/g, ""); // dernier recours : sans accent
+      cp = ascii.codePointAt(0) ?? 63;
+      if (cp > 255) cp = 63; // "?"
+    }
+    const c = String.fromCodePoint(cp);
+    out += /[A-Za-z0-9\-_.~]/.test(c) ? c : "%" + cp.toString(16).toUpperCase().padStart(2, "0");
+  }
+  return out;
+}
+
 /** Encodage quoted-printable (UTF-8) — accents fiables dans Outlook. */
 function qpEncode(s) {
   const bytes = new TextEncoder().encode(s.replace(/\r?\n/g, "\r\n"));
@@ -565,7 +589,7 @@ function renderSendModal() {
   $$("#send-list [data-open-mail], #modal-send [data-open-mail]").forEach((b) =>
     b.addEventListener("click", () => {
       const j = sendJobs[Number(b.dataset.openMail)];
-      const url = `mailto:${encodeURIComponent(j.to)}?subject=${encodeURIComponent(j.sujet)}&body=${encodeURIComponent(j.corps)}`;
+      const url = `mailto:${encodeURIComponent(j.to)}?subject=${mailtoEncode(j.sujet)}&body=${mailtoEncode(j.corps)}`;
       window.__lastMailto = url; // témoin pour les tests automatisés
       location.href = url;
       b.textContent = "✓ mail ouvert";
