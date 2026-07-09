@@ -62,18 +62,23 @@
               <option value="ald">Ordonnance ALD — bizone (100 % / hors ALD)</option>
             </select>
           </label>
+          <div class="richbar">
+            <button type="button" data-cmd="bold" title="Gras"><b>G</b></button>
+            <button type="button" data-cmd="italic" title="Italique"><i>I</i></button>
+            <button type="button" data-cmd="underline" title="Souligné"><u>S</u></button>
+            <button type="button" data-cmd="insertUnorderedList" title="Liste à puces">•&nbsp;Liste</button>
+            <button type="button" data-cmd="insertOrderedList" title="Liste numérotée">1.&nbsp;Liste</button>
+            <button type="button" data-insert="℞ " title="Insérer le symbole ℞">℞</button>
+          </div>
           <div id="ol-zone-simple">
-            <label class="field"><span class="lbl">Prescription (une ligne par médicament / consigne)</span>
-              <textarea id="ol-texte" rows="5" placeholder="PANTOPRAZOLE 40 mg : 1 comprimé le matin&#10;…"></textarea>
-            </label>
+            <label class="field"><span class="lbl">Prescription</span></label>
+            <div class="rich" id="ol-texte" contenteditable="true" data-placeholder="PANTOPRAZOLE 40 mg : 1 comprimé le matin…"></div>
           </div>
           <div id="ol-zone-ald" style="display:none;">
-            <label class="field"><span class="lbl">Zone ALD — prescriptions en rapport (100 %)</span>
-              <textarea id="ol-ald" rows="4" placeholder="Une ligne par médicament / consigne"></textarea>
-            </label>
-            <label class="field"><span class="lbl">Zone hors ALD — sans rapport (optionnel)</span>
-              <textarea id="ol-nonald" rows="3"></textarea>
-            </label>
+            <label class="field" style="margin-bottom:2px;"><span class="lbl">Zone ALD — prescriptions en rapport (100 %)</span></label>
+            <div class="rich" id="ol-ald" contenteditable="true"></div>
+            <label class="field" style="margin:8px 0 2px;"><span class="lbl">Zone hors ALD — sans rapport (optionnel)</span></label>
+            <div class="rich" id="ol-nonald" contenteditable="true" style="min-height:60px;"></div>
           </div>
           <label class="field"><span class="lbl">Durée du traitement (texte libre, optionnel)</span>
             <input type="text" id="ol-duree" placeholder="ex. 3 mois — QSP 6 mois — jusqu'au contrôle">

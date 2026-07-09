@@ -309,16 +309,42 @@ export function renderOrdo(key, ctx) {
 // Ordonnance libre (simple ou ALD bizone)
 // ---------------------------------------------------------------------------
 
-function rxLines(text) {
-  const lines = String(text || "").split("\n").map((l) => l.trim());
-  const out = [];
-  for (const l of lines) {
-    if (!l) { out.push(`<div style="height:6px;"></div>`); continue; }
-    out.push(
-      `<div style="display:flex; gap:12px;"><span style="flex:none; color:#0072BC; font-weight:800;">℞</span><span style="flex:1;">${esc(l)}</span></div>`
-    );
-  }
-  return `<div style="margin-top:14px; display:flex; flex-direction:column; gap:12px; font-size:14.5px; line-height:1.5;">${out.join("")}</div>`;
+// Contenu riche saisi dans l'éditeur (gras, italique, listes…) — nettoyé
+// avant impression. Compatibilité : un ancien texte brut est converti.
+const RICH_ALLOWED = new Set(["B", "STRONG", "I", "EM", "U", "UL", "OL", "LI", "BR", "DIV", "P", "SPAN"]);
+export function sanitizeRich(html) {
+  const s = String(html || "");
+  if (!/[<>]/.test(s)) return esc(s).replace(/\n/g, "<br>"); // ancien format texte
+  const root = new DOMParser().parseFromString(`<div>${s}</div>`, "text/html").body.firstChild;
+  const DROP = new Set(["SCRIPT", "STYLE", "IFRAME", "OBJECT", "EMBED"]);
+  (function walk(el) {
+    let child = el.firstChild;
+    while (child) {
+      if (child.nodeType === 1) {
+        if (DROP.has(child.tagName)) {
+          const dead = child; child = child.nextSibling; dead.remove(); continue;
+        }
+        if (!RICH_ALLOWED.has(child.tagName)) {
+          // désencapsule puis retraite les nœuds remontés à cette position
+          const first = child.firstChild;
+          while (child.firstChild) el.insertBefore(child.firstChild, child);
+          const dead = child; child = first || dead.nextSibling; dead.remove(); continue;
+        }
+        for (const a of [...child.attributes]) child.removeAttribute(a.name);
+        walk(child);
+        child = child.nextSibling;
+      } else if (child.nodeType === 3) {
+        child = child.nextSibling;
+      } else {
+        const dead = child; child = child.nextSibling; dead.remove();
+      }
+    }
+  })(root);
+  return root.innerHTML;
+}
+
+function rxLines(html) {
+  return `<div class="ordo-body" style="margin-top:12px; font-size:14px; line-height:1.55;">${sanitizeRich(html)}</div>`;
 }
 
 /**

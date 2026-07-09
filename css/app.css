@@ -106,6 +106,26 @@ button.danger { background: #fff; color: var(--rouge); border: 1.5px solid var(-
 button.small { padding: 5px 10px; font-size: 12px; border-radius: 7px; }
 .btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 
+/* Éditeur riche (ordonnance libre) */
+.richbar { display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; }
+.richbar button {
+  background: #fff; color: var(--encre); border: 1px solid var(--bord);
+  border-radius: 6px; padding: 4px 9px; font-size: 12px; font-weight: 600;
+}
+.richbar button:hover { background: var(--bleu-pale); border-color: var(--bleu); }
+.rich {
+  min-height: 90px; border: 1px solid var(--bord); border-radius: 8px;
+  padding: 8px 10px; font: 500 13.5px/1.5 'Barlow', sans-serif;
+  color: var(--encre); background: #fff; margin-bottom: 8px;
+}
+.rich:focus { outline: 2px solid #8fc2ea; border-color: var(--bleu); }
+.rich:empty::before { content: attr(data-placeholder); color: #9db4c6; pointer-events: none; }
+.rich ul, .rich ol { margin: 4px 0; padding-left: 22px; }
+
+/* Contenu riche rendu sur l'ordonnance */
+.ordo-body ul, .ordo-body ol { margin: 6px 0; padding-left: 24px; }
+.ordo-body li { margin: 4px 0; }
+
 .hint { font-size: 11.5px; color: var(--gris-clair); line-height: 1.45; margin-top: 6px; }
 .pill-info {
   background: var(--bleu-pale); border: 1px solid #cfe1f0; border-radius: 9px;

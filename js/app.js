@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "2.1";
+export const APP_VERSION = "2.2";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -11,7 +11,7 @@ import {
   listSections, addSection, listLocalDocs, saveLocalDoc, removeLocalDoc,
   exportLocalDoc, importLocalDoc, validateDoc, buildPrompt,
 } from "./localdocs.js";
-import { renderNote } from "./render.js";
+import { renderNote, sanitizeRich } from "./render.js";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -190,9 +190,9 @@ function ordoLibreItem() {
     type: "ordolibre",
     opts: {
       mode: $("#ol-mode").value,
-      texte: $("#ol-texte").value,
-      textAld: $("#ol-ald").value,
-      textNonAld: $("#ol-nonald").value,
+      texte: $("#ol-texte").innerHTML,
+      textAld: $("#ol-ald").innerHTML,
+      textNonAld: $("#ol-nonald").innerHTML,
       duree: $("#ol-duree").value.trim(),
     },
   };
@@ -1150,7 +1150,8 @@ $("#btn-reset").addEventListener("click", () => {
   // Ordonnance libre
   ordoOpen = false;
   $("#ordolibre-card").style.display = "none";
-  ["#ol-texte", "#ol-ald", "#ol-nonald", "#ol-duree"].forEach((id) => ($(id).value = ""));
+  ["#ol-texte", "#ol-ald", "#ol-nonald"].forEach((id) => ($(id).innerHTML = ""));
+  $("#ol-duree").value = "";
   $("#ol-mode").value = "simple";
   $("#ol-zone-simple").style.display = "block";
   $("#ol-zone-ald").style.display = "none";
@@ -1203,10 +1204,11 @@ function renderOlModeles(selectName) {
 $("#ol-modele").addEventListener("change", () => {
   const m = listOlModeles().find((x) => x.name === $("#ol-modele").value);
   if (!m) return;
+  const toHtml = (v) => /[<>]/.test(v || "") ? v : (v || "").replace(/\n/g, "<br>");
   $("#ol-mode").value = m.mode || "simple";
-  $("#ol-texte").value = m.texte || "";
-  $("#ol-ald").value = m.textAld || "";
-  $("#ol-nonald").value = m.textNonAld || "";
+  $("#ol-texte").innerHTML = toHtml(m.texte);
+  $("#ol-ald").innerHTML = toHtml(m.textAld);
+  $("#ol-nonald").innerHTML = toHtml(m.textNonAld);
   $("#ol-duree").value = m.duree || "";
   const ald = m.mode === "ald";
   $("#ol-zone-simple").style.display = ald ? "none" : "block";
@@ -1218,8 +1220,8 @@ $("#ol-save-modele").addEventListener("click", () => {
   if (!name || !name.trim()) return;
   const arr = listOlModeles().filter((x) => x.name !== name.trim());
   arr.push({
-    name: name.trim(), mode: $("#ol-mode").value, texte: $("#ol-texte").value,
-    textAld: $("#ol-ald").value, textNonAld: $("#ol-nonald").value, duree: $("#ol-duree").value,
+    name: name.trim(), mode: $("#ol-mode").value, texte: $("#ol-texte").innerHTML,
+    textAld: $("#ol-ald").innerHTML, textNonAld: $("#ol-nonald").innerHTML, duree: $("#ol-duree").value,
   });
   localStorage.setItem(OLM_KEY, JSON.stringify(arr));
   renderOlModeles(name.trim());
@@ -1231,6 +1233,25 @@ $("#ol-del-modele").addEventListener("click", () => {
   if (!confirm(`Supprimer le modèle « ${name} » ?`)) return;
   localStorage.setItem(OLM_KEY, JSON.stringify(listOlModeles().filter((x) => x.name !== name)));
   renderOlModeles();
+});
+
+// Collage dans les éditeurs riches : contenu nettoyé (balises sûres uniquement)
+$$(".rich").forEach((ed) => ed.addEventListener("paste", (e) => {
+  e.preventDefault();
+  const html = e.clipboardData.getData("text/html");
+  const text = e.clipboardData.getData("text/plain");
+  const safe = html ? sanitizeRich(html) : (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\n/g, "<br>");
+  document.execCommand("insertHTML", false, safe);
+}));
+
+// Barre de mise en forme (agit sur l'éditeur qui a le focus / la sélection)
+$$(".richbar button").forEach((b) => {
+  b.addEventListener("mousedown", (e) => e.preventDefault()); // conserve la sélection
+  b.addEventListener("click", () => {
+    if (b.dataset.cmd) document.execCommand(b.dataset.cmd, false, null);
+    else if (b.dataset.insert) document.execCommand("insertText", false, b.dataset.insert);
+    refreshSoon();
+  });
 });
 
 $("#btn-create-ordo").addEventListener("click", () => {
