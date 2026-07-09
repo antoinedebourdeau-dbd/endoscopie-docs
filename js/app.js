@@ -129,6 +129,7 @@ function currentMedecin() {
       tel: $("#ml-tel").value.trim(),
       fax: "",
       rpps: $("#ml-rpps").value.replace(/\s+/g, ""),
+      mail: $("#ml-mail").value.trim(),
     };
   }
   return listMedecins().find((m) => m.id === v) || null;
@@ -222,7 +223,7 @@ function renderMedList() {
     <div class="med-row">
       <div class="info">
         <div class="nom">${m.nom}</div>
-        <div class="det">${m.specialite}${m.tel ? " · Secr. " + m.tel : ""}${m.rpps ? " · RPPS " + m.rpps : ""}</div>
+        <div class="det">${m.specialite}${m.tel ? " · Secr. " + m.tel : ""}${m.rpps ? " · RPPS " + m.rpps : ""}${m.mail ? "<br>BALF : " + m.mail : ""}</div>
       </div>
       <button class="subtle small" data-med-edit="${m.id}">Modifier</button>
       <button class="danger small" data-med-del="${m.id}">Suppr.</button>
@@ -233,6 +234,7 @@ function renderMedList() {
     if (!m) return;
     $("#mf-id").value = m.id; $("#mf-nom").value = m.nom; $("#mf-spec").value = m.specialite;
     $("#mf-tel").value = m.tel; $("#mf-fax").value = m.fax || ""; $("#mf-rpps").value = m.rpps || "";
+    $("#mf-mail").value = m.mail || "";
     $("#med-form").style.display = "block";
   }));
   $$("[data-med-del]").forEach((b) => b.addEventListener("click", () => {
@@ -260,6 +262,7 @@ $("#med-form").addEventListener("submit", (e) => {
     id: $("#mf-id").value || undefined,
     nom: $("#mf-nom").value, specialite: $("#mf-spec").value,
     tel: $("#mf-tel").value, fax: $("#mf-fax").value, rpps: $("#mf-rpps").value,
+    mail: $("#mf-mail").value,
   });
   $("#med-form").style.display = "none";
   renderMedList(); renderMedecinSelect(); refreshSoon();
@@ -398,7 +401,7 @@ $("#sel-medecin").addEventListener("change", () => {
   $("#medecin-libre").style.display = $("#sel-medecin").value === "__libre" ? "block" : "none";
   refreshSoon();
 });
-["#ml-nom", "#ml-spec", "#ml-tel", "#ml-rpps", "#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen",
+["#ml-nom", "#ml-spec", "#ml-tel", "#ml-rpps", "#ml-mail", "#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen",
  "#ol-texte", "#ol-ald", "#ol-nonald", "#ol-duree"]
   .forEach((id) => $(id).addEventListener("input", refreshSoon));
 

@@ -44,7 +44,7 @@ function noteHeader(doc, ctx) {
         `<div>${esc(med.specialite || "Hépato-Gastroentérologie")}</div>`,
         med.tel ? `<div>Secrétariat : ${esc(med.tel)}</div>` : "",
         `<div>${esc(svc.nom)} : ${esc(svc.tel)}</div>`,
-        `<div>${esc(svc.mail)}</div>`,
+        `<div>${esc(med.mail || svc.mail)}</div>`,
       ]
     : [
         `<div style="font-weight:700; color:#0d2b45; font-size:11px;">Service d'Hépato-Gastroentérologie</div>`,
@@ -261,9 +261,10 @@ function ordoTokens(ctx) {
   return {
     "@@MED_NOM@@": med ? esc(med.nom) : `Dr&nbsp;${dotted(170)}`,
     "@@MED_SPEC@@": med ? esc(med.specialite || "Hépato-Gastroentérologie") : "Hépato-Gastroentérologie",
-    "@@MED_TEL_LINE@@": med?.tel
-      ? `Secrétariat : ${esc(med.tel)}${med.fax ? ` · Fax : ${esc(med.fax)}` : ""}`
-      : `Secrétariat : ${esc(svc.tel)}`,
+    "@@MED_TEL_LINE@@":
+      (med?.tel
+        ? `Secrétariat : ${esc(med.tel)}${med.fax ? ` · Fax : ${esc(med.fax)}` : ""}`
+        : `Secrétariat : ${esc(svc.tel)}`) + (med?.mail ? `<br>${esc(med.mail)}` : ""),
     "@@RPPS_BLOCK@@": med?.rpps
       ? `<div style="display:flex; align-items:center; gap:8px; margin-top:6px;">${code128svg(med.rpps)}<span style="${F} font-size:10px; color:#4a5b68;">RPPS ${esc(med.rpps)}</span></div>`
       : `<div style="margin-top:6px; border:1.5px dashed #9db4c6; border-radius:6px; padding:8px 10px; ${F} font-size:10px; color:#8a9aa8; width:190px; text-align:center;">RPPS — tampon du prescripteur</div>`,
@@ -419,7 +420,7 @@ export function ficheMedBlock(ctx) {
         `<div style="font-weight:700;color:#0d2b45;">${esc(med.nom)}</div>`,
         `<div>${esc(med.specialite || "Hépato-Gastroentérologie")}</div>`,
         med.tel ? `<div>Secrétariat : ${esc(med.tel)}</div>` : "",
-        `<div>Endoscopie digestive : 04 67 33 70 67</div>`,
+        med.mail ? `<div>${esc(med.mail)}</div>` : `<div>Endoscopie digestive : 04 67 33 70 67</div>`,
       ]
     : [
         `<div style="font-weight:700;color:#0d2b45;">Service d'Hépato-Gastroentérologie</div>`,

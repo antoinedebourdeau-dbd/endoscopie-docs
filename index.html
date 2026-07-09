@@ -78,6 +78,7 @@
           <label class="field"><span class="lbl">Spécialité</span><input type="text" id="ml-spec" value="Hépato-Gastroentérologie"></label>
           <label class="field"><span class="lbl">Tél. secrétariat</span><input type="tel" id="ml-tel" placeholder="04 67 33 …"></label>
           <label class="field"><span class="lbl">RPPS (pour l'ordonnance)</span><input type="text" id="ml-rpps" placeholder="11 chiffres"></label>
+          <label class="field" style="grid-column:1 / -1;"><span class="lbl">BALF du secrétariat (e-mail générique, optionnel)</span><input type="text" id="ml-mail" placeholder="…@chu-montpellier.fr"></label>
         </div>
       </div>
       <label class="doc-item" style="margin-top:4px;">
@@ -132,7 +133,9 @@
         <label class="field"><span class="lbl">Tél. secrétariat</span><input type="tel" id="mf-tel" placeholder="04 67 33 …"></label>
         <label class="field"><span class="lbl">Fax (optionnel)</span><input type="tel" id="mf-fax"></label>
         <label class="field"><span class="lbl">RPPS (11 chiffres — ordonnances)</span><input type="text" id="mf-rpps"></label>
+        <label class="field"><span class="lbl">BALF du secrétariat (e-mail générique non nominatif)</span><input type="text" id="mf-mail" placeholder="ex. gastro-secretariat-x@chu-montpellier.fr"></label>
       </div>
+      <div class="hint">Ces informations (BALF, secrétariat, RPPS…) sont modifiables à tout moment — les documents générés ensuite les utiliseront automatiquement.</div>
       <div class="validation-err" id="mf-err" style="display:none;"></div>
       <div class="btnrow">
         <button type="submit">Enregistrer</button>

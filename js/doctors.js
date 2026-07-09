@@ -40,6 +40,7 @@ export function saveMedecin(m) {
     tel: (m.tel || "").trim(),
     fax: (m.fax || "").trim(),
     rpps: (m.rpps || "").replace(/\s+/g, ""),
+    mail: (m.mail || "").trim(), // BALF générique gérée par le secrétariat
   };
   const i = arr.findIndex((x) => x.id === clean.id);
   if (i >= 0) arr[i] = clean;
