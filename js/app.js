@@ -572,6 +572,33 @@ $("#btn-import-doc").addEventListener("click", () => pickFile((txt) => {
   } catch (e) { alert("Import impossible : " + e.message); }
 }));
 
+// ------------------------------------------------------------ réinitialiser
+$("#btn-reset").addEventListener("click", () => {
+  // Documents cochés + recherche
+  selection.clear();
+  $("#search").value = "";
+  // Ordonnance libre
+  ordoOpen = false;
+  $("#ordolibre-card").style.display = "none";
+  ["#ol-texte", "#ol-ald", "#ol-nonald", "#ol-duree"].forEach((id) => ($(id).value = ""));
+  $("#ol-mode").value = "simple";
+  $("#ol-zone-simple").style.display = "block";
+  $("#ol-zone-ald").style.display = "none";
+  // Demandes d'examen
+  demandes.length = 0;
+  renderDemandes();
+  // Patient + générique + date du jour
+  ["#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen", "#pt-tel"].forEach((id) => ($(id).value = ""));
+  $("#chk-generic").checked = false;
+  $("#panel-patient").style.opacity = "1";
+  const d = new Date();
+  $("#doc-date").value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  // Le médecin sélectionné est conservé.
+  renderCatalog();
+  refresh();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
 // --------------------------------------------------------------- impression
 $("#btn-print").addEventListener("click", async () => {
   await refresh(); // aperçu à jour avant impression
