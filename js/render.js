@@ -405,6 +405,167 @@ export function renderOrdoLibre(opts, ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// Demande d'examen endoscopique (bon PTED — Hôpital Saint-Éloi)
+// ---------------------------------------------------------------------------
+
+const chk = (on) =>
+  `<span style="font-size:13px; line-height:1; color:${on ? "#0072BC" : "#9db4c6"};">${on ? "☑" : "☐"}</span>`;
+
+const EXAMENS_ENDO = [
+  ["gastroscopie", "Gastroscopie"], ["cpre", "CPRE"],
+  ["coloscopie", "Coloscopie"], ["echoendoscopie", "Échoendoscopie"],
+  ["coloscopie_courte", "Coloscopie courte"], ["enteroscopie", "Entéroscopie"],
+  ["videocapsule", "Vidéocapsule"], ["duodenoscopie", "Duodénoscopie"],
+  ["gep", "GEP"], ["biopsie_transjug", "Biopsie hépatique transjugulaire"],
+];
+
+function boxTitle(t) {
+  return `<div style="background:#EAF3FB; border-bottom:1px solid #cfe1f0; padding:5px 12px; ${FC} text-transform:uppercase; letter-spacing:.05em; font-weight:700; font-size:11.5px; color:#0d2b45;">${t}</div>`;
+}
+function fbox(inner, extra = "") {
+  return `<div style="border:1.5px solid #0072BC; border-radius:9px; overflow:hidden; ${extra}">${inner}</div>`;
+}
+const fline = (label, value, minw = 110) =>
+  `<div style="display:flex; gap:6px; align-items:baseline; margin-top:4px;"><span style="color:#4a5b68; flex:none;">${label}</span><span style="flex:1; border-bottom:1px dotted #9db4c6; font-weight:600; color:#0d2b45; min-width:${minw}px; padding:0 4px;">${value || "&nbsp;"}</span></div>`;
+
+export function renderDemandeEndoscopie(o, ctx) {
+  const med = ctx.medecin;
+  const p = ctx.patient;
+
+  const head = `
+  <div style="display:flex; gap:14px; align-items:center;">
+    <img src="chu-logo.webp" alt="CHU" style="height:42px; flex:none;">
+    <div style="flex:1; min-width:0;">
+      <div style="${F} font-size:11px; color:#4a5b68;">Plateau technique d'endoscopie digestive — Hôpital Saint-Éloi</div>
+      <div style="${F} font-weight:800; font-size:17.5px; color:#0d2b45; line-height:1.1;">Bon de demande d'examen endoscopique</div>
+    </div>
+    <div style="flex:none; border:1.5px solid #0072BC; border-radius:9px; padding:5px 10px; ${F} font-size:10.5px; color:#1c3a52; line-height:1.6;">
+      <div style="${FC} text-transform:uppercase; letter-spacing:.05em; font-weight:700; color:#0072BC; font-size:10px;">Formulaire à retourner</div>
+      <div>Fax : <strong>04 67 33 73 58</strong></div>
+      <div>endoscopie.ste@chu-montpellier.fr</div>
+    </div>
+  </div>
+  <div style="${F} font-size:11.5px; color:#1c3a52; margin-top:8px;">Date de la demande : <strong>${ctx.dateDoc ? esc(frDate(ctx.dateDoc)) : "____ / ____ / 20____"}</strong></div>`;
+
+  const identite = fbox(
+    boxTitle("Identité du patient (ou étiquette)") +
+    `<div style="padding:4px 10px 7px; ${F} font-size:11px;">
+      ${fline("Nom :", p?.nom ? esc(p.nom.toUpperCase()) : "")}
+      ${fline("Prénom :", esc(p?.prenom || ""))}
+      ${fline("Date de naissance :", p?.ddn ? esc(frDate(p.ddn)) : "")}
+      ${fline("Téléphone :", esc(o.telPatient || ""))}
+    </div>`, "flex:1;");
+
+  const demandeur = fbox(
+    boxTitle("Service demandeur") +
+    `<div style="padding:4px 10px 7px; ${F} font-size:11px;">
+      ${fline("Médecin :", med ? esc(med.nom) : "")}
+      ${fline("Service :", esc(o.service || ""))}
+      ${fline("Code UF :", esc(o.uf || ""))}
+      ${fline("Téléphone :", esc(o.telDemandeur || med?.tel || ""))}
+    </div>`, "flex:1;");
+
+  const delaiRows = [
+    ["urgent48", "Urgent ++ (< 48 heures)", "19195"],
+    ["urgent7", "Urgent (< 7 jours)", "33305"],
+    ["semi15", "Semi-urgent (< 15 jours)", "37067"],
+    ["autre", `Autres : <span style="border-bottom:1px dotted #9db4c6; padding:0 6px; font-weight:600;">${esc(o.delaiAutre || "")}&nbsp;</span>`, "35485"],
+  ].map(([k, lbl, tel]) =>
+    `<div style="display:flex; align-items:baseline; gap:7px; margin-top:3px;">${chk(o.delai === k)}<span style="flex:1;">${lbl}</span><span style="color:#4a5b68;">☎ ${tel}</span></div>`
+  ).join("");
+
+  const hospitRows = [
+    ["deja", "Déjà hospitalisé"],
+    ["hdj", `Hôpital de jour — Service : <span style="border-bottom:1px dotted #9db4c6; padding:0 6px; font-weight:600;">${esc(o.hdjService || "")}&nbsp;</span>`],
+    ["hosp", `Hospitalisation&nbsp;&nbsp; ${["J0", "J-1", "J-2"].map((j) => `${chk(o.hospit === "hosp" && o.hospJ === j)} ${j}`).join("&nbsp;&nbsp;")}`],
+    ["externe", `Externe <span style="color:#4a5b68;">(uniquement pour les examens sans AG)</span>`],
+  ].map(([k, lbl]) =>
+    `<div style="display:flex; align-items:baseline; gap:7px; margin-top:3px;">${chk(o.hospit === k)}<span style="flex:1;">${lbl}</span></div>`
+  ).join("");
+
+  const delaiHospit = `<div style="display:flex; gap:10px; margin-top:7px;">
+    ${fbox(boxTitle("Délai souhaité") + `<div style="padding:3px 10px 6px; ${F} font-size:11px;">${delaiRows}</div>`, "flex:1;")}
+    ${fbox(boxTitle("Type d'hospitalisation") + `<div style="padding:3px 10px 6px; ${F} font-size:11px;">${hospitRows}</div>`, "flex:1;")}
+  </div>
+  <div style="display:flex; gap:8px; align-items:flex-start; margin-top:8px; background:#FFF4E6; border:1px solid #f3c98a; border-radius:8px; padding:5px 10px; ${F} font-size:10.5px; color:#6b4a1a; line-height:1.45;">
+    <span style="flex:none; font-weight:800; color:#EF7D00;">⚠</span>
+    <span>Pour un examen sous <strong>AG</strong>, prévoir une hospitalisation et une consultation d'anesthésie. Pour un examen en <strong>AMBU</strong>, préciser si vous souhaitez une HDJ dans le service Gastro.</span>
+  </div>`;
+
+  const exCells = EXAMENS_ENDO.map(([k, lbl]) => {
+    let extra = "";
+    if (k === "gep" && (o.examens || []).includes("gep"))
+      extra = `&nbsp;&nbsp;<span style="color:#4a5b68; font-size:10.5px;">${["pose", "changement", "retrait"].map((m) => `${chk(o.gepMode === m)} ${m}`).join("&nbsp;")}</span>`;
+    return `<div style="width:50%; display:flex; gap:7px; align-items:baseline; margin-top:3px;">${chk((o.examens || []).includes(k))}<span style="font-weight:${(o.examens || []).includes(k) ? "700" : "400"};">${lbl}${extra}</span></div>`;
+  }).join("");
+
+  const examens = fbox(
+    boxTitle("Examens demandés") +
+    `<div style="padding:2px 10px 6px; ${F} font-size:11.5px; display:flex; flex-wrap:wrap;">${exCells}</div>
+     <div style="padding:0 10px 7px; ${F} font-size:11px;">${fline("Actes thérapeutiques probables (prothèse, ligature, dilatation…) :", esc(o.actes || ""))}</div>`,
+    "margin-top:7px;");
+
+  const indications = fbox(
+    boxTitle("Indications") +
+    `<div style="padding:6px 10px 8px; ${F} font-size:11.5px; color:#0d2b45; min-height:40px; white-space:pre-wrap; line-height:1.5;">${esc(o.indications || "")}</div>`,
+    "margin-top:7px;");
+
+  const ouinon = (v) => `${chk(v === "oui")} OUI&nbsp;&nbsp;&nbsp;${chk(v === "non")} NON`;
+  const agBloc = `<div style="display:flex; gap:24px; margin-top:7px; ${F} font-size:11px; color:#1c3a52; align-items:baseline; flex-wrap:wrap;">
+    <span><strong>Examen sous anesthésie générale :</strong> ${ouinon(o.ag)}</span>
+    <span><strong>Informations délivrées au patient :</strong> ${ouinon(o.infosPatient)}</span>
+    <span style="color:#4a5b68; font-size:10.5px;">Joindre le consentement éclairé du patient.</span>
+  </div>`;
+
+  const critRows = [
+    ["imc", "IMC > 40 kg/m²"], ["htap", "HTAP > 50 mmHg"],
+    ["fevg", "FEVG < 35 % ou assistance cardiaque"], ["htic", "HTIC"],
+  ].map(([k, lbl]) => `<div style="display:flex; gap:7px; align-items:baseline; margin-top:3px;">${chk(!!(o.crit || {})[k])}<span>${lbl}</span></div>`).join("");
+
+  const isoLbl = { bhre: "BHRe", tuberculose: "Tuberculose" };
+  const risques = `
+    <div style="margin-top:2px;"><strong>Patient avec isolement :</strong>&nbsp; ${["bhre", "tuberculose"].map((k) => `${chk(o.iso === k)} ${isoLbl[k]}`).join("&nbsp;&nbsp;")}&nbsp;&nbsp;${chk(o.iso === "autre")} Autres : <span style="border-bottom:1px dotted #9db4c6; padding:0 5px; font-weight:600;">${esc(o.isoAutre || "")}&nbsp;</span></div>
+    <div style="margin-top:5px;"><strong>Risque de Creutzfeldt-Jakob :</strong>&nbsp; ${ouinon(o.cjd)}</div>`;
+
+  const clinique = `
+  <div style="${FC} text-transform:uppercase; letter-spacing:.05em; font-weight:700; font-size:11.5px; color:#C0392B; margin-top:8px;">Informations cliniques à compléter obligatoirement</div>
+  <div style="display:flex; gap:10px; margin-top:6px;">
+    ${fbox(boxTitle("Critères d'examen au bloc") + `<div style="padding:3px 10px 6px; ${F} font-size:11px;">${critRows}</div>`, "flex:1;")}
+    ${fbox(boxTitle("Risques patients") + `<div style="padding:3px 10px 6px; ${F} font-size:11px;">${risques}</div>`, "flex:1.3;")}
+  </div>
+  <div style="border:1.5px solid #0072BC; border-radius:9px; margin-top:8px; padding:6px 10px; ${F} font-size:11px;">
+    <div style="display:flex; gap:10px;"><span style="flex:1.2;">${fline("Anticoagulation en cours ? Laquelle :", esc(o.antico || ""))}</span><span style="flex:1;">${fline("Stoppée ? Quand :", esc(o.anticoStop || ""))}</span></div>
+    <div style="display:flex; gap:10px;"><span style="flex:1.2;">${fline("Anti-agrégation en cours ? Laquelle :", esc(o.antiagreg || ""))}</span><span style="flex:1;">${fline("Stoppée ? Quand :", esc(o.antiagregStop || ""))}</span></div>
+    <div style="display:flex; gap:10px;"><span style="flex:1;">${fline("TP :", esc(o.tp || ""))}</span><span style="flex:1;">${fline("Plaquettes :", esc(o.plaquettes || ""))}</span></div>
+  </div>`;
+
+  const pted = fbox(
+    boxTitle("Espace réservé au PTED") +
+    `<div style="padding:4px 10px 7px; ${F} font-size:11px; color:#4a5b68;">
+      ${fline("Validation gastroentérologue :", "")}
+      ${fline("Protocole d'examen :", "")}
+      <div style="margin-top:5px;">Consultation pré-endoscopie : ${chk(false)} OUI&nbsp;&nbsp;${chk(false)} NON</div>
+    </div>`, "margin-top:8px; break-inside:avoid;");
+
+  const body = head + `<div style="display:flex; gap:10px; margin-top:7px;">${identite}${demandeur}</div>` +
+    delaiHospit + examens + indications + agBloc + clinique + pted +
+    `<div style="${FC} text-transform:uppercase; letter-spacing:.06em; text-align:center; font-weight:700; font-size:11px; color:#C0392B; margin-top:7px;">Toute demande incomplète ne sera pas traitée</div>`;
+
+  const footer = `<div style="display:flex; justify-content:space-between; align-items:center; ${F} font-size:9px; color:#7a8794; border-top:1px solid #d9e2ea; padding-top:5px;">
+    <span>CHU de Montpellier — Plateau technique d'endoscopie digestive · Fax 04 67 33 73 58</span>
+    <span style="${FC} letter-spacing:.05em; text-transform:uppercase; color:#0072BC; font-weight:600;">Demande d'examen endoscopique</span>
+  </div>`;
+
+  return `<section class="doc">
+    <table class="frame">
+      <thead><tr><td><div class="hdr hdr-spacer"></div></td></tr></thead>
+      <tbody><tr><td class="bodycell">${body}</td></tr></tbody>
+      <tfoot><tr><td><div class="ftr">${footer}</div></td></tr></tfoot>
+    </table>
+  </section>`;
+}
+
+// ---------------------------------------------------------------------------
 // Fiches illustrées (pages A4 à gabarit fixe) — chargées à la demande
 // ---------------------------------------------------------------------------
 
@@ -457,6 +618,7 @@ export async function assembleDocs(items, ctx) {
     else if (it.type === "local") parts.push(renderNote(it.doc, ctx));
     else if (it.type === "ordo") parts.push(renderOrdo(it.key, ctx));
     else if (it.type === "ordolibre") parts.push(renderOrdoLibre(it.opts, ctx));
+    else if (it.type === "demande-endo") parts.push(renderDemandeEndoscopie(it.opts, ctx));
     else if (it.type === "fiche") parts.push(await renderFiche(it.key, ctx));
   }
   return parts.join("\n");

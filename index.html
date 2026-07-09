@@ -33,12 +33,17 @@
         <button class="subtle small" id="btn-import-doc" title="Importer un document JSON partagé par un collègue">Importer</button>
       </h2>
 
-      <div style="border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:12px; background:var(--bleu-pale);">
-        <label class="doc-item" style="padding:2px 0;">
-          <input type="checkbox" id="chk-ordolibre">
-          <span><strong>Ordonnance libre</strong><br><span class="sub">Texte libre, RPPS du médecin, simple ou ALD (bizone)</span></span>
-        </label>
-        <div id="ordolibre-fields" style="display:none; margin-top:8px;">
+      <div class="btnrow" style="margin:0 0 10px;">
+        <button class="ghost" id="btn-create-ordo" style="flex:1;">💊 Créer une ordonnance</button>
+        <button class="ghost" id="btn-create-demande" style="flex:1;">🩺 Demande d'examen</button>
+      </div>
+
+      <div id="ordolibre-card" style="display:none; border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:var(--bleu-pale);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <strong style="flex:1;">💊 Ordonnance</strong>
+          <button class="subtle small" id="btn-remove-ordo">✕ retirer</button>
+        </div>
+        <div id="ordolibre-fields" style="margin-top:8px;">
           <label class="field"><span class="lbl">Type d'ordonnance</span>
             <select id="ol-mode">
               <option value="simple">Ordonnance simple (une zone)</option>
@@ -64,6 +69,9 @@
         </div>
       </div>
 
+      <div id="demandes"></div>
+
+      <label class="field" style="margin-bottom:8px;"><input type="text" id="search" placeholder="🔍 Rechercher un document (ex. coloscopie, plenvu, dilatation…)" autocomplete="off"></label>
       <div id="catalogue"></div>
     </div>
 
@@ -96,6 +104,7 @@
         <label class="field"><span class="lbl">Prénom</span><input type="text" id="pt-prenom" autocomplete="off"></label>
         <label class="field"><span class="lbl">Date de naissance</span><input type="date" id="pt-ddn"></label>
         <label class="field"><span class="lbl">Date de l'examen</span><input type="date" id="pt-examen"></label>
+        <label class="field" style="grid-column:1 / -1;"><span class="lbl">Téléphone (pour les demandes d'examen)</span><input type="tel" id="pt-tel"></label>
       </div>
       <div class="hint">Les informations patient restent dans ce navigateur : rien n'est transmis sur internet.</div>
     </div>

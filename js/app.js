@@ -30,6 +30,9 @@ function buildCatalog() {
     const item = { id: "note:" + slug, type: "note", slug, label: d.title, sub: d.geste };
     (d.service === "explo" ? notesExplo : notesEndo).push(item);
   }
+  // Les fiches illustrées sont des notes d'information & consentement comme les autres.
+  for (const f of FICHE_ITEMS)
+    notesEndo.push({ id: "fiche:" + f.key, type: "fiche", key: f.key, label: f.label, sub: "Note d'information illustrée (recto-verso)" });
   notesEndo.sort((a, b) => a.label.localeCompare(b.label, "fr"));
   notesExplo.sort((a, b) => a.label.localeCompare(b.label, "fr"));
 
@@ -37,7 +40,6 @@ function buildCatalog() {
     { id: "g-ordo", title: "Préparations coliques & ordonnances", items: ORDO_ITEMS.map((o) => ({ id: "ordo:" + o.key, type: "ordo", key: o.key, label: o.label, sub: "Ordonnance (page 1) + guide patient" })) },
     { id: "g-notes", title: "Notes d'information & consentement — Endoscopie", items: notesEndo },
     { id: "g-explo", title: "Explorations fonctionnelles digestives", items: notesExplo },
-    { id: "g-fiches", title: "Fiches illustrées", items: FICHE_ITEMS.map((f) => ({ id: "fiche:" + f.key, type: "fiche", key: f.key, label: f.label, sub: f.sub })) },
   ];
 
   // Sections personnalisées + documents locaux
@@ -147,8 +149,10 @@ function currentPatient() {
 }
 
 // ------------------------------------------------------------------- aperçu
+let ordoOpen = false;
+
 function ordoLibreItem() {
-  if (!$("#chk-ordolibre").checked) return null;
+  if (!ordoOpen) return null;
   return {
     id: "ordolibre",
     type: "ordolibre",
@@ -166,6 +170,8 @@ function selectedItems() {
   const items = [];
   const ol = ordoLibreItem();
   if (ol) items.push(ol);
+  for (const d of demandes)
+    if (d.type === "endo") items.push({ id: d.id, type: "demande-endo", opts: { ...d.opts, telPatient: $("#pt-tel").value.trim() } });
   for (const g of CATALOG) for (const it of g.items) if (selection.has(it.id)) items.push(it);
   return items;
 }
@@ -280,6 +286,177 @@ $("#btn-med-import").addEventListener("click", () => pickFile((txt) => {
     renderMedList(); renderMedecinSelect(); refreshSoon();
   } catch (e) { alert("Import impossible : " + e.message); }
 }));
+
+// ------------------------------------------------------ demandes d'examen
+const demandes = [];
+let demandeSeq = 0;
+
+const EXAMENS_ENDO_UI = [
+  ["gastroscopie", "Gastroscopie"], ["coloscopie", "Coloscopie"],
+  ["coloscopie_courte", "Coloscopie courte"], ["videocapsule", "Vidéocapsule"],
+  ["cpre", "CPRE"], ["echoendoscopie", "Échoendoscopie"],
+  ["enteroscopie", "Entéroscopie"], ["duodenoscopie", "Duodénoscopie"],
+  ["gep", "GEP"], ["biopsie_transjug", "Biopsie hép. transjugulaire"],
+];
+
+function newDemande() {
+  const d = {
+    id: "dem" + (++demandeSeq),
+    type: null, // choisi à l'étape 1
+    opts: {
+      examens: [], gepMode: "pose", actes: "", indications: "",
+      delai: "semi15", delaiAutre: "", hospit: "hdj", hdjService: "Gastro", hospJ: "J0",
+      ag: "oui", infosPatient: "oui",
+      service: "Hépato-Gastroentérologie", uf: "", telDemandeur: "",
+      crit: {}, iso: "", isoAutre: "", cjd: "non",
+      antico: "", anticoStop: "", antiagreg: "", antiagregStop: "", tp: "", plaquettes: "",
+    },
+  };
+  demandes.push(d);
+  renderDemandes();
+}
+
+function demandeCard(d) {
+  if (!d.type) {
+    return `<div style="margin-top:6px;">
+      <div class="hint" style="margin:0 0 6px;">Quel type d'examen ?</div>
+      <div class="btnrow" style="margin:0;">
+        <button class="small" data-dtype="endo" data-d="${d.id}">Endoscopie digestive</button>
+        <button class="subtle small" disabled title="Bientôt disponible">Radiologie (bientôt)</button>
+        <button class="subtle small" disabled title="Bientôt disponible">Explorations fonct. (bientôt)</button>
+      </div>
+    </div>`;
+  }
+  const o = d.opts;
+  const ex = EXAMENS_ENDO_UI.map(([k, lbl]) => `
+    <label class="doc-item" style="width:50%; padding:2px 4px;">
+      <input type="checkbox" data-d="${d.id}" data-ex="${k}" ${o.examens.includes(k) ? "checked" : ""}>
+      <span style="font-size:12.5px;">${lbl}</span>
+    </label>`).join("");
+  const gepModes = o.examens.includes("gep")
+    ? `<div style="display:flex; gap:12px; font-size:12px; margin:2px 0 4px 4px;">
+        ${["pose", "changement", "retrait"].map((m) => `<label style="cursor:pointer;"><input type="radio" name="gep-${d.id}" data-d="${d.id}" data-k="gepMode" value="${m}" ${o.gepMode === m ? "checked" : ""}> ${m}</label>`).join("")}
+      </div>` : "";
+  const sel = (k, options, val) =>
+    `<select data-d="${d.id}" data-k="${k}">${options.map(([v, l]) => `<option value="${v}" ${val === v ? "selected" : ""}>${l}</option>`).join("")}</select>`;
+  const inp = (k, val, ph = "") =>
+    `<input type="text" data-d="${d.id}" data-k="${k}" value="${(val || "").replace(/"/g, "&quot;")}" placeholder="${ph}">`;
+
+  return `
+  <div style="display:flex; flex-wrap:wrap; margin-top:4px;">${ex}</div>
+  ${gepModes}
+  <label class="field"><span class="lbl">Actes thérapeutiques probables (optionnel)</span>${inp("actes", o.actes, "prothèse, ligature, dilatation…")}</label>
+  <label class="field"><span class="lbl">Indications *</span>
+    <textarea data-d="${d.id}" data-k="indications" rows="3" placeholder="Contexte clinique et indication de l'examen">${o.indications}</textarea>
+  </label>
+  <div class="grid2">
+    <label class="field"><span class="lbl">Délai souhaité</span>
+      ${sel("delai", [["urgent48", "Urgent ++ (< 48 h)"], ["urgent7", "Urgent (< 7 jours)"], ["semi15", "Semi-urgent (< 15 jours)"], ["autre", "Autre…"]], o.delai)}
+    </label>
+    ${o.delai === "autre" ? `<label class="field"><span class="lbl">Précision délai</span>${inp("delaiAutre", o.delaiAutre)}</label>` : "<span></span>"}
+    <label class="field"><span class="lbl">Hospitalisation</span>
+      ${sel("hospit", [["deja", "Déjà hospitalisé"], ["hdj", "Hôpital de jour"], ["hosp", "Hospitalisation"], ["externe", "Externe (sans AG)"]], o.hospit)}
+    </label>
+    ${o.hospit === "hdj" ? `<label class="field"><span class="lbl">Service HDJ</span>${inp("hdjService", o.hdjService)}</label>` :
+      o.hospit === "hosp" ? `<label class="field"><span class="lbl">Entrée</span>${sel("hospJ", [["J0", "J0"], ["J-1", "J-1"], ["J-2", "J-2"]], o.hospJ)}</label>` : "<span></span>"}
+    <label class="field"><span class="lbl">Anesthésie générale</span>${sel("ag", [["oui", "OUI"], ["non", "NON"]], o.ag)}</label>
+    <label class="field"><span class="lbl">Infos délivrées au patient</span>${sel("infosPatient", [["oui", "OUI"], ["non", "NON"]], o.infosPatient)}</label>
+  </div>
+  <details style="margin-top:4px;">
+    <summary style="cursor:pointer; font-size:12.5px; font-weight:700; color:var(--rouge);">Informations cliniques obligatoires (risques, anticoagulants…)</summary>
+    <div style="display:flex; flex-wrap:wrap; margin-top:6px;">
+      ${[["imc", "IMC > 40"], ["htap", "HTAP > 50 mmHg"], ["fevg", "FEVG < 35 % / assist."], ["htic", "HTIC"]].map(([k, l]) =>
+        `<label class="doc-item" style="width:50%; padding:2px 4px;"><input type="checkbox" data-d="${d.id}" data-crit="${k}" ${o.crit[k] ? "checked" : ""}><span style="font-size:12px;">${l}</span></label>`).join("")}
+    </div>
+    <div class="grid2">
+      <label class="field"><span class="lbl">Isolement</span>
+        ${sel("iso", [["", "Aucun"], ["bhre", "BHRe"], ["tuberculose", "Tuberculose"], ["autre", "Autre…"]], o.iso)}
+      </label>
+      ${o.iso === "autre" ? `<label class="field"><span class="lbl">Précision isolement</span>${inp("isoAutre", o.isoAutre)}</label>` :
+        `<label class="field"><span class="lbl">Risque Creutzfeldt-Jakob</span>${sel("cjd", [["non", "NON"], ["oui", "OUI"]], o.cjd)}</label>`}
+      ${o.iso === "autre" ? `<label class="field"><span class="lbl">Risque Creutzfeldt-Jakob</span>${sel("cjd", [["non", "NON"], ["oui", "OUI"]], o.cjd)}</label>` : "<span></span>"}
+      <label class="field"><span class="lbl">Anticoagulant (lequel)</span>${inp("antico", o.antico)}</label>
+      <label class="field"><span class="lbl">Stoppé quand</span>${inp("anticoStop", o.anticoStop)}</label>
+      <label class="field"><span class="lbl">Anti-agrégant (lequel)</span>${inp("antiagreg", o.antiagreg)}</label>
+      <label class="field"><span class="lbl">Stoppé quand</span>${inp("antiagregStop", o.antiagregStop)}</label>
+      <label class="field"><span class="lbl">TP</span>${inp("tp", o.tp)}</label>
+      <label class="field"><span class="lbl">Plaquettes</span>${inp("plaquettes", o.plaquettes)}</label>
+    </div>
+  </details>
+  <details style="margin-top:2px;">
+    <summary style="cursor:pointer; font-size:12.5px; color:var(--gris);">Service demandeur (pré-rempli)</summary>
+    <div class="grid2" style="margin-top:6px;">
+      <label class="field"><span class="lbl">Service</span>${inp("service", o.service)}</label>
+      <label class="field"><span class="lbl">Code UF</span>${inp("uf", o.uf)}</label>
+      <label class="field" style="grid-column:1 / -1;"><span class="lbl">Téléphone (défaut : secrétariat du médecin)</span>${inp("telDemandeur", o.telDemandeur)}</label>
+    </div>
+  </details>`;
+}
+
+function renderDemandes() {
+  const root = $("#demandes");
+  root.innerHTML = demandes.map((d) => {
+    const exLbls = d.opts.examens.map((k) => (EXAMENS_ENDO_UI.find(([kk]) => kk === k) || [])[1]).filter(Boolean);
+    return `<div style="border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:var(--bleu-pale);" data-card="${d.id}">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <strong style="flex:1; font-size:13px;">🩺 Demande d'examen${d.type ? " — " + (exLbls.join(", ") || "endoscopie") : ""}</strong>
+        <button class="subtle small" data-del-dem="${d.id}">✕ retirer</button>
+      </div>
+      ${demandeCard(d)}
+    </div>`;
+  }).join("");
+
+  // structure : choix du type / suppression (re-render nécessaire)
+  root.querySelectorAll("[data-dtype]").forEach((b) => b.addEventListener("click", () => {
+    demandes.find((x) => x.id === b.dataset.d).type = b.dataset.dtype;
+    renderDemandes(); refreshSoon();
+  }));
+  root.querySelectorAll("[data-del-dem]").forEach((b) => b.addEventListener("click", () => {
+    demandes.splice(demandes.findIndex((x) => x.id === b.dataset.delDem), 1);
+    renderDemandes(); refreshSoon();
+  }));
+}
+
+// Saisie dans les formulaires de demande : mise à jour sans re-render (focus conservé),
+// sauf changements structurels (examens cochés, délai/hospit/iso) qui re-rendent la carte.
+$("#demandes").addEventListener("input", (e) => {
+  const t = e.target, d = demandes.find((x) => x.id === t.dataset.d);
+  if (!d) return;
+  if (t.dataset.k) d.opts[t.dataset.k] = t.value;
+  if (t.dataset.crit) d.opts.crit[t.dataset.crit] = t.checked;
+  if (t.dataset.ex) {
+    const set = new Set(d.opts.examens);
+    t.checked ? set.add(t.dataset.ex) : set.delete(t.dataset.ex);
+    d.opts.examens = [...set];
+  }
+  refreshSoon();
+});
+$("#demandes").addEventListener("change", (e) => {
+  const t = e.target, d = demandes.find((x) => x.id === t.dataset.d);
+  if (!d) return;
+  if (t.dataset.ex || ["delai", "hospit", "iso"].includes(t.dataset.k || "")) renderDemandes();
+});
+
+$("#btn-create-demande").addEventListener("click", () => {
+  newDemande();
+  $("#demandes").lastElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+});
+
+// ------------------------------------------------------------------ recherche
+const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+$("#search").addEventListener("input", () => {
+  const q = norm($("#search").value.trim());
+  $$("#catalogue .cat-group").forEach((g) => {
+    let visible = 0;
+    g.querySelectorAll(".doc-item").forEach((it) => {
+      const hit = !q || norm(it.textContent).includes(q);
+      it.style.display = hit ? "" : "none";
+      if (hit) visible++;
+    });
+    g.style.display = q && !visible ? "none" : "";
+    if (q && visible) g.classList.add("open");
+  });
+});
 
 // --------------------------------------------------------------- reprographie
 $("#btn-repro").addEventListener("click", () => {
@@ -407,11 +584,18 @@ $("#sel-medecin").addEventListener("change", () => {
   refreshSoon();
 });
 ["#ml-nom", "#ml-spec", "#ml-tel", "#ml-rpps", "#ml-mail", "#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen",
- "#ol-texte", "#ol-ald", "#ol-nonald", "#ol-duree"]
+ "#pt-tel", "#ol-texte", "#ol-ald", "#ol-nonald", "#ol-duree"]
   .forEach((id) => $(id).addEventListener("input", refreshSoon));
 
-$("#chk-ordolibre").addEventListener("change", () => {
-  $("#ordolibre-fields").style.display = $("#chk-ordolibre").checked ? "block" : "none";
+$("#btn-create-ordo").addEventListener("click", () => {
+  ordoOpen = true;
+  $("#ordolibre-card").style.display = "block";
+  $("#ol-texte").focus();
+  refreshSoon();
+});
+$("#btn-remove-ordo").addEventListener("click", () => {
+  ordoOpen = false;
+  $("#ordolibre-card").style.display = "none";
   refreshSoon();
 });
 $("#ol-mode").addEventListener("change", () => {
