@@ -270,7 +270,9 @@ function ordoTokens(ctx) {
       : `<div style="margin-top:6px; border:1.5px dashed #9db4c6; border-radius:6px; padding:8px 10px; ${F} font-size:10px; color:#8a9aa8; width:190px; text-align:center;">RPPS — tampon du prescripteur</div>`,
     "@@FINESS_BARCODE@@": code128svg(FINESS),
     "@@PATIENT_BOX@@": patientBox,
-    "@@DATE_LINE@@": `<div style="font-size:13px;">Fait à Montpellier, le&nbsp;&nbsp;____ / ____ / 20____</div>`,
+    "@@DATE_LINE@@": ctx.dateDoc
+      ? `<div style="font-size:13px;">Fait à Montpellier, le&nbsp;&nbsp;<strong>${esc(frDate(ctx.dateDoc))}</strong></div>`
+      : `<div style="font-size:13px;">Fait à Montpellier, le&nbsp;&nbsp;____ / ____ / 20____</div>`,
   };
 }
 
@@ -368,7 +370,7 @@ export function renderOrdoLibre(opts, ctx) {
     <div style="flex:1; display:flex; flex-direction:column; justify-content:center; gap:6px; ${F}">
       <div style="display:flex; align-items:center; gap:8px;">${code128svg(FINESS)}<span style="font-size:10px; color:#4a5b68;">FINESS ${FINESS}</span></div>
     </div>
-    <div style="flex:none; ${F} font-size:12px; color:#4a5b68; text-align:right;">Le ${dotted(110)}</div>
+    <div style="flex:none; ${F} font-size:12px; color:#4a5b68; text-align:right;">Le ${ctx.dateDoc ? `<strong style="color:#0d2b45;">${esc(frDate(ctx.dateDoc))}</strong>` : dotted(110)}</div>
   </div>
 
   <div style="text-align:center; margin-top:20px;">

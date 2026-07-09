@@ -177,7 +177,12 @@ async function refresh() {
   $("#preview-empty").style.display = items.length ? "none" : "block";
 
   const seq = ++renderSeq;
-  const ctx = { medecin: currentMedecin(), patient: currentPatient() };
+  const ctx = {
+    medecin: currentMedecin(),
+    patient: currentPatient(),
+    // Date du document : aujourd'hui par défaut, modifiable ; jamais en mode générique.
+    dateDoc: $("#chk-generic").checked ? null : $("#doc-date").value || null,
+  };
   const html = await assembleDocs(items, ctx);
   if (seq === renderSeq) $("#print-root").innerHTML = html;
 }
@@ -419,6 +424,11 @@ $("#chk-generic").addEventListener("change", () => {
   $("#panel-patient").style.opacity = $("#chk-generic").checked ? ".45" : "1";
   refreshSoon();
 });
+
+// Date du document : pré-remplie à aujourd'hui (fuseau local)
+const now = new Date();
+$("#doc-date").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+$("#doc-date").addEventListener("input", refreshSoon);
 
 renderCatalog();
 renderMedecinSelect();
