@@ -42,7 +42,9 @@ const bundle = ORDER.map((f) => {
   src = src.replace(/^export\s+/gm, "");
   return `// ===== ${f} =====\n${src}`;
 }).join("\n\n");
-writeFileSync(join(STAGE, "js-bundle.js"), `"use strict";\n(async () => {\n${bundle}\n})();\n`);
+const bundlePath = join(STAGE, "js-bundle.js");
+writeFileSync(bundlePath, `"use strict";\n(async () => {\n${bundle}\n})();\n`);
+execSync(`node --check "${bundlePath}"`); // collision de noms / syntaxe → échec bruyant
 
 // index.html : script module → bundle classique
 let html = readFileSync(join(ROOT, "index.html"), "utf8");
@@ -65,5 +67,5 @@ writeFileSync(
 `
 );
 
-execSync(`cd "${join(ROOT, "dist")}" && ditto -c -k --sequesterRsrc stage endoscopie-docs-hors-ligne.zip && rm -rf stage`);
+execSync(`cd "${STAGE}" && zip -rqX ../endoscopie-docs-hors-ligne.zip . && cd .. && rm -rf stage`);
 console.log("dist/endoscopie-docs-hors-ligne.zip prêt.");

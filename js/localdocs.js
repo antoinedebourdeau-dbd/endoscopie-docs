@@ -6,7 +6,7 @@
 const KEY_DOCS = "endoc.localdocs.v1";
 const KEY_SECTIONS = "endoc.sections.v1";
 
-const uid = (p) => p + Math.random().toString(36).slice(2, 9);
+const uidLocal = (p) => p + Math.random().toString(36).slice(2, 9);
 
 // ------------------------------------------------------------------ sections
 export function listSections() {
@@ -18,7 +18,7 @@ export function listSections() {
 
 export function addSection(title) {
   const arr = listSections();
-  const s = { id: uid("s"), title: title.trim() };
+  const s = { id: uidLocal("s"), title: title.trim() };
   arr.push(s);
   localStorage.setItem(KEY_SECTIONS, JSON.stringify(arr));
   return s;
@@ -38,7 +38,7 @@ export function listLocalDocs() {
 
 export function saveLocalDoc(doc) {
   const arr = listLocalDocs();
-  if (!doc.id) doc.id = uid("d");
+  if (!doc.id) doc.id = uidLocal("d");
   const i = arr.findIndex((d) => d.id === doc.id);
   if (i >= 0) arr[i] = doc;
   else arr.push(doc);
