@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "2.6";
+export const APP_VERSION = "2.7";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -68,12 +68,14 @@ let activeCat = null; // catégorie affichée (null = catalogue masqué)
 const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 function applyCatalogVisibility() {
-  const q = norm($("#search").value.trim());
+  const words = norm($("#search").value.trim()).split(/\s+/).filter(Boolean);
+  const q = words.length > 0;
   $$("#catalogue .cat-group").forEach((g) => {
     if (q) {
       let visible = 0;
       g.querySelectorAll(".doc-item").forEach((it) => {
-        const hit = norm(it.textContent).includes(q);
+        const hay = norm(it.textContent);
+        const hit = words.every((w) => hay.includes(w));
         it.style.display = hit ? "" : "none";
         if (hit) visible++;
       });
@@ -1462,50 +1464,33 @@ $("#sel-medecin").addEventListener("change", () => {
  "#pt-tel", "#ol-texte", "#ol-ald", "#ol-nonald", "#ol-duree"]
   .forEach((id) => $(id).addEventListener("input", refreshSoon));
 
-// -------------------------------------------- modèles d'ordonnances libres
-const OLM_KEY = "endoc.ordomodeles.v1";
-const listOlModeles = () => {
-  try { return JSON.parse(localStorage.getItem(OLM_KEY) || "[]"); } catch (_) { return []; }
+// ------------------------------------ ordonnances types personnelles (poste)
+const UT_KEY = "endoc.ordotypes.v1";
+const UTCAT_KEY = "endoc.ordotypecats.v1";
+const listUserTypes = () => {
+  try { return JSON.parse(localStorage.getItem(UT_KEY) || "[]"); } catch (_) { return []; }
 };
-function renderOlModeles(selectName) {
-  const arr = listOlModeles();
-  $("#ol-modele").innerHTML =
-    `<option value="">— choisir un modèle enregistré —</option>` +
-    arr.map((m) => `<option value="${m.name.replace(/"/g, "&quot;")}" ${m.name === selectName ? "selected" : ""}>${m.name}</option>`).join("");
-}
-$("#ol-modele").addEventListener("change", () => {
-  const m = listOlModeles().find((x) => x.name === $("#ol-modele").value);
-  if (!m) return;
-  const toHtml = (v) => /[<>]/.test(v || "") ? v : (v || "").replace(/\n/g, "<br>");
-  $("#ol-mode").value = m.mode || "simple";
-  $("#ol-texte").innerHTML = toHtml(m.texte);
-  $("#ol-ald").innerHTML = toHtml(m.textAld);
-  $("#ol-nonald").innerHTML = toHtml(m.textNonAld);
-  $("#ol-duree").value = m.duree || "";
-  const ald = m.mode === "ald";
-  $("#ol-zone-simple").style.display = ald ? "none" : "block";
-  $("#ol-zone-ald").style.display = ald ? "block" : "none";
-  refreshSoon();
-});
-$("#ol-save-modele").addEventListener("click", () => {
-  const name = prompt("Nom du modèle (ex. « IPP post-mucosectomie ») :");
-  if (!name || !name.trim()) return;
-  const arr = listOlModeles().filter((x) => x.name !== name.trim());
-  arr.push({
-    name: name.trim(), mode: $("#ol-mode").value, texte: $("#ol-texte").innerHTML,
-    textAld: $("#ol-ald").innerHTML, textNonAld: $("#ol-nonald").innerHTML, duree: $("#ol-duree").value,
-  });
-  localStorage.setItem(OLM_KEY, JSON.stringify(arr));
-  renderOlModeles(name.trim());
-  toast(`💾 Modèle « ${name.trim()} » enregistré sur ce poste.`, 5000);
-});
-$("#ol-del-modele").addEventListener("click", () => {
-  const name = $("#ol-modele").value;
-  if (!name) return;
-  if (!confirm(`Supprimer le modèle « ${name} » ?`)) return;
-  localStorage.setItem(OLM_KEY, JSON.stringify(listOlModeles().filter((x) => x.name !== name)));
-  renderOlModeles();
-});
+const saveUserTypes = (arr) => localStorage.setItem(UT_KEY, JSON.stringify(arr));
+const listUserCats = () => {
+  let explicit = [];
+  try { explicit = JSON.parse(localStorage.getItem(UTCAT_KEY) || "[]"); } catch (_) {}
+  const fromItems = listUserTypes().map((t) => t.cat);
+  return [...new Set([...explicit, ...fromItems])].filter((c) => !ORDO_TYPES.some((b) => b.cat === c));
+};
+const saveUserCats = (arr) => localStorage.setItem(UTCAT_KEY, JSON.stringify(arr));
+
+// Migration : anciens « Mes modèles » → ordonnances types perso
+(() => {
+  try {
+    const old = JSON.parse(localStorage.getItem("endoc.ordomodeles.v1") || "[]");
+    if (old.length) {
+      const arr = listUserTypes();
+      for (const m of old) arr.push({ id: "ut" + Math.random().toString(36).slice(2, 9), cat: "MES ORDONNANCES", name: m.name, mode: m.mode || "simple", texte: m.texte || "", textAld: m.textAld || "", textNonAld: m.textNonAld || "", duree: m.duree || "" });
+      saveUserTypes(arr);
+      localStorage.removeItem("endoc.ordomodeles.v1");
+    }
+  } catch (_) {}
+})();
 
 // Tab / Maj+Tab dans les éditeurs riches : retrait (sans quitter le champ)
 $$(".rich").forEach((ed) => ed.addEventListener("keydown", (e) => {
@@ -1541,7 +1526,6 @@ function ordoEditorsEmpty() {
 $("#btn-create-ordo").addEventListener("click", () => {
   ordoOpen = true;
   $("#ordolibre-card").style.display = "block";
-  renderOlModeles($("#ol-modele").value);
   const fresh = ordoEditorsEmpty();
   $("#ordo-choice").style.display = fresh ? "block" : "none";
   $("#ordolibre-fields").style.display = fresh ? "none" : "block";
@@ -1564,14 +1548,38 @@ $("#btn-open-ordotypes").addEventListener("click", () => {
 });
 
 // ------------------------------------------------- bibliothèque de types
+function allTypeCats() {
+  // catégories intégrées (ordre fixe) puis catégories perso
+  const user = listUserTypes();
+  const cats = ORDO_TYPES.map((c) => ({ cat: c.cat, builtin: c.items, perso: user.filter((t) => t.cat === c.cat) }));
+  for (const c of listUserCats()) cats.push({ cat: c, builtin: [], perso: user.filter((t) => t.cat === c) });
+  return cats;
+}
+
 function renderOrdoTypes(query = "") {
-  const q = norm(query.trim());
-  $("#ot-list").innerHTML = ORDO_TYPES.map((c) => {
-    const items = c.items.filter((it) => !q || norm(it.name).includes(q) || norm(it.content).includes(q));
-    if (!items.length) return "";
+  const words = norm(query.trim()).split(/\s+/).filter(Boolean);
+  const q = words.length > 0;
+  const match = (name, content, kw) => {
+    if (!q) return true;
+    const hay = norm(name) + " " + norm(content || "") + " " + norm(kw || "");
+    return words.every((w) => hay.includes(w));
+  };
+  $("#ot-list").innerHTML = allTypeCats().map((c) => {
+    const builtin = c.builtin.filter((it) => match(it.name, it.content, it.kw));
+    const perso = c.perso.filter((it) => match(it.name, (it.texte || "") + (it.textAld || ""), ""));
+    const isUserCat = !ORDO_TYPES.some((b) => b.cat === c.cat);
+    if (!builtin.length && !perso.length && (q || !isUserCat)) return "";
     return `<details ${q ? "open" : ""} style="margin-bottom:6px;">
-      <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--bleu-fonce); padding:4px 2px;">${c.cat} <span style="color:var(--gris-clair); font-weight:600; font-size:11px;">${items.length}</span></summary>
-      ${items.map((it) => `<button class="subtle small" data-ot-cat="${c.cat}" data-ot-name="${it.name.replace(/"/g, "&quot;")}" style="display:block; width:100%; text-align:left; margin-top:3px;">${it.name}</button>`).join("")}
+      <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--bleu-fonce); padding:4px 2px;">${c.cat}
+        <span style="color:var(--gris-clair); font-weight:600; font-size:11px;">${builtin.length + perso.length}</span>
+        ${isUserCat ? `<span style="float:right;"><a href="#" data-cat-ren="${c.cat}" title="Renommer la catégorie">✎</a>&nbsp;&nbsp;<a href="#" data-cat-del="${c.cat}" title="Supprimer la catégorie" style="color:var(--rouge);">✕</a></span>` : ""}
+      </summary>
+      ${builtin.map((it) => `<button class="subtle small" data-ot-cat="${c.cat}" data-ot-name="${it.name.replace(/"/g, "&quot;")}" style="display:block; width:100%; text-align:left; margin-top:3px;">${it.name}</button>`).join("")}
+      ${perso.map((it) => `<div style="display:flex; gap:4px; margin-top:3px;">
+        <button class="subtle small" data-ut-id="${it.id}" style="flex:1; text-align:left;">${it.name} <span class="badge-local">perso</span></button>
+        <button class="subtle small" data-ut-ren="${it.id}" title="Renommer / changer de catégorie">✎</button>
+        <button class="subtle small" data-ut-del="${it.id}" title="Supprimer" style="color:var(--rouge);">✕</button>
+      </div>`).join("")}
     </details>`;
   }).join("") || `<div class="hint">Aucun résultat.</div>`;
 
@@ -1579,8 +1587,104 @@ function renderOrdoTypes(query = "") {
     const item = ORDO_TYPES.find((c) => c.cat === b.dataset.otCat).items.find((i) => i.name === b.dataset.otName);
     applyOrdoType(item);
   }));
+  $$("#ot-list [data-ut-id]").forEach((b) => b.addEventListener("click", () => {
+    applyUserType(listUserTypes().find((t) => t.id === b.dataset.utId));
+  }));
+  $$("#ot-list [data-ut-del]").forEach((b) => b.addEventListener("click", () => {
+    const t = listUserTypes().find((x) => x.id === b.dataset.utDel);
+    if (t && confirm(`Supprimer « ${t.name} » ?`)) {
+      saveUserTypes(listUserTypes().filter((x) => x.id !== t.id));
+      renderOrdoTypes($("#ot-search").value);
+    }
+  }));
+  $$("#ot-list [data-ut-ren]").forEach((b) => b.addEventListener("click", () => {
+    const arr = listUserTypes();
+    const t = arr.find((x) => x.id === b.dataset.utRen);
+    if (!t) return;
+    const name = prompt("Nom de l'ordonnance :", t.name);
+    if (name === null) return;
+    const cat = prompt("Catégorie (existante ou nouvelle) :", t.cat);
+    if (cat === null) return;
+    t.name = (name.trim() || t.name);
+    t.cat = (cat.trim().toUpperCase() || t.cat);
+    saveUserTypes(arr);
+    renderOrdoTypes($("#ot-search").value);
+  }));
+  $$("#ot-list [data-cat-ren]").forEach((el) => el.addEventListener("click", (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const oldCat = el.dataset.catRen;
+    const cat = prompt("Nouveau nom de la catégorie :", oldCat);
+    if (!cat || !cat.trim()) return;
+    const nc = cat.trim().toUpperCase();
+    const arr = listUserTypes();
+    arr.forEach((t) => { if (t.cat === oldCat) t.cat = nc; });
+    saveUserTypes(arr);
+    saveUserCats(listUserCats().map((x) => (x === oldCat ? nc : x)).filter((x) => x !== oldCat || x === nc).concat(nc).filter((v, i, s) => s.indexOf(v) === i));
+    renderOrdoTypes($("#ot-search").value);
+  }));
+  $$("#ot-list [data-cat-del]").forEach((el) => el.addEventListener("click", (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const cat = el.dataset.catDel;
+    const n = listUserTypes().filter((t) => t.cat === cat).length;
+    if (!confirm(`Supprimer la catégorie « ${cat} »${n ? ` et ses ${n} ordonnance(s)` : ""} ?`)) return;
+    saveUserTypes(listUserTypes().filter((t) => t.cat !== cat));
+    saveUserCats(listUserCats().filter((x) => x !== cat));
+    renderOrdoTypes($("#ot-search").value);
+  }));
 }
 $("#ot-search").addEventListener("input", () => renderOrdoTypes($("#ot-search").value));
+
+function applyUserType(t) {
+  if (!t) return;
+  const toHtml = (v) => (/[<>]/.test(v || "") ? v : (v || "").replace(/\n/g, "<br>"));
+  $("#ol-mode").value = t.mode || "simple";
+  $("#ol-texte").innerHTML = toHtml(t.texte);
+  $("#ol-ald").innerHTML = toHtml(t.textAld);
+  $("#ol-nonald").innerHTML = toHtml(t.textNonAld);
+  $("#ol-duree").value = t.duree || "";
+  const ald = t.mode === "ald";
+  $("#ol-zone-simple").style.display = ald ? "none" : "block";
+  $("#ol-zone-ald").style.display = ald ? "block" : "none";
+  closeModals();
+  $("#ordo-choice").style.display = "none";
+  $("#ordolibre-fields").style.display = "block";
+  ordoOpen = true;
+  $("#ordolibre-card").style.display = "block";
+  toast(`📋 « ${t.name} » chargée.`, 4000);
+  refreshSoon();
+}
+
+// Enregistrer l'ordonnance actuelle comme type (avec choix de catégorie)
+$("#btn-save-type").addEventListener("click", () => {
+  if (ordoEditorsEmpty()) { toast("L'ordonnance est vide.", 4000); return; }
+  const cats = [...ORDO_TYPES.map((c) => c.cat), ...listUserCats()];
+  $("#st-cat").innerHTML =
+    cats.map((c) => `<option value="${c}">${c}</option>`).join("") +
+    `<option value="__new">＋ Nouvelle catégorie…</option>`;
+  $("#st-name").value = "";
+  openModal("#modal-savetype");
+  $("#st-name").focus();
+});
+$("#st-save").addEventListener("click", () => {
+  const name = $("#st-name").value.trim();
+  if (!name) { alert("Donnez un nom à l'ordonnance."); return; }
+  let cat = $("#st-cat").value;
+  if (cat === "__new") {
+    const c = prompt("Nom de la nouvelle catégorie :");
+    if (!c || !c.trim()) return;
+    cat = c.trim().toUpperCase();
+    saveUserCats([...listUserCats(), cat]);
+  }
+  const arr = listUserTypes().filter((t) => !(t.name === name && t.cat === cat));
+  arr.push({
+    id: "ut" + Math.random().toString(36).slice(2, 9), cat, name,
+    mode: $("#ol-mode").value, texte: $("#ol-texte").innerHTML,
+    textAld: $("#ol-ald").innerHTML, textNonAld: $("#ol-nonald").innerHTML, duree: $("#ol-duree").value,
+  });
+  saveUserTypes(arr);
+  closeModals();
+  toast(`💾 « ${name} » enregistrée dans ${cat} (sur ce poste).`, 6000);
+});
 
 function applyOrdoType(item) {
   const med = currentMedecin();

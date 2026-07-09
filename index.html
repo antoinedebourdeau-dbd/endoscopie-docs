@@ -56,13 +56,9 @@
           <div class="hint">Vous choisirez ensuite ordonnance simple ou ALD (bizone).</div>
         </div>
         <div id="ordolibre-fields" style="margin-top:8px;">
-          <div style="display:flex; gap:6px; align-items:flex-end; margin-bottom:8px;">
-            <button type="button" class="small" id="btn-open-ordotypes" title="Choisir une ordonnance type" style="flex:none;">📋 Types</button>
-            <label class="field" style="flex:1; margin:0;"><span class="lbl">Mes modèles d'ordonnance</span>
-              <select id="ol-modele"></select>
-            </label>
-            <button type="button" class="subtle small" id="ol-save-modele" title="Enregistrer le texte actuel comme modèle réutilisable">💾</button>
-            <button type="button" class="subtle small" id="ol-del-modele" title="Supprimer le modèle sélectionné">🗑</button>
+          <div class="btnrow" style="margin:0 0 8px;">
+            <button type="button" class="small" id="btn-open-ordotypes" title="Charger une ordonnance type">📋 Ordonnances types</button>
+            <button type="button" class="subtle small" id="btn-save-type" title="Enregistrer l'ordonnance actuelle comme ordonnance type, dans une catégorie">💾 Enregistrer comme type</button>
           </div>
           <label class="field"><span class="lbl">Type d'ordonnance</span>
             <select id="ol-mode">
@@ -268,6 +264,18 @@
     <div class="mhint">Classées par domaine — cliquez pour charger dans l'éditeur (le contenu reste entièrement modifiable). Le nom du médecin et le fax du secrétariat sont insérés automatiquement.</div>
     <label class="field"><input type="text" id="ot-search" placeholder="🔍 Rechercher (ex. IPP, imurel, ferinject, fissure…)" autocomplete="off"></label>
     <div id="ot-list" style="max-height:55vh; overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- ============================== MODALE ENREGISTRER TYPE ============================== -->
+<div class="modal-back no-print" id="modal-savetype">
+  <div class="modal">
+    <button class="modal-close" data-close>✕</button>
+    <h3>💾 Enregistrer comme ordonnance type</h3>
+    <div class="mhint">L'ordonnance actuelle (contenu, mode simple/ALD, durée) sera réutilisable depuis « 📋 Ordonnances types » sur ce poste.</div>
+    <label class="field"><span class="lbl">Nom *</span><input type="text" id="st-name" placeholder="ex. IPP pleine dose 8 semaines"></label>
+    <label class="field"><span class="lbl">Catégorie</span><select id="st-cat"></select></label>
+    <div class="btnrow"><button id="st-save">Enregistrer</button></div>
   </div>
 </div>
 
