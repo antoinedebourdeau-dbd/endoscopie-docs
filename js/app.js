@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "2.9";
+export const APP_VERSION = "3.0";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -659,29 +659,56 @@ async function generateAllEmails() {
   openModal("#modal-send");
 }
 
+function openMailDraft(j) {
+  const url = `mailto:${encodeURIComponent(j.to)}?subject=${mailtoEncode(j.sujet)}&body=${mailtoEncode(j.corps)}`;
+  window.__lastMailto = url; // témoin pour les tests automatisés
+  window.__allMailtos = (window.__allMailtos || []).concat(url);
+  location.href = url;
+}
+
 function renderSendModal() {
   $("#send-list").innerHTML = sendJobs.map((j, i) => `
     <div class="med-row" style="align-items:flex-start;">
+      <input type="checkbox" data-send-chk="${i}" checked style="margin-top:6px; accent-color:var(--bleu); flex:none;">
       <div class="info">
         <div class="nom">${j.label}</div>
-        <div class="det">À : ${j.to}<br>PJ à glisser : <strong>${j.fichier}</strong> <span style="color:#146c3a;">(téléchargé ✓)</span></div>
+        <div class="det">À : <strong>${j.to}</strong><br>PJ à glisser : ${j.fichier} <span style="color:#146c3a;">(téléchargé ✓)</span> <span data-status="${i}" style="color:#146c3a; font-weight:700;"></span></div>
       </div>
-      <button class="small" data-open-mail="${i}">📧 Ouvrir le mail</button>
+      <button class="subtle small" data-open-mail="${i}">📧 Ouvrir seul</button>
     </div>`).join("") +
-    `<div class="hint" style="margin-top:10px;">Selon votre version d'Outlook, vous pouvez aussi essayer le <a href="#" id="send-eml-all">brouillon .eml avec PJ déjà incluse</a> (double-cliquer le fichier téléchargé) — si le texte ou la pièce jointe s'affichent mal, restez sur la méthode ci-dessus.</div>`;
+    `<div class="btnrow" style="margin-top:10px;">
+      <button class="big orange" id="send-all-mails">📧 Ouvrir tous les mails sélectionnés (l'un après l'autre)</button>
+    </div>
+    <div class="hint" style="margin-top:8px;">Les brouillons s'ouvrent automatiquement <strong>toutes les ~2 secondes</strong> — laissez-les s'ouvrir, puis glissez dans chacun le PDF portant le même nom, et envoyez.</div>
+    <div class="hint" style="margin-top:6px;">Selon votre version d'Outlook, vous pouvez aussi essayer les <a href="#" id="send-eml-all">brouillons .eml avec PJ déjà incluse</a> — si le texte ou la pièce jointe s'affichent mal, restez sur la méthode principale.</div>`;
 
-  $$("#send-list [data-open-mail], #modal-send [data-open-mail]").forEach((b) =>
+  $$("#send-list [data-open-mail]").forEach((b) =>
     b.addEventListener("click", () => {
-      const j = sendJobs[Number(b.dataset.openMail)];
-      const url = `mailto:${encodeURIComponent(j.to)}?subject=${mailtoEncode(j.sujet)}&body=${mailtoEncode(j.corps)}`;
-      window.__lastMailto = url; // témoin pour les tests automatisés
-      location.href = url;
-      b.textContent = "✓ mail ouvert";
+      openMailDraft(sendJobs[Number(b.dataset.openMail)]);
+      document.querySelector(`[data-status="${b.dataset.openMail}"]`).textContent = "· mail ouvert ✓";
     }));
+
+  $("#send-all-mails").addEventListener("click", async () => {
+    const chosen = sendJobs.map((j, i) => ({ j, i })).filter(({ i }) => document.querySelector(`[data-send-chk="${i}"]`)?.checked);
+    if (!chosen.length) { toast("Aucun envoi coché.", 4000); return; }
+    const btn = $("#send-all-mails");
+    btn.disabled = true;
+    for (let k = 0; k < chosen.length; k++) {
+      const { j, i } = chosen[k];
+      btn.textContent = `📧 Ouverture ${k + 1} / ${chosen.length}…`;
+      openMailDraft(j);
+      const st = document.querySelector(`[data-status="${i}"]`);
+      if (st) st.textContent = "· mail ouvert ✓";
+      if (k < chosen.length - 1) await new Promise((ok) => setTimeout(ok, 2200)); // laisse Outlook ouvrir chaque brouillon
+    }
+    btn.textContent = `✓ ${chosen.length} brouillon(s) ouvert(s) — joignez les PDF puis envoyez`;
+  });
+
   const emlAll = document.querySelector("#send-eml-all");
   if (emlAll) emlAll.addEventListener("click", async (e) => {
     e.preventDefault();
-    for (const j of sendJobs) {
+    const chosen = sendJobs.filter((j, i) => document.querySelector(`[data-send-chk="${i}"]`)?.checked);
+    for (const j of chosen) {
       await downloadEml(j.to, j.sujet, j.corps, j.blob, j.fichier);
       await new Promise((ok) => setTimeout(ok, 600));
     }
@@ -730,7 +757,7 @@ const DEM_MAIL_LABEL = {
 function initDemandeOpts(type) {
   const commun = { service: "Hépato-Gastroentérologie", uf: "", telDemandeur: "", sendMail: false };
   if (type === "endo") return {
-    ...commun, examens: [], gepMode: "pose", actes: "", indications: "",
+    ...commun, examens: [], gepMode: "pose", actes: "", indications: "", lieu: "pted",
     delai: "semi15", delaiAutre: "", hospit: "hdj", hdjService: "Gastro", hospJ: "J0",
     ag: "oui", infosPatient: "oui",
     crit: {}, iso: "", isoAutre: "", cjd: "non",
@@ -932,6 +959,18 @@ function demandeCard(d) {
   <div style="display:flex; flex-wrap:wrap; margin-top:4px;">${ex}</div>
   ${gepModes}
   <label class="field"><span class="lbl">Actes thérapeutiques probables (optionnel)</span>${inp("actes", o.actes, "prothèse, ligature, dilatation…")}</label>
+  <div style="border:1.5px solid var(--rouge); border-radius:10px; padding:8px 10px; margin:4px 0 8px; background:#FCECEA;">
+    <div style="font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:.05em; font-weight:700; font-size:12px; color:var(--rouge);">Lieu de réalisation *</div>
+    <div style="display:flex; gap:8px; margin-top:6px;">
+      <button type="button" class="small ${o.lieu !== "bloc" ? "" : "subtle"}" data-d="${d.id}" data-lieu="pted" ${Object.values(o.crit).some(Boolean) ? "disabled" : ""} style="flex:1;">PTED</button>
+      <button type="button" class="small ${o.lieu === "bloc" ? "" : "subtle"}" data-d="${d.id}" data-lieu="bloc" style="flex:1;">Bloc opératoire</button>
+    </div>
+    <div class="hint" style="margin-top:6px;">Critères imposant le bloc <strong>(cocher = bascule automatique)</strong> :</div>
+    <div style="display:flex; flex-wrap:wrap;">
+      ${[["imc", "IMC > 40"], ["htap", "HTAP > 50 mmHg"], ["fevg", "FEVG < 35 % / assist."], ["htic", "HTIC"], ["irc", "Insuff. respiratoire chronique"]].map(([k, l]) =>
+        `<label class="doc-item" style="width:50%; padding:2px 4px;"><input type="checkbox" data-d="${d.id}" data-crit="${k}" ${o.crit[k] ? "checked" : ""}><span style="font-size:12px;">${l}</span></label>`).join("")}
+    </div>
+  </div>
   <label class="field"><span class="lbl">Indications *</span>
     <textarea data-d="${d.id}" data-k="indications" rows="3" placeholder="Contexte clinique et indication de l'examen">${o.indications}</textarea>
   </label>
@@ -950,10 +989,7 @@ function demandeCard(d) {
   </div>
   <details style="margin-top:4px;">
     <summary style="cursor:pointer; font-size:12.5px; font-weight:700; color:var(--rouge);">Informations cliniques obligatoires (risques, anticoagulants…)</summary>
-    <div style="display:flex; flex-wrap:wrap; margin-top:6px;">
-      ${[["imc", "IMC > 40"], ["htap", "HTAP > 50 mmHg"], ["fevg", "FEVG < 35 % / assist."], ["htic", "HTIC"]].map(([k, l]) =>
-        `<label class="doc-item" style="width:50%; padding:2px 4px;"><input type="checkbox" data-d="${d.id}" data-crit="${k}" ${o.crit[k] ? "checked" : ""}><span style="font-size:12px;">${l}</span></label>`).join("")}
-    </div>
+
     <div class="grid2">
       <label class="field"><span class="lbl">Isolement</span>
         ${sel("iso", [["", "Aucun"], ["bhre", "BHRe"], ["tuberculose", "Tuberculose"], ["autre", "Autre…"]], o.iso)}
@@ -1038,6 +1074,11 @@ function renderDemandes() {
     renderDemandes();
     updateEmailButton();
   }));
+  root.querySelectorAll("[data-lieu]").forEach((b) => b.addEventListener("click", () => {
+    const d = demandes.find((x) => x.id === b.dataset.d);
+    d.opts.lieu = b.dataset.lieu;
+    renderDemandes(); refreshSoon();
+  }));
   root.querySelectorAll("[data-mailcfg]").forEach((a) => a.addEventListener("click", (e) => {
     e.preventDefault(); e.stopPropagation();
     openMailModal();
@@ -1058,7 +1099,10 @@ $("#demandes").addEventListener("input", (e) => {
   const t = e.target, d = demandes.find((x) => x.id === t.dataset.d);
   if (!d) return;
   if (t.dataset.k) d.opts[t.dataset.k] = t.value;
-  if (t.dataset.crit) d.opts.crit[t.dataset.crit] = t.checked;
+  if (t.dataset.crit) {
+    d.opts.crit[t.dataset.crit] = t.checked;
+    if (d.type === "endo" && Object.values(d.opts.crit).some(Boolean)) d.opts.lieu = "bloc";
+  }
   if (t.dataset.ex) {
     const set = new Set(d.opts.examens);
     t.checked ? set.add(t.dataset.ex) : set.delete(t.dataset.ex);
@@ -1080,7 +1124,7 @@ $("#demandes").addEventListener("input", (e) => {
 $("#demandes").addEventListener("change", (e) => {
   const t = e.target, d = demandes.find((x) => x.id === t.dataset.d);
   if (!d) return;
-  if (t.dataset.ex || t.dataset.mat || t.dataset.multi ||
+  if (t.dataset.ex || t.dataset.mat || t.dataset.multi || t.dataset.crit ||
       ["delai", "hospit", "iso", "risqueInf", "ir", "ag", "diabete", "tepDeja"].includes(t.dataset.k || "")) renderDemandes();
 });
 

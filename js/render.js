@@ -541,6 +541,15 @@ export function renderDemandeEndoscopie(o, ctx) {
     `<div style="padding:6px 10px 8px; ${F} font-size:11.5px; color:#0d2b45; min-height:40px; white-space:pre-wrap; line-height:1.5;">${esc(o.indications || "")}</div>`,
     "margin-top:7px;");
 
+  const lieuCase = (on) =>
+    `<span style="display:inline-block; width:16px; height:16px; border:2.5px solid ${on ? "#C0392B" : "#9db4c6"}; border-radius:4px; text-align:center; line-height:12px; font-weight:900; font-size:13px; color:#C0392B; background:#fff;">${on ? "✕" : "&nbsp;"}</span>`;
+  const lieu = `<div style="border:2.5px solid #C0392B; border-radius:10px; margin-top:8px; padding:8px 14px; display:flex; align-items:center; gap:22px; break-inside:avoid; background:#FCECEA;">
+    <span style="${FC} text-transform:uppercase; letter-spacing:.05em; font-weight:800; color:#C0392B; font-size:14px; flex:none;">Lieu de réalisation</span>
+    <span style="display:flex; align-items:center; gap:8px; ${F} font-size:15px; font-weight:${o.lieu !== "bloc" ? "800" : "500"}; color:#0d2b45;">${lieuCase(o.lieu !== "bloc")} PTED</span>
+    <span style="display:flex; align-items:center; gap:8px; ${F} font-size:15px; font-weight:${o.lieu === "bloc" ? "800" : "500"}; color:#0d2b45;">${lieuCase(o.lieu === "bloc")} BLOC OPÉRATOIRE</span>
+    ${o.lieu === "bloc" && Object.values(o.crit || {}).some(Boolean) ? `<span style="${F} font-size:10px; color:#8f2419;">(critère d'examen au bloc présent)</span>` : ""}
+  </div>`;
+
   const ouinon = (v) => `${chk(v === "oui")} OUI&nbsp;&nbsp;&nbsp;${chk(v === "non")} NON`;
   const agBloc = `<div style="display:flex; gap:24px; margin-top:7px; ${F} font-size:11px; color:#1c3a52; align-items:baseline; flex-wrap:wrap;">
     <span><strong>Examen sous anesthésie générale :</strong> ${ouinon(o.ag)}</span>
@@ -551,6 +560,7 @@ export function renderDemandeEndoscopie(o, ctx) {
   const critRows = [
     ["imc", "IMC > 40 kg/m²"], ["htap", "HTAP > 50 mmHg"],
     ["fevg", "FEVG < 35 % ou assistance cardiaque"], ["htic", "HTIC"],
+    ["irc", "Insuffisance respiratoire chronique"],
   ].map(([k, lbl]) => `<div style="display:flex; gap:7px; align-items:baseline; margin-top:3px;">${chk(!!(o.crit || {})[k])}<span>${lbl}</span></div>`).join("");
 
   const isoLbl = { bhre: "BHRe", tuberculose: "Tuberculose" };
@@ -579,7 +589,7 @@ export function renderDemandeEndoscopie(o, ctx) {
     </div>`, "margin-top:8px; break-inside:avoid;");
 
   const body = head + `<div style="display:flex; gap:10px; margin-top:7px;">${identite}${demandeur}</div>` +
-    delaiHospit + examens + indications + agBloc + clinique + pted +
+    delaiHospit + examens + indications + lieu + agBloc + clinique + pted +
     `<div style="${FC} text-transform:uppercase; letter-spacing:.06em; text-align:center; font-weight:700; font-size:11px; color:#C0392B; margin-top:7px;">Toute demande incomplète ne sera pas traitée</div>`;
 
   const footer = `<div style="display:flex; justify-content:space-between; align-items:center; ${F} font-size:9px; color:#7a8794; border-top:1px solid #d9e2ea; padding-top:5px;">
