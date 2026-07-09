@@ -595,6 +595,289 @@ export function renderDemandeEndoscopie(o, ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// Demandes d'examens d'imagerie (bons CHU : écho/doppler, radio, TDM, IRM,
+// interventionnel, TEP-TDM) — Saint Eloi coché par défaut.
+// ---------------------------------------------------------------------------
+
+const SITES_6 = [
+  ["adv", "Plateau d'imagerie médicale ADV", "35991", "36088"],
+  ["lapeyronie", "Plateau d'imagerie médicale Lapeyronie", "38632", "38949"],
+  ["radioped", "Service de Radiopédiatrie ADV", "36017", "36018"],
+  ["guichauliac", "Neuroradiologie Gui de Chauliac", "37533 ou 37275", "37671"],
+  ["steloi", "Service d'imagerie médicale Saint Eloi", "37540 ou 37120", "37116"],
+  ["balmes", "Radiologie A. Balmès / La Colombière", "39970", ""],
+];
+const SITES_TDM = [
+  ["adv", "Plateau d'imagerie médicale ADV", "35991", "36088"],
+  ["lapeyronie", "Plateau d'imagerie médicale Lapeyronie", "38620 ou 38635", "38949"],
+  ["guichauliac", "Neuroradiologie Gui de Chauliac", "37533 ou 37275", "37671"],
+  ["steloi", "Service d'imagerie médicale Saint Eloi", "37540 ou 37120", "37116"],
+];
+const SITES_IRM = [
+  ["adv", "Plateau d'imagerie médicale ADV", "35987", "30753 ou 36088"],
+  ["lapeyronie", "Plateau d'imagerie médicale Lapeyronie", "38615", "39074"],
+  ["guichauliac", "Neuroradiologie Gui de Chauliac", "37880", "36838"],
+  ["steloi", "Service d'imagerie médicale Saint Eloi", "37322", "37116"],
+];
+
+export const IMAGERIE_TITRES = {
+  echo: "Demande d'examen échographique / Doppler",
+  radio: "Demande d'examen de radiologie",
+  tdm: "Demande d'examen de tomodensitométrie (scanner)",
+  irm: "Demande d'examen d'IRM",
+  interv: "Demande d'examen interventionnel ou d'angiographie",
+  tep: "Formulaire de demande d'examen TEP-TDM",
+};
+
+const on3 = (v) => `${chk(v === "non")} Non&nbsp;&nbsp;${chk(v === "oui")} Oui`; // Non/Oui explicites
+const inline = (label, value, w = 70) =>
+  `${label} <span style="border-bottom:1px dotted #9db4c6; display:inline-block; min-width:${w}px; font-weight:600; padding:0 4px;">${esc(value || "")}&nbsp;</span>`;
+
+function demHead(title, sub, ctx) {
+  return `<div style="display:flex; gap:14px; align-items:center;">
+    <img src="chu-logo.webp" alt="CHU" style="height:42px; flex:none;">
+    <div style="flex:1; min-width:0;">
+      ${sub ? `<div style="${F} font-size:11px; color:#4a5b68;">${sub}</div>` : ""}
+      <div style="${F} font-weight:800; font-size:17px; color:#0d2b45; line-height:1.1;">${title}</div>
+    </div>
+    <div style="flex:none; ${F} font-size:11.5px; color:#1c3a52;">Date de la demande : <strong>${ctx.dateDoc ? esc(frDate(ctx.dateDoc)) : "____ / ____ / 20____"}</strong></div>
+  </div>`;
+}
+
+function sitesBox(sites, selected) {
+  const cells = sites.map(([k, nom, tel, fax]) => `
+    <div style="width:50%; display:flex; gap:7px; align-items:baseline; margin-top:3px; padding-right:8px;">
+      ${chk(k === selected)}
+      <span style="flex:1;"><span style="font-weight:${k === selected ? "700" : "400"};">${nom}</span><br>
+      <span style="color:#4a5b68; font-size:10px;">Tél : ${tel}${fax ? " · Fax : " + fax : ""}</span></span>
+    </div>`).join("");
+  return fbox(boxTitle("Site de réalisation (cocher)") + `<div style="padding:2px 10px 7px; ${F} font-size:11px; display:flex; flex-wrap:wrap;">${cells}</div>`, "margin-top:8px;");
+}
+
+function identiteDemandeur(o, ctx, opts = {}) {
+  const p = ctx.patient;
+  const med = ctx.medecin;
+  const identite = fbox(
+    boxTitle("Identification du patient (ou étiquette)") +
+    `<div style="padding:4px 10px 7px; ${F} font-size:11px;">
+      ${fline("Nom :", p?.nom ? esc(p.nom.toUpperCase()) : "")}
+      ${fline("Prénom :", esc(p?.prenom || ""))}
+      ${fline("Date de naissance :", p?.ddn ? esc(frDate(p.ddn)) : "")}
+      ${fline("☎ (si consultant) :", esc(o.telPatient || ""))}
+    </div>`, "flex:1;");
+  const demandeur = fbox(
+    boxTitle("Service demandeur") +
+    `<div style="padding:4px 10px 7px; ${F} font-size:11px;">
+      ${fline("Service :", esc(o.service || ""))}
+      <div style="display:flex; gap:10px;"><span style="flex:1;">${fline("Code UF :", esc(o.uf || ""))}</span><span style="flex:1;">${fline("☎ :", esc(o.telDemandeur || med?.tel || ""))}</span></div>
+      ${fline("Médecin demandeur (capitales) :", med ? esc(med.nom.toUpperCase()) : "")}
+      <div style="display:flex; gap:6px; align-items:flex-end; margin-top:4px;"><span style="color:#4a5b68; flex:none;">Signature${opts.sigOblig ? " obligatoire" : ""} :</span><span style="flex:1; border-bottom:1px solid #9db4c6; height:22px;"></span></div>
+    </div>`, "flex:1;");
+  return `<div style="display:flex; gap:10px; margin-top:8px;">${identite}${demandeur}</div>`;
+}
+
+function isoLine(o) {
+  return `<div style="margin-top:4px;"><strong>Isolement pour risques infectieux :</strong>&nbsp; ${on3(o.risqueInf || "non")}
+    &nbsp;&nbsp;<span style="color:#4a5b68;">si oui :</span>&nbsp;${["contact", "air", "gouttelettes"].map((t) => `${chk(o.risqueInf === "oui" && o.risqueInfType === t)} ${t.charAt(0).toUpperCase() + t.slice(1)}`).join("&nbsp;&nbsp;")}</div>`;
+}
+
+function cadreReserve(inner) {
+  return fbox(boxTitle("Cadre réservé au service d'imagerie médicale") +
+    `<div style="padding:5px 10px 8px; ${F} font-size:11px; color:#4a5b68;">${inner}</div>`, "margin-top:8px; break-inside:avoid;");
+}
+
+const NB_LINE = `<div style="${F} font-size:9.5px; color:#6b7c8a; font-style:italic; margin-top:7px;">NB : les renseignements demandés engagent votre responsabilité médicale et sont indispensables pour donner un rendez-vous d'examen. Toute demande incorrectement remplie sera retournée.</div>`;
+
+function demandeSection(body, footTitle) {
+  const footer = `<div style="display:flex; justify-content:space-between; align-items:center; ${F} font-size:9px; color:#7a8794; border-top:1px solid #d9e2ea; padding-top:5px;">
+    <span>CHU de Montpellier — Doc'HGE · Hépato-Gastroentérologie</span>
+    <span style="${FC} letter-spacing:.05em; text-transform:uppercase; color:#0072BC; font-weight:600;">${footTitle}</span>
+  </div>`;
+  return `<section class="doc">
+    <table class="frame">
+      <thead><tr><td><div class="hdr hdr-spacer"></div></td></tr></thead>
+      <tbody><tr><td class="bodycell">${body}</td></tr></tbody>
+      <tfoot><tr><td><div class="ftr">${footer}</div></td></tr></tfoot>
+    </table>
+  </section>`;
+}
+
+/** Écho/Doppler et Radiologie (même bon, titres différents). */
+function renderDemandeEchoRadio(kind, o, ctx) {
+  const titre = IMAGERIE_TITRES[kind];
+  const body = demHead(titre, "CHU de Montpellier — Imagerie médicale", ctx) +
+    sitesBox(SITES_6, o.site) +
+    identiteDemandeur(o, ctx) +
+    fbox(`<div style="padding:6px 10px 8px; ${F} font-size:11px;">
+      <div><strong>Examen au lit du patient :</strong>&nbsp; ${chk(o.lit === "oui")} OUI&nbsp;&nbsp;${chk(o.lit !== "oui")} NON
+      &nbsp;&nbsp;&nbsp;<strong>Transport :</strong>&nbsp; ${[["valide", "Patient valide"], ["fauteuil", "Fauteuil"], ["brancard", "Brancard"], ["litT", "Lit"]].map(([k, l]) => `${chk(o.transport === k)} ${l}`).join("&nbsp;&nbsp;")}</div>
+      ${isoLine(o)}
+      ${fline("Autonomie relationnelle du patient (confus…) :", esc(o.autonomie || ""))}
+    </div>`, "margin-top:8px;") +
+    fbox(boxTitle("Examen demandé") + `<div style="padding:6px 10px 10px; ${F} font-size:12px; font-weight:600; color:#0d2b45; min-height:30px;">${esc(o.examen || "")}</div>`, "margin-top:8px;") +
+    fbox(boxTitle("Indication de l'examen et contexte clinique") + `<div style="padding:6px 10px 10px; ${F} font-size:11.5px; min-height:70px; white-space:pre-wrap; line-height:1.5;">${esc(o.indications || "")}</div>`, "margin-top:8px;") +
+    cadreReserve(`Rendez-vous donné — ${inline("le :", "", 90)} &nbsp; ${inline("à :", "", 60)} h`) + NB_LINE;
+  return demandeSection(body, titre);
+}
+
+/** Scanner (TDM). */
+function renderDemandeTdm(o, ctx) {
+  const titre = IMAGERIE_TITRES.tdm;
+  const prealables = fbox(boxTitle("Préalables à l'exploration TDM") + `<div style="padding:5px 10px 8px; ${F} font-size:11px; line-height:1.6;">
+      <div><strong>Asthme non équilibré</strong> (crise < 8 jours) : ${on3(o.asthme)} &nbsp;&nbsp;·&nbsp; <strong>Réaction sévère lors d'une injection de PCI :</strong> ${on3(o.reactionPci)}</div>
+      <div style="color:#4a5b68; font-size:10px;">Si oui : contacter un radiologue, envisager une procédure alternative (écho, IRM, scanner sans injection), bilan allergologique. En dehors de cette éventualité : aucune prémédication.</div>
+      ${isoLine(o)}
+      <div style="margin-top:3px;"><strong>Diabète :</strong> ${on3(o.diabete)} <span style="color:#4a5b68; font-size:10px;">— si DNID sous METFORMINE : arrêt le jour de l'examen, reprise 48 h après si fonction rénale normale</span></div>
+      <div style="margin-top:3px;"><strong>Insuffisance rénale :</strong> ${on3(o.ir)} &nbsp; ${inline("Créatininémie :", o.creat, 60)} µmol/L &nbsp; ${chk(!!o.dialyse)} Patient dialysé</div>
+      <div style="margin-top:3px;"><strong>Bêta-bloquants :</strong> ${on3(o.betabloquants)} &nbsp;·&nbsp; <strong>Grossesse :</strong> ${on3(o.grossesse)} &nbsp;·&nbsp; <strong>Gammapathie monoclonale (myélome) :</strong> ${on3(o.gammapathie)}</div>
+      <div style="margin-top:3px;"><strong>Examen sous anesthésie générale :</strong> ${on3(o.ag)} &nbsp;&nbsp;·&nbsp; <strong>Mobilité :</strong> ${[["normale", "Normale"], ["fauteuil", "Fauteuil"], ["brancard", "Brancard"]].map(([k, l]) => `${chk(o.mobilite === k)} ${l}`).join("&nbsp;&nbsp;")}</div>
+    </div>`, "margin-top:8px;");
+  const body = demHead(titre, "CHU de Montpellier — Imagerie médicale", ctx) +
+    sitesBox(SITES_TDM, o.site) + identiteDemandeur(o, ctx, { sigOblig: true }) + prealables +
+    fbox(boxTitle("Région anatomique à explorer") + `<div style="padding:6px 10px 8px; ${F} font-size:12px; font-weight:600; color:#0d2b45; min-height:26px;">${esc(o.examen || "")}</div>`, "margin-top:8px;") +
+    fbox(boxTitle("But de l'examen et contexte clinique") + `<div style="padding:6px 10px 8px; ${F} font-size:11.5px; min-height:56px; white-space:pre-wrap; line-height:1.5;">${esc(o.indications || "")}</div>
+      <div style="padding:0 10px 8px; ${F} font-size:11px;">${fline("Date souhaitée :", o.dateSouhaitee ? esc(o.dateSouhaitee) : "")}</div>`, "margin-top:8px;") +
+    `<div style="${F} font-size:10px; color:#4a5b68; margin-top:5px;">➤ Joindre tous les documents concernant la région à explorer le jour de l'examen.</div>` +
+    cadreReserve(`${inline("Rendez-vous le :", "", 90)} &nbsp; ${inline("à :", "", 50)} h &nbsp;&nbsp; Injection : ${chk(false)} OUI ${chk(false)} NON &nbsp;&nbsp; ${inline("Protocole :", "", 120)} &nbsp;&nbsp; ${inline("Visa du radiologue :", "", 80)}`) + NB_LINE;
+  return demandeSection(body, titre);
+}
+
+const IRM_MATERIEL = [
+  ["stimulateur", "Stimulateur cardiaque"],
+  ["neuro", "Neurostimulateur"],
+  ["clips", "Clips chirurgicaux, structures métalliques, agrafes"],
+  ["valves", "Valves cardiaques, matériel endo-vasculaire"],
+  ["protheses_aud", "Prothèses auditives ou dentaires"],
+  ["autres_protheses", "Autres prothèses"],
+  ["osteo", "Matériel d'ostéosynthèse"],
+  ["metaux", "Travailleur des métaux, corps étrangers oculaires, éclats d'obus, balles"],
+  ["rea", "Matériel de réanimation"],
+];
+
+/** IRM. */
+function renderDemandeIrm(o, ctx) {
+  const titre = IMAGERIE_TITRES.irm;
+  const mat = (o.materiel || {});
+  const rows = IRM_MATERIEL.map(([k, l]) => {
+    const val = mat[k] || "";
+    return `<div style="display:flex; gap:7px; align-items:baseline; margin-top:2px;">
+      <span style="flex:1.6;">• ${l}</span>
+      <span style="flex:none;">${chk(!val)} Non&nbsp; ${chk(!!val)} Oui</span>
+      <span style="flex:1; border-bottom:1px dotted #9db4c6; font-weight:600; padding:0 4px;">${esc(val === true ? "" : val || "")}&nbsp;</span>
+    </div>`;
+  }).join("");
+  const body = demHead(titre, "CHU de Montpellier — Imagerie médicale", ctx) +
+    sitesBox(SITES_IRM, o.site) + identiteDemandeur(o, ctx, { sigOblig: true }) +
+    fbox(boxTitle("Préalables à l'exploration IRM — risques spécifiques") + `<div style="padding:5px 10px 8px; ${F} font-size:11px; line-height:1.6;">
+      <div><strong>Allergie au gadolinium :</strong> ${on3(o.gado)} &nbsp;·&nbsp; <strong>Grossesse / allaitement :</strong> ${on3(o.grossesse)}</div>
+      ${isoLine(o)}
+      <div style="margin-top:3px;"><strong>Insuffisance rénale :</strong> ${on3(o.ir)} &nbsp; ${inline("Créatininémie :", o.creat, 55)} &nbsp; ${inline("Clairance :", o.clairance, 55)}</div>
+    </div>`, "margin-top:8px;") +
+    fbox(boxTitle("Contre-indications liées au matériel (si oui : localisation, référence)") + `<div style="padding:4px 10px 7px; ${F} font-size:10.5px;">${rows}</div>`, "margin-top:8px;") +
+    fbox(`<div style="padding:5px 10px 7px; ${F} font-size:11px;">
+      <strong>Mobilité :</strong> ${[["normale", "Normale"], ["fauteuil", "Fauteuil"], ["brancard", "Brancard"]].map(([k, l]) => `${chk(o.mobilite === k)} ${l}`).join("&nbsp;&nbsp;")}
+      &nbsp;&nbsp;·&nbsp; <strong>Coopération prévisible :</strong> ${[["claustro", "Claustrophobie"], ["ag", "Anesthésie générale"], ["ag_enfant", "AG enfant"]].map(([k, l]) => `${chk(o.cooperation === k)} ${l}`).join("&nbsp;&nbsp;")}
+    </div>`, "margin-top:8px;") +
+    fbox(boxTitle("Région anatomique à explorer") + `<div style="padding:6px 10px 8px; ${F} font-size:12px; font-weight:600; color:#0d2b45; min-height:24px;">${esc(o.examen || "")}</div>`, "margin-top:8px;") +
+    fbox(boxTitle("But de l'examen et contexte clinique") + `<div style="padding:6px 10px 8px; ${F} font-size:11.5px; min-height:46px; white-space:pre-wrap; line-height:1.5;">${esc(o.indications || "")}</div>`, "margin-top:8px;") +
+    `<div style="${F} font-size:10px; color:#4a5b68; margin-top:5px;">➤ Joindre tous les documents concernant la région à explorer le jour de l'examen. Pour les mineurs, s'assurer que l'autorisation de soins a été signée par les parents.</div>` +
+    cadreReserve(`${inline("Demande reçue le :", "", 80)} &nbsp; ${inline("Rendez-vous le :", "", 80)} à ${inline("", "", 40)} h &nbsp; Injection : ${chk(false)} OUI ${chk(false)} NON &nbsp; ${inline("Protocole :", "", 90)} ${inline("Visa du radiologue :", "", 70)}`) + NB_LINE;
+  return demandeSection(body, titre);
+}
+
+/** Radiologie interventionnelle / angiographie (SIM Saint-Éloi). */
+function renderDemandeInterv(o, ctx) {
+  const titre = IMAGERIE_TITRES.interv;
+  const body = demHead(titre, "Service d'imagerie médicale (SIM) — Hôpital Saint-Éloi · CHU de Montpellier", ctx) +
+    `<div style="display:flex; gap:8px; align-items:center; margin-top:8px; background:#FFF4E6; border:1px solid #f3c98a; border-radius:8px; padding:6px 12px; ${F} font-size:11px; color:#6b4a1a;"><span style="font-weight:800; color:#EF7D00;">⚠</span><span><strong>Patient à jeun 4 h</strong> au moins avant l'examen — <strong>6 h si anesthésie générale</strong>. Adresser le malade avec son dossier : bilan de coagulation, consultation AG, dossier médical, de soins, radiologique.</span></div>` +
+    identiteDemandeur(o, ctx) +
+    fbox(boxTitle("Examen demandé") + `<div style="padding:6px 10px 8px; ${F} font-size:12px; font-weight:600; color:#0d2b45; min-height:26px;">${esc(o.examen || "")}</div>`, "margin-top:8px;") +
+    fbox(boxTitle("Bilan de coagulation (indispensable, récent)") + `<div style="padding:5px 10px 8px; ${F} font-size:11px; line-height:1.6;">
+      <div style="display:flex; gap:12px;"><span style="flex:1;">${fline("Date :", esc(o.bilanDate || ""))}</span><span style="flex:1;">${fline("TP :", esc(o.tp || ""))}</span><span style="flex:1;">${fline("Plaquettes :", esc(o.plaquettes || ""))}</span></div>
+      <div style="margin-top:3px;"><strong>Traitement anticoagulant :</strong> ${on3(o.antico)} &nbsp;&nbsp;·&nbsp; <strong>Anti-agrégants plaquettaires :</strong> ${on3(o.antiagreg)}</div>
+    </div>`, "margin-top:8px;") +
+    fbox(boxTitle("Consultation AG") + `<div style="padding:5px 10px 8px; ${F} font-size:11px; line-height:1.6;">
+      <div style="color:#4a5b68; font-size:10px;">Consultation d'anesthésie <strong>48 h avant</strong> tous les gestes suivants : drainage et prothèse biliaire, radiofréquence, alcoolisation, TIPS, chimio-embolisation.</div>
+      <div style="margin-top:3px;"><strong>Geste prévu sous AG :</strong> ${on3(o.ag)} &nbsp; ${inline("Date de la consultation AG :", esc(o.agDate || ""), 80)}</div>
+    </div>`, "margin-top:8px;") +
+    fbox(boxTitle("Injection d'un produit de contraste iodé") + `<div style="padding:5px 10px 8px; ${F} font-size:11px; line-height:1.6;">
+      <div><strong>Réaction sévère lors d'une injection de PCI :</strong> ${on3(o.reactionPci)} &nbsp;·&nbsp; <strong>Asthme non équilibré</strong> (crise < 8 j) : ${on3(o.asthme)}</div>
+      <div style="margin-top:3px;"><strong>Diabète :</strong> ${on3(o.diabete)} <span style="color:#4a5b68; font-size:10px;">(si METFORMINE : arrêt 48 h avant, reprise 48 h après)</span> &nbsp;·&nbsp; <strong>Bêta-bloquants :</strong> ${on3(o.betabloquants)}</div>
+      <div style="margin-top:3px;"><strong>Insuffisance rénale :</strong> ${on3(o.ir)} &nbsp; ${inline("Créatininémie :", o.creat, 60)} µmol/L &nbsp; ${chk(!!o.dialyse)} Patient dialysé</div>
+    </div>`, "margin-top:8px;") +
+    fbox(boxTitle("But de l'examen et contexte clinique") + `<div style="padding:6px 10px 8px; ${F} font-size:11.5px; min-height:60px; white-space:pre-wrap; line-height:1.5;">${esc(o.indications || "")}</div>`, "margin-top:8px;") +
+    cadreReserve(`Rendez-vous donné — ${inline("le :", "", 90)} &nbsp; ${inline("à :", "", 60)} h`) + NB_LINE;
+  return demandeSection(body, titre);
+}
+
+const TEP_CADRE = [["amm", "Conforme AMM"], ["sor", "Standard des SOR"], ["option_sor", "Option des SOR"], ["ucp", "Décision des UCP"], ["recherche", "Recherche"]];
+const TEP_LOC = [["sein", "Sein"], ["orl", "ORL"], ["colorectale", "Colo-rectale"], ["primitif", "Recherche de primitif"], ["ovaire", "Ovaire"], ["hemopathie", "Hémopathie"], ["poumon", "Poumon"], ["thyroide", "Thyroïde"], ["seminome", "Séminome"], ["autre", "Autre"]];
+const TEP_INTERET = [["diagnostic", "Diagnostic de malignité"], ["stadification", "Stadification"], ["surveillance", "Surveillance de l'efficacité du traitement"], ["recidive_syst", "Recherche systématique de récidive"], ["image_anormale", "Image anormale ou douteuse en imagerie"], ["masse_residuelle", "Masse résiduelle"], ["marqueur", "Élévation isolée du marqueur"], ["preop_recidive", "Bilan pré-opératoire d'une récidive connue"], ["autre", "Autre"]];
+
+/** TEP-TDM (médecine nucléaire — Gui de Chauliac). */
+function renderDemandeTep(o, ctx) {
+  const titre = IMAGERIE_TITRES.tep;
+  const p = ctx.patient;
+  const med = ctx.medecin;
+  const multi = (list, sel) => list.map(([k, l]) => `<div style="display:flex; gap:6px; align-items:baseline; margin-top:2px;">${chk((sel || []).includes(k))}<span>${l}</span></div>`).join("");
+  const body = `
+  <div style="text-align:center; ${F}">
+    <div style="font-weight:800; font-size:15px; color:#0d2b45;">MÉDECINE NUCLÉAIRE — Hôpital Gui de Chauliac</div>
+    <div style="font-size:10.5px; color:#4a5b68;">80 av. Augustin Fliche — 34295 Montpellier Cedex 5 · Tél 04 67 33 02 06</div>
+    <div style="display:inline-block; font-weight:800; font-size:15px; color:#0d2b45; border-bottom:3px solid #EF7D00; padding-bottom:3px; margin-top:8px;">${titre}</div>
+    <div style="font-size:11px; color:#C0392B; font-weight:700; margin-top:3px;">À faxer au 04 67 33 69 22 — Date de la demande : ${ctx.dateDoc ? esc(frDate(ctx.dateDoc)) : "____ / ____ / 20____"}</div>
+  </div>
+  <div style="display:flex; gap:10px; margin-top:8px;">
+    ${fbox(boxTitle("Patient") + `<div style="padding:4px 10px 7px; ${F} font-size:10.5px;">
+      ${fline("Nom :", p?.nom ? esc(p.nom.toUpperCase()) : "")}
+      ${fline("Prénom :", esc(p?.prenom || ""))}
+      <div style="display:flex; gap:10px;"><span style="flex:1;">${fline("Né(e) le :", p?.ddn ? esc(frDate(p.ddn)) : "")}</span><span style="flex:1;">${fline("Tél :", esc(o.telPatient || ""))}</span></div>
+      ${fline("Adresse :", "")}
+      <div style="margin-top:4px;">${chk(o.statut !== "externe")} Patient hospitalisé (CHU de Montpellier) &nbsp;&nbsp;${chk(o.statut === "externe")} Patient externe</div>
+    </div>`, "flex:1;")}
+    ${fbox(boxTitle("Médecin demandeur") + `<div style="padding:4px 10px 7px; ${F} font-size:10.5px;">
+      ${fline("Identité :", med ? esc(med.nom) : "")}
+      ${fline("Spécialité :", med ? esc(med.specialite || "Hépato-Gastroentérologie") : "")}
+      ${fline("Adresse :", "CHU de Montpellier — Hôpital Saint-Éloi")}
+      <div style="display:flex; gap:10px;"><span style="flex:1;">${fline("Tél :", esc(med?.tel || ""))}</span><span style="flex:1;">${fline("Fax :", esc(med?.fax || ""))}</span></div>
+      ${fline("E-mail :", esc(med?.mail || ""))}
+    </div>`, "flex:1;")}
+  </div>
+  <div style="display:flex; gap:10px; margin-top:8px;">
+    ${fbox(boxTitle("Cadre de prescription") + `<div style="padding:3px 10px 7px; ${F} font-size:10.5px;">${multi(TEP_CADRE, o.cadre ? [o.cadre] : [])}</div>`, "flex:1;")}
+    ${fbox(boxTitle("Localisation") + `<div style="padding:3px 10px 7px; ${F} font-size:10.5px;">${multi(TEP_LOC, o.localisation)}${o.localisationAutre ? `<div style="margin-top:2px; font-weight:600;">→ ${esc(o.localisationAutre)}</div>` : ""}</div>`, "flex:1;")}
+    ${fbox(boxTitle("Intérêt de la TEP") + `<div style="padding:3px 10px 7px; ${F} font-size:10.5px;">${multi(TEP_INTERET, o.interet)}</div>`, "flex:1.2;")}
+  </div>
+  ${fbox(`<div style="padding:5px 10px 7px; ${F} font-size:10.5px;">
+    <div><strong>TEP déjà réalisée :</strong> ${on3(o.tepDeja)} &nbsp; ${inline("Si oui, date et lieu :", esc(o.tepDejaDetail || ""), 160)}</div>
+  </div>`, "margin-top:8px;")}
+  ${fbox(boxTitle("Histologie et commentaires") + `<div style="padding:5px 10px 8px; ${F} font-size:11px; min-height:44px; white-space:pre-wrap; line-height:1.5;">${esc(o.indications || "")}</div>`, "margin-top:8px;")}
+  ${fbox(boxTitle("Traitements antérieurs & stratégie") + `<div style="padding:4px 10px 7px; ${F} font-size:10.5px; line-height:1.6;">
+    <div>${chk(!!o.ttAucun)} Aucun &nbsp;·&nbsp; ${inline("Chirurgie tumorale — date :", esc(o.ttChirurgie || ""), 70)} &nbsp;·&nbsp; ${inline("Chimiothérapie — dernière cure :", esc(o.ttChimio || ""), 70)} &nbsp;·&nbsp; ${inline("Radiothérapie — dernière séance :", esc(o.ttRadio || ""), 70)}</div>
+    <div style="margin-top:3px;"><strong>Stratégie thérapeutique avant TEP :</strong> ${[["radiotherapie", "Radiothérapie"], ["chirurgie", "Chirurgie"], ["chimiotherapie", "Chimiothérapie"], ["surveillance", "Surveillance"]].map(([k, l]) => `${chk((o.strategie || []).includes(k))} ${l}`).join("&nbsp;&nbsp;")}</div>
+  </div>`, "margin-top:8px;")}
+  ${fbox(`<div style="padding:5px 10px 7px; ${F} font-size:10.5px; line-height:1.6;">
+    <div>${inline("Poids :", esc(o.poids || ""), 45)} kg &nbsp;·&nbsp; ${inline("Taille :", esc(o.taille || ""), 45)} cm &nbsp;·&nbsp; <strong>Diabète :</strong> ${chk(o.diabete === "oui")} OUI ${chk(o.diabete !== "oui")} NON &nbsp; ${inline("si oui, glycémie à jeun :", esc(o.glycemie || ""), 55)}</div>
+    <div style="margin-top:3px;"><strong>Grossesse :</strong> ${chk(o.grossesse === "oui")} OUI ${chk(o.grossesse !== "oui")} NON &nbsp;·&nbsp; <strong>Allaitement :</strong> ${chk(o.allaitement === "oui")} OUI ${chk(o.allaitement !== "oui")} NON</div>
+    ${fline("Pathologie infectieuse ? Préciser :", esc(o.pathoInf || ""))}
+    ${fline("Chirurgie non oncologique (localisation et date) :", esc(o.chirNonOnco || ""))}
+    ${fline("Date ou délai du rendez-vous souhaité :", esc(o.dateSouhaitee || ""))}
+  </div>`, "margin-top:8px;")}
+  ${fbox(`<div style="padding:5px 10px 7px; ${F} font-size:10.5px; color:#4a5b68;">RDV FIXÉ LE ${inline("", "", 90)} à ${inline("", "", 45)} h — heure d'arrivée du patient dans le service</div>`, "margin-top:8px; break-inside:avoid;")}`;
+  return demandeSection(body, "Demande TEP-TDM · Médecine nucléaire");
+}
+
+/** Point d'entrée demandes d'imagerie. */
+export function renderDemandeImagerie(kind, o, ctx) {
+  if (kind === "echo" || kind === "radio") return renderDemandeEchoRadio(kind, o, ctx);
+  if (kind === "tdm") return renderDemandeTdm(o, ctx);
+  if (kind === "irm") return renderDemandeIrm(o, ctx);
+  if (kind === "interv") return renderDemandeInterv(o, ctx);
+  if (kind === "tep") return renderDemandeTep(o, ctx);
+  throw new Error("Type de demande inconnu : " + kind);
+}
+
+// ---------------------------------------------------------------------------
 // Fiches illustrées (pages A4 à gabarit fixe) — chargées à la demande
 // ---------------------------------------------------------------------------
 
@@ -648,6 +931,7 @@ export async function assembleDocs(items, ctx) {
     else if (it.type === "ordo") parts.push(renderOrdo(it.key, ctx));
     else if (it.type === "ordolibre") parts.push(renderOrdoLibre(it.opts, ctx));
     else if (it.type === "demande-endo") parts.push(renderDemandeEndoscopie(it.opts, ctx));
+    else if (it.type === "demande-imagerie") parts.push(renderDemandeImagerie(it.kind, it.opts, ctx));
     else if (it.type === "fiche") parts.push(await renderFiche(it.key, ctx));
   }
   return parts.join("\n");

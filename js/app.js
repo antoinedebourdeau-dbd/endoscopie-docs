@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "2.4";
+export const APP_VERSION = "2.5";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -202,8 +202,12 @@ function selectedItems() {
   const items = [];
   const ol = ordoLibreItem();
   if (ol) items.push(ol);
-  for (const d of demandes)
-    if (d.type === "endo") items.push({ id: d.id, type: "demande-endo", opts: { ...d.opts, telPatient: $("#pt-tel").value.trim() } });
+  for (const d of demandes) {
+    if (!d.type) continue;
+    const opts = { ...d.opts, telPatient: $("#pt-tel").value.trim(), dialyse: d.opts.dialyse === "1" || d.opts.dialyse === true };
+    if (d.type === "endo") items.push({ id: d.id, type: "demande-endo", opts });
+    else items.push({ id: d.id, type: "demande-imagerie", kind: d.type, opts });
+  }
   for (const g of CATALOG) for (const it of g.items) if (selection.has(it.id)) items.push(it);
   return items;
 }
@@ -335,6 +339,7 @@ const MAIL_DEFAULTS = {
   endo: "endoscopie.ste@chu-montpellier.fr",
   explo: "explo-dig-ad@chu-montpellier.fr",
   radio_ste: "radiologie-ste@chu-montpellier.fr",
+  tep: "medecinenucleairelap@chu-montpellier.fr",
 };
 const TPL_DEMANDE_DEFAUT = `Bonjour,
 
@@ -379,6 +384,7 @@ function fillTpl(tpl, vars) {
 function openMailModal() {
   const c = mailCfg();
   $("#mc-endo").value = c.endo; $("#mc-explo").value = c.explo; $("#mc-radio-ste").value = c.radio_ste;
+  $("#mc-tep").value = c.tep;
   $("#mc-tpl-demande").value = c.tplDemande;
   $("#mc-tpl-patient").value = c.tplPatient;
   openModal("#modal-mails");
@@ -386,6 +392,7 @@ function openMailModal() {
 $("#mc-save").addEventListener("click", () => {
   localStorage.setItem(MAIL_KEY, JSON.stringify({
     endo: $("#mc-endo").value.trim(), explo: $("#mc-explo").value.trim(), radio_ste: $("#mc-radio-ste").value.trim(),
+    tep: $("#mc-tep").value.trim(),
     tplDemande: $("#mc-tpl-demande").value, tplPatient: $("#mc-tpl-patient").value,
   }));
   closeModals();
@@ -486,12 +493,19 @@ function mailVars(extra = {}) {
 
 function mailTexts(d) {
   const p = currentPatient();
-  const exLbls = d.opts.examens.map((k) => (EXAMENS_ENDO_UI.find(([kk]) => kk === k) || [])[1]).filter(Boolean);
-  const delaiLbl = { urgent48: "Urgent ++ (< 48 h)", urgent7: "Urgent (< 7 jours)", semi15: "Semi-urgent (< 15 jours)", autre: d.opts.delaiAutre || "autre" }[d.opts.delai];
-  const sujet = `Demande d'examen endoscopique — ${[p?.nom?.toUpperCase(), p?.prenom].filter(Boolean).join(" ") || "patient"}`;
-  const corps = fillTpl(mailCfg().tplDemande, mailVars({ examens: exLbls.join(", ") || "—", delai: delaiLbl }));
-  const fichier = `Demande endoscopie - ${[p?.nom?.toUpperCase(), p?.prenom].filter(Boolean).join(" ") || "patient"}.pdf`
-    .replace(/[\/\\:*?"<>|]/g, "");
+  const nomAff = [p?.nom?.toUpperCase(), p?.prenom].filter(Boolean).join(" ") || "patient";
+  let examens, delai;
+  if (d.type === "endo") {
+    examens = d.opts.examens.map((k) => (EXAMENS_ENDO_UI.find(([kk]) => kk === k) || [])[1]).filter(Boolean).join(", ") || "—";
+    delai = { urgent48: "Urgent ++ (< 48 h)", urgent7: "Urgent (< 7 jours)", semi15: "Semi-urgent (< 15 jours)", autre: d.opts.delaiAutre || "autre" }[d.opts.delai];
+  } else {
+    examens = `${DEM_LABELS[d.type]}${d.opts.examen ? " — " + d.opts.examen : ""}`;
+    delai = d.opts.dateSouhaitee || "—";
+  }
+  const sujet = `Demande ${DEM_MAIL_LABEL[d.type]} — ${nomAff}`;
+  const corps = fillTpl(mailCfg().tplDemande, mailVars({ examens, delai }))
+    .replace("demande d'examen endoscopique", `demande ${DEM_MAIL_LABEL[d.type] === "examen endoscopique" ? "d'examen endoscopique" : "d'" + DEM_MAIL_LABEL[d.type]}`);
+  const fichier = `Demande ${DEM_LABELS[d.type]} - ${nomAff}.pdf`.replace(/[\/\\:*?"<>|]/g, "");
   return { sujet, corps, fichier };
 }
 
@@ -598,7 +612,9 @@ async function downloadEml(to, sujet, corps, pdfBlob, fichierPdf) {
 async function buildDemandeJob(d) {
   const to = (d.opts.sendTo || mailCfg().endo).trim();
   const { sujet, corps, fichier } = mailTexts(d);
-  const item = { type: "demande-endo", opts: { ...d.opts, telPatient: $("#pt-tel").value.trim() } };
+  const item = d.type === "endo"
+    ? { type: "demande-endo", opts: { ...d.opts, telPatient: $("#pt-tel").value.trim() } }
+    : { type: "demande-imagerie", kind: d.type, opts: { ...d.opts, telPatient: $("#pt-tel").value.trim(), dialyse: d.opts.dialyse === "1" || d.opts.dialyse === true } };
   const { blob } = await docsToPdf([item], demandeCtx(), fichier);
   return { label: sujet, to, sujet, corps, fichier, blob };
 }
@@ -698,35 +714,201 @@ const EXAMENS_ENDO_UI = [
   ["gep", "GEP"], ["biopsie_transjug", "Biopsie hép. transjugulaire"],
 ];
 
-function newDemande() {
-  const d = {
-    id: "dem" + (++demandeSeq),
-    type: null, // choisi à l'étape 1
-    opts: {
-      examens: [], gepMode: "pose", actes: "", indications: "",
-      delai: "semi15", delaiAutre: "", hospit: "hdj", hdjService: "Gastro", hospJ: "J0",
-      ag: "oui", infosPatient: "oui",
-      service: "Hépato-Gastroentérologie", uf: "", telDemandeur: "",
-      crit: {}, iso: "", isoAutre: "", cjd: "non",
-      antico: "", anticoStop: "", antiagreg: "", antiagregStop: "", tp: "", plaquettes: "",
-      sendTo: mailCfg().endo, sendMail: false,
-    },
+const DEM_LABELS = {
+  endo: "Endoscopie digestive", echo: "Échographie / Doppler", radio: "Radiographie",
+  tdm: "Scanner (TDM)", irm: "IRM", interv: "Radio interventionnelle", tep: "TEP-TDM (méd. nucléaire)",
+};
+const DEM_MAIL_LABEL = {
+  endo: "examen endoscopique", echo: "échographie / doppler", radio: "examen de radiologie",
+  tdm: "scanner (TDM)", irm: "IRM", interv: "examen de radiologie interventionnelle", tep: "TEP-TDM",
+};
+
+function initDemandeOpts(type) {
+  const commun = { service: "Hépato-Gastroentérologie", uf: "", telDemandeur: "", sendMail: false };
+  if (type === "endo") return {
+    ...commun, examens: [], gepMode: "pose", actes: "", indications: "",
+    delai: "semi15", delaiAutre: "", hospit: "hdj", hdjService: "Gastro", hospJ: "J0",
+    ag: "oui", infosPatient: "oui",
+    crit: {}, iso: "", isoAutre: "", cjd: "non",
+    antico: "", anticoStop: "", antiagreg: "", antiagregStop: "", tp: "", plaquettes: "",
+    sendTo: mailCfg().endo,
   };
+  // Imagerie — site Saint Eloi par défaut, contre-indications « non » par défaut
+  const img = { ...commun, site: "steloi", examen: "", indications: "", sendTo: type === "tep" ? mailCfg().tep : mailCfg().radio_ste };
+  if (type === "echo" || type === "radio") return { ...img, lit: "non", transport: "valide", risqueInf: "non", risqueInfType: "", autonomie: "" };
+  if (type === "tdm") return { ...img, asthme: "non", reactionPci: "non", risqueInf: "non", risqueInfType: "", diabete: "non", ir: "non", creat: "", dialyse: false, betabloquants: "non", grossesse: "non", gammapathie: "non", ag: "non", mobilite: "normale", dateSouhaitee: "" };
+  if (type === "irm") return { ...img, gado: "non", grossesse: "non", risqueInf: "non", risqueInfType: "", ir: "non", creat: "", clairance: "", materiel: {}, mobilite: "normale", cooperation: "" };
+  if (type === "interv") return { ...img, bilanDate: "", tp: "", plaquettes: "", antico: "non", antiagreg: "non", ag: "non", agDate: "", reactionPci: "non", asthme: "non", diabete: "non", ir: "non", creat: "", dialyse: false, betabloquants: "non" };
+  if (type === "tep") return { ...img, statut: "hospitalise", cadre: "amm", localisation: [], localisationAutre: "", interet: [], tepDeja: "non", tepDejaDetail: "", ttAucun: false, ttChirurgie: "", ttChimio: "", ttRadio: "", strategie: [], poids: "", taille: "", diabete: "non", glycemie: "", grossesse: "non", allaitement: "non", pathoInf: "", chirNonOnco: "", dateSouhaitee: "" };
+  return img;
+}
+
+function newDemande() {
+  const d = { id: "dem" + (++demandeSeq), type: null, opts: {} };
   demandes.push(d);
   renderDemandes();
+}
+
+const SITES_UI = {
+  echo: [["steloi", "Saint Eloi"], ["adv", "ADV"], ["lapeyronie", "Lapeyronie"], ["radioped", "Radiopédiatrie ADV"], ["guichauliac", "Neuroradio Gui de Chauliac"], ["balmes", "Balmès / La Colombière"]],
+  tdm4: [["steloi", "Saint Eloi"], ["adv", "ADV"], ["lapeyronie", "Lapeyronie"], ["guichauliac", "Neuroradio Gui de Chauliac"]],
+};
+
+function demandeCardImagerie(d) {
+  const o = d.opts;
+  const sel = (k, options, val) =>
+    `<select data-d="${d.id}" data-k="${k}">${options.map(([v, l]) => `<option value="${v}" ${val === v ? "selected" : ""}>${l}</option>`).join("")}</select>`;
+  const inp = (k, val, ph = "") =>
+    `<input type="text" data-d="${d.id}" data-k="${k}" value="${(val || "").replace(/"/g, "&quot;")}" placeholder="${ph}">`;
+  const nonOui = (k, val, label) =>
+    `<label class="field"><span class="lbl">${label}</span>${sel(k, [["non", "NON"], ["oui", "OUI"]], val)}</label>`;
+  const t = d.type;
+
+  // site (pas pour interventionnel ni TEP)
+  const siteRow = (t === "echo" || t === "radio")
+    ? `<label class="field"><span class="lbl">Site de réalisation</span>${sel("site", SITES_UI.echo, o.site)}</label>`
+    : (t === "tdm" || t === "irm")
+      ? `<label class="field"><span class="lbl">Site de réalisation</span>${sel("site", SITES_UI.tdm4, o.site)}</label>`
+      : "";
+
+  const examenRow = t === "tep" ? "" :
+    `<label class="field"><span class="lbl">${t === "tdm" || t === "irm" ? "Région anatomique à explorer *" : "Examen demandé *"}</span>${inp("examen", o.examen, t === "interv" ? "ex. drainage biliaire, TIPS, chimio-embolisation…" : "")}</label>`;
+
+  const indicRow = `<label class="field"><span class="lbl">${t === "tep" ? "Histologie et commentaires *" : "Indication / contexte clinique *"}</span>
+    <textarea data-d="${d.id}" data-k="indications" rows="3">${o.indications || ""}</textarea></label>`;
+
+  const isoRows = `
+    ${nonOui("risqueInf", o.risqueInf, "Risque infectieux / isolement")}
+    ${o.risqueInf === "oui" ? `<label class="field"><span class="lbl">Type de contamination</span>${sel("risqueInfType", [["", "—"], ["contact", "Contact"], ["air", "Air"], ["gouttelettes", "Gouttelettes"]], o.risqueInfType)}</label>` : "<span></span>"}`;
+
+  let specifics = "";
+  if (t === "echo" || t === "radio") {
+    specifics = `<div class="grid2">
+      ${nonOui("lit", o.lit, "Examen au lit du patient")}
+      <label class="field"><span class="lbl">Transport</span>${sel("transport", [["valide", "Patient valide"], ["fauteuil", "Fauteuil"], ["brancard", "Brancard"], ["litT", "Lit"]], o.transport)}</label>
+      ${isoRows}
+      <label class="field" style="grid-column:1 / -1;"><span class="lbl">Autonomie relationnelle (confus…)</span>${inp("autonomie", o.autonomie)}</label>
+    </div>`;
+  } else if (t === "tdm") {
+    specifics = `<details><summary style="cursor:pointer; font-size:12.5px; font-weight:700; color:var(--rouge);">Préalables TDM obligatoires (par défaut : tout à NON)</summary>
+      <div class="grid2" style="margin-top:6px;">
+        ${nonOui("asthme", o.asthme, "Asthme non équilibré (< 8 j)")}
+        ${nonOui("reactionPci", o.reactionPci, "Réaction sévère PCI antérieure")}
+        ${isoRows}
+        ${nonOui("diabete", o.diabete, "Diabète (METFORMINE : arrêt)")}
+        ${nonOui("ir", o.ir, "Insuffisance rénale")}
+        ${o.ir === "oui" ? `<label class="field"><span class="lbl">Créatininémie (µmol/L)</span>${inp("creat", o.creat)}</label><label class="field"><span class="lbl">Dialysé</span>${sel("dialyse", [["", "NON"], ["1", "OUI"]], o.dialyse ? "1" : "")}</label>` : ""}
+        ${nonOui("betabloquants", o.betabloquants, "Bêta-bloquants")}
+        ${nonOui("grossesse", o.grossesse, "Grossesse")}
+        ${nonOui("gammapathie", o.gammapathie, "Gammapathie (myélome)")}
+        ${nonOui("ag", o.ag, "Anesthésie générale")}
+        <label class="field"><span class="lbl">Mobilité</span>${sel("mobilite", [["normale", "Normale"], ["fauteuil", "Fauteuil"], ["brancard", "Brancard"]], o.mobilite)}</label>
+        <label class="field"><span class="lbl">Date souhaitée (texte libre)</span>${inp("dateSouhaitee", o.dateSouhaitee)}</label>
+      </div>
+    </details>`;
+  } else if (t === "irm") {
+    specifics = `<details><summary style="cursor:pointer; font-size:12.5px; font-weight:700; color:var(--rouge);">Préalables & contre-indications IRM (par défaut : tout à NON)</summary>
+      <div class="grid2" style="margin-top:6px;">
+        ${nonOui("gado", o.gado, "Allergie au gadolinium")}
+        ${nonOui("grossesse", o.grossesse, "Grossesse / allaitement")}
+        ${isoRows}
+        ${nonOui("ir", o.ir, "Insuffisance rénale")}
+        ${o.ir === "oui" ? `<label class="field"><span class="lbl">Créatininémie</span>${inp("creat", o.creat)}</label><label class="field"><span class="lbl">Clairance</span>${inp("clairance", o.clairance)}</label>` : ""}
+        <label class="field"><span class="lbl">Mobilité</span>${sel("mobilite", [["normale", "Normale"], ["fauteuil", "Fauteuil"], ["brancard", "Brancard"]], o.mobilite)}</label>
+        <label class="field"><span class="lbl">Coopération prévisible</span>${sel("cooperation", [["", "—"], ["claustro", "Claustrophobie"], ["ag", "Anesthésie générale"], ["ag_enfant", "AG enfant"]], o.cooperation)}</label>
+      </div>
+      <div class="hint" style="margin:6px 0 4px;"><strong>Matériel présent</strong> — cocher uniquement si OUI, préciser localisation/référence :</div>
+      ${[["stimulateur", "Stimulateur cardiaque"], ["neuro", "Neurostimulateur"], ["clips", "Clips / structures métalliques / agrafes"], ["valves", "Valves cardiaques / matériel endo-vasculaire"], ["protheses_aud", "Prothèses auditives ou dentaires"], ["autres_protheses", "Autres prothèses"], ["osteo", "Matériel d'ostéosynthèse"], ["metaux", "Travailleur métaux / corps étrangers oculaires"], ["rea", "Matériel de réanimation"]].map(([k, l]) => `
+        <div style="display:flex; gap:6px; align-items:center; margin-top:3px;">
+          <input type="checkbox" data-d="${d.id}" data-mat="${k}" ${o.materiel[k] !== undefined && o.materiel[k] !== "" ? "checked" : ""} style="flex:none; accent-color:var(--bleu);">
+          <span style="flex:1.4; font-size:12px;">${l}</span>
+          ${o.materiel[k] !== undefined && o.materiel[k] !== "" ? `<input type="text" data-d="${d.id}" data-matloc="${k}" value="${(o.materiel[k] === true ? "" : o.materiel[k] || "").replace(/"/g, "&quot;")}" placeholder="localisation / référence" style="flex:1;">` : ""}
+        </div>`).join("")}
+    </details>`;
+  } else if (t === "interv") {
+    specifics = `<details open><summary style="cursor:pointer; font-size:12.5px; font-weight:700; color:var(--rouge);">Bilan de coagulation & préalables (obligatoire)</summary>
+      <div class="grid2" style="margin-top:6px;">
+        <label class="field"><span class="lbl">Date du bilan de coagulation</span>${inp("bilanDate", o.bilanDate)}</label>
+        <span></span>
+        <label class="field"><span class="lbl">TP</span>${inp("tp", o.tp)}</label>
+        <label class="field"><span class="lbl">Plaquettes</span>${inp("plaquettes", o.plaquettes)}</label>
+        ${nonOui("antico", o.antico, "Anticoagulant")}
+        ${nonOui("antiagreg", o.antiagreg, "Anti-agrégants plaquettaires")}
+        ${nonOui("ag", o.ag, "Geste prévu sous AG")}
+        ${o.ag === "oui" ? `<label class="field"><span class="lbl">Date consultation AG</span>${inp("agDate", o.agDate)}</label>` : "<span></span>"}
+        ${nonOui("reactionPci", o.reactionPci, "Réaction sévère PCI antérieure")}
+        ${nonOui("asthme", o.asthme, "Asthme non équilibré (< 8 j)")}
+        ${nonOui("diabete", o.diabete, "Diabète (METFORMINE)")}
+        ${nonOui("betabloquants", o.betabloquants, "Bêta-bloquants")}
+        ${nonOui("ir", o.ir, "Insuffisance rénale")}
+        ${o.ir === "oui" ? `<label class="field"><span class="lbl">Créatininémie</span>${inp("creat", o.creat)}</label>` : "<span></span>"}
+      </div>
+    </details>`;
+  } else if (t === "tep") {
+    const multi = (k, list, sel_) => list.map(([v, l]) => `
+      <label class="doc-item" style="width:50%; padding:2px 4px;"><input type="checkbox" data-d="${d.id}" data-multi="${k}" value="${v}" ${(sel_ || []).includes(v) ? "checked" : ""}><span style="font-size:12px;">${l}</span></label>`).join("");
+    specifics = `
+      <label class="field"><span class="lbl">Cadre de prescription</span>${sel("cadre", [["amm", "Conforme AMM"], ["sor", "Standard des SOR"], ["option_sor", "Option des SOR"], ["ucp", "Décision des UCP"], ["recherche", "Recherche"]], o.cadre)}</label>
+      <div class="hint" style="margin:2px 0;">Localisation :</div>
+      <div style="display:flex; flex-wrap:wrap;">${multi("localisation", [["sein", "Sein"], ["orl", "ORL"], ["colorectale", "Colo-rectale"], ["primitif", "Recherche de primitif"], ["ovaire", "Ovaire"], ["hemopathie", "Hémopathie"], ["poumon", "Poumon"], ["thyroide", "Thyroïde"], ["seminome", "Séminome"], ["autre", "Autre"]], o.localisation)}</div>
+      ${(o.localisation || []).includes("autre") ? `<label class="field"><span class="lbl">Autre localisation</span>${inp("localisationAutre", o.localisationAutre)}</label>` : ""}
+      <div class="hint" style="margin:2px 0;">Intérêt de la TEP :</div>
+      <div style="display:flex; flex-wrap:wrap;">${multi("interet", [["diagnostic", "Diagnostic de malignité"], ["stadification", "Stadification"], ["surveillance", "Surveillance du traitement"], ["recidive_syst", "Récidive (recherche syst.)"], ["image_anormale", "Image anormale / douteuse"], ["masse_residuelle", "Masse résiduelle"], ["marqueur", "Élévation du marqueur"], ["preop_recidive", "Bilan préop. récidive"], ["autre", "Autre"]], o.interet)}</div>
+      <details><summary style="cursor:pointer; font-size:12.5px; font-weight:700; color:var(--gris);">Antécédents, traitements, biométrie</summary>
+        <div class="grid2" style="margin-top:6px;">
+          ${nonOui("tepDeja", o.tepDeja, "TEP déjà réalisée")}
+          ${o.tepDeja === "oui" ? `<label class="field"><span class="lbl">Date et lieu</span>${inp("tepDejaDetail", o.tepDejaDetail)}</label>` : "<span></span>"}
+          <label class="field"><span class="lbl">Chirurgie tumorale (date)</span>${inp("ttChirurgie", o.ttChirurgie)}</label>
+          <label class="field"><span class="lbl">Chimiothérapie (dernière cure)</span>${inp("ttChimio", o.ttChimio)}</label>
+          <label class="field"><span class="lbl">Radiothérapie (dernière séance)</span>${inp("ttRadio", o.ttRadio)}</label>
+          <label class="field"><span class="lbl">Statut patient</span>${sel("statut", [["hospitalise", "Hospitalisé (CHU)"], ["externe", "Externe"]], o.statut)}</label>
+          <label class="field"><span class="lbl">Poids (kg)</span>${inp("poids", o.poids)}</label>
+          <label class="field"><span class="lbl">Taille (cm)</span>${inp("taille", o.taille)}</label>
+          ${nonOui("diabete", o.diabete, "Diabète")}
+          ${o.diabete === "oui" ? `<label class="field"><span class="lbl">Glycémie à jeun</span>${inp("glycemie", o.glycemie)}</label>` : "<span></span>"}
+          ${nonOui("grossesse", o.grossesse, "Grossesse")}
+          ${nonOui("allaitement", o.allaitement, "Allaitement")}
+          <label class="field"><span class="lbl">Pathologie infectieuse (préciser)</span>${inp("pathoInf", o.pathoInf)}</label>
+          <label class="field"><span class="lbl">Chirurgie non oncologique</span>${inp("chirNonOnco", o.chirNonOnco)}</label>
+          <label class="field" style="grid-column:1 / -1;"><span class="lbl">Date / délai de rendez-vous souhaité</span>${inp("dateSouhaitee", o.dateSouhaitee)}</label>
+        </div>
+      </details>`;
+  }
+
+  return `
+  ${siteRow}
+  ${examenRow}
+  ${indicRow}
+  ${specifics}
+  <details style="margin-top:2px;">
+    <summary style="cursor:pointer; font-size:12.5px; color:var(--gris);">Service demandeur (pré-rempli)</summary>
+    <div class="grid2" style="margin-top:6px;">
+      <label class="field"><span class="lbl">Service</span>${inp("service", o.service)}</label>
+      <label class="field"><span class="lbl">Code UF</span>${inp("uf", o.uf)}</label>
+      <label class="field" style="grid-column:1 / -1;"><span class="lbl">Téléphone (défaut : secrétariat du médecin)</span>${inp("telDemandeur", o.telDemandeur)}</label>
+    </div>
+  </details>
+  <div style="border-top:1px solid #cfe1f0; margin-top:8px; padding-top:6px;">
+    <label class="doc-item" style="padding:2px 0;">
+      <input type="checkbox" data-d="${d.id}" data-sendmail ${o.sendMail ? "checked" : ""}>
+      <span>📧 <strong>Envoyer la demande par mail</strong> (${d.type === "tep" ? "médecine nucléaire" : "radiologie"})</span>
+    </label>
+    ${o.sendMail ? `<label class="field" style="margin-top:4px;"><span class="lbl">Envoyer à — <a href="#" data-mailcfg>⚙ paramètres</a></span>${inp("sendTo", o.sendTo)}</label>` : ""}
+  </div>
+  <div data-warn="${d.id}"></div>`;
 }
 
 function demandeCard(d) {
   if (!d.type) {
     return `<div style="margin-top:6px;">
       <div class="hint" style="margin:0 0 6px;">Quel type d'examen ?</div>
-      <div class="btnrow" style="margin:0;">
-        <button class="small" data-dtype="endo" data-d="${d.id}">Endoscopie digestive</button>
-        <button class="subtle small" disabled title="Bientôt disponible">Radiologie (bientôt)</button>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+        ${Object.entries(DEM_LABELS).map(([k, l]) => `<button class="small" data-dtype="${k}" data-d="${d.id}">${l}</button>`).join("")}
         <button class="subtle small" disabled title="Bientôt disponible">Explorations fonct. (bientôt)</button>
       </div>
     </div>`;
   }
+  if (d.type !== "endo") return demandeCardImagerie(d);
   const o = d.opts;
   const ex = EXAMENS_ENDO_UI.map(([k, lbl]) => `
     <label class="doc-item" style="width:50%; padding:2px 4px;">
@@ -814,11 +996,22 @@ function refreshDemandeWarnings() {
 
 function renderDemandes() {
   const root = $("#demandes");
+  // mémorise les sections dépliées de chaque carte (le re-rendu les refermerait)
+  const openMap = {};
+  root.querySelectorAll("[data-card]").forEach((card) => {
+    openMap[card.dataset.card] = [...card.querySelectorAll("details")].map((dt) => dt.open);
+  });
   root.innerHTML = demandes.map((d) => {
-    const exLbls = d.opts.examens.map((k) => (EXAMENS_ENDO_UI.find(([kk]) => kk === k) || [])[1]).filter(Boolean);
+    let resume = "";
+    if (d.type === "endo") {
+      const exLbls = (d.opts.examens || []).map((k) => (EXAMENS_ENDO_UI.find(([kk]) => kk === k) || [])[1]).filter(Boolean);
+      resume = " — " + (exLbls.join(", ") || "endoscopie");
+    } else if (d.type) {
+      resume = " — " + DEM_LABELS[d.type] + (d.opts.examen ? " · " + d.opts.examen : "");
+    }
     return `<div style="border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:var(--bleu-pale);" data-card="${d.id}">
       <div style="display:flex; align-items:center; gap:8px;">
-        <strong style="flex:1; font-size:13px;">🩺 Demande d'examen${d.type ? " — " + (exLbls.join(", ") || "endoscopie") : ""}</strong>
+        <strong style="flex:1; font-size:13px;">🩺 Demande d'examen${resume}</strong>
         <button class="subtle small" data-del-dem="${d.id}">✕ retirer</button>
       </div>
       ${demandeCard(d)}
@@ -827,8 +1020,10 @@ function renderDemandes() {
 
   // structure : choix du type / suppression (re-render nécessaire)
   root.querySelectorAll("[data-dtype]").forEach((b) => b.addEventListener("click", () => {
-    demandes.find((x) => x.id === b.dataset.d).type = b.dataset.dtype;
-    renderDemandes(); refreshSoon();
+    const d = demandes.find((x) => x.id === b.dataset.d);
+    d.type = b.dataset.dtype;
+    d.opts = initDemandeOpts(d.type);
+    renderDemandes(); updateEmailButton(); refreshSoon();
   }));
   root.querySelectorAll("[data-del-dem]").forEach((b) => b.addEventListener("click", () => {
     demandes.splice(demandes.findIndex((x) => x.id === b.dataset.delDem), 1);
@@ -843,6 +1038,12 @@ function renderDemandes() {
     e.preventDefault(); e.stopPropagation();
     openMailModal();
   }));
+
+  // restaure les sections dépliées
+  root.querySelectorAll("[data-card]").forEach((card) => {
+    const states = openMap[card.dataset.card];
+    if (states) [...card.querySelectorAll("details")].forEach((dt, i) => { if (states[i]) dt.open = true; });
+  });
 
   refreshDemandeWarnings();
 }
@@ -859,13 +1060,24 @@ $("#demandes").addEventListener("input", (e) => {
     t.checked ? set.add(t.dataset.ex) : set.delete(t.dataset.ex);
     d.opts.examens = [...set];
   }
+  if (t.dataset.multi) {
+    const set = new Set(d.opts[t.dataset.multi] || []);
+    t.checked ? set.add(t.value) : set.delete(t.value);
+    d.opts[t.dataset.multi] = [...set];
+  }
+  if (t.dataset.mat) {
+    if (t.checked) d.opts.materiel[t.dataset.mat] = d.opts.materiel[t.dataset.mat] || " ";
+    else delete d.opts.materiel[t.dataset.mat];
+  }
+  if (t.dataset.matloc) d.opts.materiel[t.dataset.matloc] = t.value;
   refreshDemandeWarnings();
   refreshSoon();
 });
 $("#demandes").addEventListener("change", (e) => {
   const t = e.target, d = demandes.find((x) => x.id === t.dataset.d);
   if (!d) return;
-  if (t.dataset.ex || ["delai", "hospit", "iso"].includes(t.dataset.k || "")) renderDemandes();
+  if (t.dataset.ex || t.dataset.mat || t.dataset.multi ||
+      ["delai", "hospit", "iso", "risqueInf", "ir", "ag", "diabete", "tepDeja"].includes(t.dataset.k || "")) renderDemandes();
 });
 
 $("#btn-create-demande").addEventListener("click", () => {
@@ -968,10 +1180,22 @@ $("#btn-save-parcours").addEventListener("click", () => {
 // -------------------------------------------------- validation douce demandes
 function demandeWarnings(d) {
   const w = [], o = d.opts;
-  if (!o.examens.length) w.push("aucun examen coché");
-  if (!o.indications.trim()) w.push("indications non renseignées");
-  if (o.ag === "oui" && o.hospit === "externe") w.push("AG cochée avec hospitalisation « Externe » (réservée aux examens sans AG)");
-  if (o.infosPatient === "non") w.push("informations non délivrées au patient (le consentement doit être joint)");
+  if (d.type === "endo") {
+    if (!o.examens.length) w.push("aucun examen coché");
+    if (!o.indications.trim()) w.push("indications non renseignées");
+    if (o.ag === "oui" && o.hospit === "externe") w.push("AG cochée avec hospitalisation « Externe » (réservée aux examens sans AG)");
+    if (o.infosPatient === "non") w.push("informations non délivrées au patient (le consentement doit être joint)");
+    return w;
+  }
+  if (d.type === "tep") {
+    if (!(o.localisation || []).length) w.push("localisation non cochée");
+    if (!(o.interet || []).length) w.push("intérêt de la TEP non coché");
+    if (!o.indications.trim()) w.push("histologie / commentaires non renseignés");
+    return w;
+  }
+  if (!o.examen.trim()) w.push(d.type === "tdm" || d.type === "irm" ? "région anatomique non renseignée" : "examen demandé non renseigné");
+  if (!o.indications.trim()) w.push("indication / contexte clinique non renseigné");
+  if (d.type === "interv" && (!o.tp.trim() || !o.plaquettes.trim())) w.push("bilan de coagulation incomplet (TP / plaquettes)");
   return w;
 }
 
@@ -1180,6 +1404,7 @@ function itemLabel(it) {
     const ex = (it.opts.examens || []).map((k) => (EXAMENS_ENDO_UI.find(([kk]) => kk === k) || [])[1]).filter(Boolean);
     return "Demande d'examen — " + (ex.join(", ") || "endoscopie");
   }
+  if (it.type === "demande-imagerie") return "Demande — " + DEM_LABELS[it.kind] + (it.opts.examen ? " · " + it.opts.examen : "");
   return "Document";
 }
 
