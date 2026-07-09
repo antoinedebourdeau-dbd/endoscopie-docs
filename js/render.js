@@ -261,10 +261,13 @@ function ordoTokens(ctx) {
   return {
     "@@MED_NOM@@": med ? esc(med.nom) : `Dr&nbsp;${dotted(170)}`,
     "@@MED_SPEC@@": med ? esc(med.specialite || "Hépato-Gastroentérologie") : "Hépato-Gastroentérologie",
-    "@@MED_TEL_LINE@@":
-      (med?.tel
-        ? `Secrétariat : ${esc(med.tel)}${med.fax ? ` · Fax : ${esc(med.fax)}` : ""}`
-        : `Secrétariat : ${esc(svc.tel)}`) + (med?.mail ? `<br>${esc(med.mail)}` : ""),
+    "@@MED_TEL_LINE@@": med
+      ? [
+          med.tel ? `Secrétariat : ${esc(med.tel)}` : `Secrétariat : ${esc(svc.tel)}`,
+          med.fax ? `Fax : ${esc(med.fax)}` : "",
+          med.mail ? `E-mail : <strong>${esc(med.mail)}</strong>` : "",
+        ].filter(Boolean).join("<br>")
+      : `Secrétariat : ${esc(svc.tel)}<br>E-mail : ${esc(svc.mail)}`,
     "@@RPPS_BLOCK@@": med?.rpps
       ? `<div style="display:flex; align-items:center; gap:8px; margin-top:6px;">${code128svg(med.rpps)}<span style="${F} font-size:10px; color:#4a5b68;">RPPS ${esc(med.rpps)}</span></div>`
       : `<div style="margin-top:6px; border:1.5px dashed #9db4c6; border-radius:6px; padding:8px 10px; ${F} font-size:10px; color:#8a9aa8; width:190px; text-align:center;">RPPS — tampon du prescripteur</div>`,
