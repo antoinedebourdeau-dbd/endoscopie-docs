@@ -101,6 +101,10 @@
     <div class="panel" id="panel-patient">
       <h2><span class="step">3</span> Patient <span style="color:var(--gris-clair); font-weight:600; text-transform:none; letter-spacing:0;">(optionnel)</span></h2>
       <div class="grid2">
+        <label class="field"><span class="lbl">Civilité</span>
+          <select id="pt-civ"><option value=""></option><option value="M.">M.</option><option value="Mme">Mme</option></select>
+        </label>
+        <span></span>
         <label class="field"><span class="lbl">Nom</span><input type="text" id="pt-nom" autocomplete="off"></label>
         <label class="field"><span class="lbl">Prénom</span><input type="text" id="pt-prenom" autocomplete="off"></label>
         <label class="field"><span class="lbl">Date de naissance</span><input type="date" id="pt-ddn"></label>
@@ -219,6 +223,24 @@
     </div>
   </div>
 </div>
+
+<!-- ============================== MODALE E-MAILS D'ENVOI ============================== -->
+<div class="modal-back no-print" id="modal-mails">
+  <div class="modal">
+    <button class="modal-close" data-close>✕</button>
+    <h3>E-mails d'envoi des demandes</h3>
+    <div class="mhint">Adresses des secrétariats destinataires, par type de demande. Modifiables à tout moment ; chaque demande peut aussi être adressée ponctuellement à une autre adresse (champ « Envoyer à » de la demande).</div>
+    <label class="field"><span class="lbl">Endoscopie digestive</span><input type="text" id="mc-endo"></label>
+    <label class="field"><span class="lbl">Explorations fonctionnelles</span><input type="text" id="mc-explo"></label>
+    <label class="field"><span class="lbl">Radiologie — Saint-Éloi</span><input type="text" id="mc-radio-ste"></label>
+    <div class="btnrow">
+      <button id="mc-save">Enregistrer</button>
+      <button class="subtle" id="mc-defaults">Rétablir les adresses par défaut</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:200; background:var(--bleu-fonce); color:#fff; border-radius:12px; padding:12px 20px; font:600 13.5px 'Barlow',sans-serif; box-shadow:0 8px 30px rgba(13,43,69,.4); max-width:520px; line-height:1.45;"></div>
 
 <input type="file" id="file-input" accept="application/json,.json" style="display:none;">
 

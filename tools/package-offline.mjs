@@ -22,7 +22,9 @@ mkdirSync(STAGE, { recursive: true });
 // Assets
 cpSync(join(ROOT, "img"), join(STAGE, "img"), { recursive: true });
 cpSync(join(ROOT, "chu-logo.webp"), join(STAGE, "chu-logo.webp"));
+cpSync(join(ROOT, "favicon.png"), join(STAGE, "favicon.png"));
 cpSync(join(ROOT, "css"), join(STAGE, "css"), { recursive: true });
+cpSync(join(ROOT, "vendor"), join(STAGE, "vendor"), { recursive: true });
 
 // Bundle : modules concaténés dans l'ordre des dépendances, imports/exports retirés.
 const ORDER = [
