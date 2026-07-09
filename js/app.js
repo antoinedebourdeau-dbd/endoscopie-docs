@@ -135,13 +135,15 @@ function renderCatalog() {
 }
 
 // ------------------------------------------------------------------ médecin
+const LASTMED_KEY = "endoc.lastMedecin"; // mémorise le médecin choisi sur ce poste
+
 function renderMedecinSelect() {
   const sel = $("#sel-medecin");
-  const current = sel.value;
+  const current = sel.value || localStorage.getItem(LASTMED_KEY);
   sel.innerHTML =
     listMedecins().map((m) => `<option value="${m.id}">${m.nom}${m.tel ? " — secr. " + m.tel : ""}</option>`).join("") +
     `<option value="__libre">Autre médecin (saisie libre)…</option>`;
-  if ([...sel.options].some((o) => o.value === current)) sel.value = current;
+  if (current && [...sel.options].some((o) => o.value === current)) sel.value = current;
   $("#medecin-libre").style.display = sel.value === "__libre" ? "block" : "none";
 }
 
@@ -323,18 +325,57 @@ const MAIL_DEFAULTS = {
   explo: "explo-dig-ad@chu-montpellier.fr",
   radio_ste: "radiologie-ste@chu-montpellier.fr",
 };
+const TPL_DEMANDE_DEFAUT = `Bonjour,
+
+Veuillez trouver en pièce jointe une demande d'examen endoscopique pour {civilite} {prenom} {nom} {ne_le} {ddn}.
+
+Examens demandés : {examens}
+Délai souhaité : {delai}
+
+Cordialement,
+{medecin}
+Secrétariat : {tel_secretariat}
+{balf}`;
+
+const TPL_PATIENT_DEFAUT = `Bonjour {civilite} {nom},
+
+Veuillez trouver en pièce jointe les documents concernant votre prise en charge :
+{liste_documents}
+
+Merci de les lire attentivement et d'apporter les documents signés le jour de l'examen.
+
+Cordialement,
+{medecin}
+Secrétariat : {tel_secretariat}
+{balf}`;
+
 function mailCfg() {
-  try { return { ...MAIL_DEFAULTS, ...JSON.parse(localStorage.getItem(MAIL_KEY) || "{}") }; }
-  catch (_) { return { ...MAIL_DEFAULTS }; }
+  const base = { ...MAIL_DEFAULTS, tplDemande: TPL_DEMANDE_DEFAUT, tplPatient: TPL_PATIENT_DEFAUT };
+  try { return { ...base, ...JSON.parse(localStorage.getItem(MAIL_KEY) || "{}") }; }
+  catch (_) { return base; }
 }
+
+/** Remplit un modèle {variable} puis nettoie lignes/espaces orphelins. */
+function fillTpl(tpl, vars) {
+  return tpl
+    .replace(/\{(\w+)\}/g, (m, k) => (vars[k] ?? "").toString())
+    .replace(/[ \t]+([.,\n])/g, "$1")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/^[ \t]+$/gm, "")
+    .trim();
+}
+
 function openMailModal() {
   const c = mailCfg();
   $("#mc-endo").value = c.endo; $("#mc-explo").value = c.explo; $("#mc-radio-ste").value = c.radio_ste;
+  $("#mc-tpl-demande").value = c.tplDemande;
+  $("#mc-tpl-patient").value = c.tplPatient;
   openModal("#modal-mails");
 }
 $("#mc-save").addEventListener("click", () => {
   localStorage.setItem(MAIL_KEY, JSON.stringify({
     endo: $("#mc-endo").value.trim(), explo: $("#mc-explo").value.trim(), radio_ste: $("#mc-radio-ste").value.trim(),
+    tplDemande: $("#mc-tpl-demande").value, tplPatient: $("#mc-tpl-patient").value,
   }));
   closeModals();
 });
@@ -415,25 +456,29 @@ async function docsToPdf(items, ctx, filename) {
   }
 }
 
-function mailTexts(d) {
+function mailVars(extra = {}) {
   const p = currentPatient();
   const med = currentMedecin();
   const civ = $("#pt-civ").value;
-  const ne = civ === "Mme" ? "née" : civ === "M." ? "né" : "né(e)";
-  const qui = [civ || "M./Mme", p?.prenom, p?.nom?.toUpperCase()].filter(Boolean).join(" ");
-  const ddn = p?.ddn ? " " + ne + " le " + p.ddn.split("-").reverse().join("/") : "";
+  return {
+    civilite: civ || "M./Mme",
+    prenom: p?.prenom || "",
+    nom: p?.nom?.toUpperCase() || "",
+    ne_le: p?.ddn ? (civ === "Mme" ? "née le" : civ === "M." ? "né le" : "né(e) le") : "",
+    ddn: p?.ddn ? p.ddn.split("-").reverse().join("/") : "",
+    medecin: med?.nom || "",
+    tel_secretariat: med?.tel || "",
+    balf: med?.mail || "",
+    ...extra,
+  };
+}
+
+function mailTexts(d) {
+  const p = currentPatient();
   const exLbls = d.opts.examens.map((k) => (EXAMENS_ENDO_UI.find(([kk]) => kk === k) || [])[1]).filter(Boolean);
   const delaiLbl = { urgent48: "Urgent ++ (< 48 h)", urgent7: "Urgent (< 7 jours)", semi15: "Semi-urgent (< 15 jours)", autre: d.opts.delaiAutre || "autre" }[d.opts.delai];
   const sujet = `Demande d'examen endoscopique — ${[p?.nom?.toUpperCase(), p?.prenom].filter(Boolean).join(" ") || "patient"}`;
-  const corps = `Bonjour,
-
-Veuillez trouver en pièce jointe une demande d'examen endoscopique pour ${qui}${ddn}.
-
-Examens demandés : ${exLbls.join(", ") || "—"}
-Délai souhaité : ${delaiLbl}
-
-Cordialement,
-${med ? med.nom : ""}${med?.tel ? "\nSecrétariat : " + med.tel : ""}${med?.mail ? "\n" + med.mail : ""}`;
+  const corps = fillTpl(mailCfg().tplDemande, mailVars({ examens: exLbls.join(", ") || "—", delai: delaiLbl }));
   const fichier = `Demande endoscopie - ${[p?.nom?.toUpperCase(), p?.prenom].filter(Boolean).join(" ") || "patient"}.pdf`
     .replace(/[\/\\:*?"<>|]/g, "");
   return { sujet, corps, fichier };
@@ -536,21 +581,11 @@ async function buildPatientJob() {
   const items = selectedItems().filter((it) => it.type !== "demande-endo");
   if (!items.length) throw new Error("Aucun document coché à envoyer au patient.");
   const p = currentPatient();
-  const med = currentMedecin();
-  const civ = $("#pt-civ").value;
   const nomAff = [p?.nom?.toUpperCase(), p?.prenom].filter(Boolean).join(" ");
   const titres = items.map((it) => it.label || (it.type === "ordolibre" ? "Ordonnance" : "Document"));
   const fichier = `Documents - ${nomAff || "patient"}.pdf`.replace(/[\/\\:*?"<>|]/g, "");
   const sujet = `Vos documents — CHU de Montpellier${nomAff ? " — " + nomAff : ""}`;
-  const corps = `Bonjour${civ ? " " + civ + (p?.nom ? " " + p.nom.toUpperCase() : "") : ""},
-
-Veuillez trouver en pièce jointe les documents concernant votre prise en charge :
-${titres.map((t) => "  • " + t).join("\n")}
-
-Merci de les lire attentivement et d'apporter les documents signés le jour de l'examen.
-
-Cordialement,
-${med ? med.nom : ""}${med?.tel ? "\nSecrétariat : " + med.tel : ""}${med?.mail ? "\n" + med.mail : ""}`;
+  const corps = fillTpl(mailCfg().tplPatient, mailVars({ liste_documents: titres.map((t) => "  - " + t).join("\n") }));
   const { blob } = await docsToPdf(items, demandeCtx(), fichier);
   return { label: `Documents pour le patient${nomAff ? " — " + nomAff : ""}`, to, sujet, corps, fichier, blob };
 }
@@ -607,9 +642,18 @@ function renderSendModal() {
 function updateEmailButton() {
   const any = demandes.some((d) => d.type && d.opts.sendMail) || $("#chk-mail-patient").checked;
   $("#btn-emails").style.display = any ? "block" : "none";
+  $("#btn-all").style.display = any ? "block" : "none";
 }
-$("#btn-emails").addEventListener("click", () =>
-  generateAllEmails().catch((e) => toast("❌ " + e.message, 8000)));
+$("#btn-emails").addEventListener("click", () => {
+  if (!confirmDemandeWarnings()) return;
+  generateAllEmails().catch((e) => toast("❌ " + e.message, 8000));
+});
+$("#btn-all").addEventListener("click", async () => {
+  if (!confirmDemandeWarnings()) return;
+  await refresh();
+  window.print(); // bloquant jusqu'à fermeture du dialogue
+  generateAllEmails().catch((e) => toast("❌ " + e.message, 8000));
+});
 $("#chk-mail-patient").addEventListener("change", () => {
   $("#mail-patient-fields").style.display = $("#chk-mail-patient").checked ? "block" : "none";
   updateEmailButton();
@@ -726,7 +770,19 @@ function demandeCard(d) {
       <span>📧 <strong>Envoyer la demande par mail au secrétariat</strong></span>
     </label>
     ${o.sendMail ? `<label class="field" style="margin-top:4px;"><span class="lbl">Envoyer à — <a href="#" data-mailcfg>⚙ paramètres</a></span>${inp("sendTo", o.sendTo)}</label>` : ""}
-  </div>`;
+  </div>
+  <div data-warn="${d.id}"></div>`;
+}
+
+function refreshDemandeWarnings() {
+  for (const d of demandes) {
+    const el = document.querySelector(`[data-warn="${d.id}"]`);
+    if (!el || !d.type) continue;
+    const w = demandeWarnings(d);
+    el.innerHTML = w.length
+      ? `<div style="background:#FFF4E6; border:1px solid #f3c98a; border-radius:8px; padding:6px 10px; margin-top:6px; font-size:11.5px; color:#6b4a1a; line-height:1.5;">⚠ À compléter : ${w.join(" · ")}</div>`
+      : "";
+  }
 }
 
 function renderDemandes() {
@@ -760,6 +816,8 @@ function renderDemandes() {
     e.preventDefault(); e.stopPropagation();
     openMailModal();
   }));
+
+  refreshDemandeWarnings();
 }
 
 // Saisie dans les formulaires de demande : mise à jour sans re-render (focus conservé),
@@ -774,6 +832,7 @@ $("#demandes").addEventListener("input", (e) => {
     t.checked ? set.add(t.dataset.ex) : set.delete(t.dataset.ex);
     d.opts.examens = [...set];
   }
+  refreshDemandeWarnings();
   refreshSoon();
 });
 $("#demandes").addEventListener("change", (e) => {
@@ -797,6 +856,134 @@ function openCategory(gid) {
 }
 $("#btn-cat-prepa").addEventListener("click", () => openCategory("g-ordo"));
 $("#btn-cat-notes").addEventListener("click", () => openCategory("g-notes"));
+
+// ------------------------------------------------------------ parcours types
+const PARCOURS_KEY = "endoc.parcours.v1";
+const PREPS = [["plenvu", "PLENVU®"], ["moviprep", "MOVIPREP®"], ["ximepeg", "XIMEPEG®"], ["citrafleet", "CITRAFLEET®"]];
+const PARCOURS_PREDEF = [
+  { name: "Coloscopie", desc: "Note info + ordonnance de préparation + demande d'examen", docs: ["note:coloscopie"], prepChoice: true, demande: { examens: ["coloscopie"], ag: "oui" } },
+  { name: "Gastroscopie", desc: "Note info + demande d'examen", docs: ["note:gastroscopie"], demande: { examens: ["gastroscopie"], ag: "oui" } },
+  { name: "Gastroscopie + Coloscopie", desc: "2 notes + préparation + demande (2 examens)", docs: ["note:gastroscopie", "note:coloscopie"], prepChoice: true, demande: { examens: ["gastroscopie", "coloscopie"], ag: "oui" } },
+  { name: "CPRE", desc: "Note info + demande d'examen", docs: ["note:cpre"], demande: { examens: ["cpre"], ag: "oui" } },
+  { name: "Échoendoscopie (± ponction)", desc: "Note info ponction + demande d'examen", docs: ["note:ponction_echo"], demande: { examens: ["echoendoscopie"], ag: "oui" } },
+];
+const listParcoursPerso = () => {
+  try { return JSON.parse(localStorage.getItem(PARCOURS_KEY) || "[]"); } catch (_) { return []; }
+};
+
+function applyParcours(p, prepKey) {
+  for (const id of p.docs || []) selection.add(id);
+  if (prepKey) selection.add("ordo:" + prepKey);
+  const demDefs = p.demandes || (p.demande ? [{ type: "endo", opts: p.demande }] : []);
+  for (const def of demDefs) {
+    newDemande();
+    const d = demandes[demandes.length - 1];
+    d.type = def.type || "endo";
+    Object.assign(d.opts, JSON.parse(JSON.stringify(def.opts || {})));
+    if (!d.opts.sendTo) d.opts.sendTo = mailCfg().endo;
+  }
+  renderDemandes();
+  renderCatalog();
+  refresh();
+  closeModals();
+  toast(`⚡ Parcours « ${p.name} » appliqué — ajustez si besoin puis imprimez/envoyez.`, 6000);
+}
+
+function renderParcoursList() {
+  const perso = listParcoursPerso();
+  $("#parcours-list").innerHTML =
+    PARCOURS_PREDEF.map((p, i) => `
+      <div class="med-row">
+        <div class="info"><div class="nom">${p.name}</div><div class="det">${p.desc}</div></div>
+        ${p.prepChoice ? `<select data-prep="${i}" style="width:130px;">${PREPS.map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select>` : ""}
+        <button class="small" data-apply-parcours="${i}">Appliquer</button>
+      </div>`).join("") +
+    (perso.length ? `<div class="mhint" style="margin:10px 0 6px;"><strong>Mes parcours (ce poste)</strong></div>` : "") +
+    perso.map((p, i) => `
+      <div class="med-row">
+        <div class="info"><div class="nom">${p.name}</div><div class="det">${(p.docs || []).length} document(s)${(p.demandes || []).length ? " + " + p.demandes.length + " demande(s)" : ""}</div></div>
+        <button class="small" data-apply-perso="${i}">Appliquer</button>
+        <button class="danger small" data-del-parcours="${i}">✕</button>
+      </div>`).join("");
+
+  $$("[data-apply-parcours]").forEach((b) => b.addEventListener("click", () => {
+    const i = Number(b.dataset.applyParcours);
+    const prep = PARCOURS_PREDEF[i].prepChoice ? document.querySelector(`[data-prep="${i}"]`).value : null;
+    applyParcours(PARCOURS_PREDEF[i], prep);
+  }));
+  $$("[data-apply-perso]").forEach((b) => b.addEventListener("click", () => applyParcours(listParcoursPerso()[Number(b.dataset.applyPerso)], null)));
+  $$("[data-del-parcours]").forEach((b) => b.addEventListener("click", () => {
+    const arr = listParcoursPerso();
+    if (!confirm(`Supprimer le parcours « ${arr[Number(b.dataset.delParcours)].name} » ?`)) return;
+    arr.splice(Number(b.dataset.delParcours), 1);
+    localStorage.setItem(PARCOURS_KEY, JSON.stringify(arr));
+    renderParcoursList();
+  }));
+}
+
+$("#btn-parcours").addEventListener("click", () => { renderParcoursList(); openModal("#modal-parcours"); });
+$("#btn-save-parcours").addEventListener("click", () => {
+  if (!selection.size && !demandes.some((d) => d.type)) { alert("Cochez d'abord des documents et/ou créez une demande d'examen."); return; }
+  const name = prompt("Nom du parcours (ex. « Ma colo standard ») :");
+  if (!name || !name.trim()) return;
+  const arr = listParcoursPerso().filter((x) => x.name !== name.trim());
+  arr.push({
+    name: name.trim(),
+    docs: [...selection],
+    demandes: demandes.filter((d) => d.type).map((d) => ({ type: d.type, opts: { ...d.opts, sendMail: false } })),
+  });
+  localStorage.setItem(PARCOURS_KEY, JSON.stringify(arr));
+  renderParcoursList();
+  toast(`💾 Parcours « ${name.trim()} » enregistré sur ce poste.`, 5000);
+});
+
+// -------------------------------------------------- validation douce demandes
+function demandeWarnings(d) {
+  const w = [], o = d.opts;
+  if (!o.examens.length) w.push("aucun examen coché");
+  if (!o.indications.trim()) w.push("indications non renseignées");
+  if (o.ag === "oui" && o.hospit === "externe") w.push("AG cochée avec hospitalisation « Externe » (réservée aux examens sans AG)");
+  if (o.infosPatient === "non") w.push("informations non délivrées au patient (le consentement doit être joint)");
+  return w;
+}
+
+/** Contrôle non bloquant avant impression / envoi. Retourne false si l'utilisateur annule. */
+function confirmDemandeWarnings() {
+  const msgs = demandes.filter((d) => d.type).flatMap((d, i) =>
+    demandeWarnings(d).map((w) => `Demande ${i + 1} : ${w}`));
+  if (!msgs.length) return true;
+  return confirm(`⚠ Le PTED rejette les demandes incomplètes :\n\n– ${msgs.join("\n– ")}\n\nGénérer quand même ?`);
+}
+
+// ---------------------------------------------------------------- affiche QR
+const SITE_URL = "https://antoinedebourdeau-dbd.github.io/endoscopie-docs/";
+$("#btn-affiche").addEventListener("click", async (e) => {
+  e.preventDefault();
+  await loadScript("vendor/qrcode.min.js");
+  const qr = qrcode(0, "M");
+  qr.addData(SITE_URL);
+  qr.make();
+  const svg = qr.createSvgTag({ cellSize: 6, margin: 2 });
+  const logo = new URL("chu-logo.webp", location.href).href;
+  const w = window.open("", "_blank");
+  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Affiche — Documents patients endoscopie</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+    <style>@page{size:A4;margin:0} *{box-sizing:border-box} body{margin:0;font-family:'Barlow',sans-serif}
+    .page{width:210mm;height:297mm;padding:22mm 20mm;display:flex;flex-direction:column;align-items:center;text-align:center}
+    @media print{.no-print{display:none}}</style></head><body>
+    <div class="no-print" style="position:fixed;top:14px;right:14px;"><button onclick="print()" style="font:700 14px Barlow;background:#0072BC;color:#fff;border:none;border-radius:8px;padding:10px 18px;cursor:pointer;">Imprimer</button></div>
+    <div class="page">
+      <img src="${logo}" style="height:64px;">
+      <div style="font-family:'Barlow Condensed';text-transform:uppercase;letter-spacing:.08em;color:#0072BC;font-weight:700;font-size:17px;margin-top:20px;">CHU de Montpellier · Hépato-Gastroentérologie</div>
+      <h1 style="font-weight:800;color:#0d2b45;font-size:37px;line-height:1.1;margin:8px 0 0;">Documents patients<br>Endoscopie digestive</h1>
+      <div style="height:4px;width:90px;background:#EF7D00;border-radius:2px;margin:16px 0 22px;"></div>
+      <div style="font-size:17px;color:#1c3a52;line-height:1.6;max-width:150mm;">Notes d'information &amp; consentement · ordonnances de préparation colique · ordonnances · demandes d'examen — <strong>au nom de chaque médecin</strong>, imprimables et envoyables par e-mail en quelques clics.</div>
+      <div style="margin:26px 0 10px;">${svg.replace("<svg ", '<svg style="width:70mm;height:70mm;" ')}</div>
+      <div style="font-weight:700;color:#0072BC;font-size:19px;">${SITE_URL.replace("https://", "")}</div>
+      <div style="margin-top:auto;background:#EAF3FB;border-radius:12px;padding:12px 22px;font-size:13.5px;color:#1c3a52;line-height:1.6;max-width:160mm;">Première utilisation : « Gérer les médecins » → ajoutez votre nom, secrétariat, RPPS et BALF (une seule fois par poste).<br><span style="color:#4a5b68;">Aucune donnée patient n'est transmise : tout reste sur votre ordinateur.</span></div>
+    </div></body></html>`);
+  w.document.close();
+});
 
 // ------------------------------------------------------------------ recherche
 $("#search").addEventListener("input", applyCatalogVisibility);
@@ -957,6 +1144,7 @@ $("#btn-reset").addEventListener("click", () => {
 
 // --------------------------------------------------------------- impression
 $("#btn-print").addEventListener("click", async () => {
+  if (!confirmDemandeWarnings()) return;
   await refresh(); // aperçu à jour avant impression
   window.print();
 });
@@ -964,15 +1152,61 @@ $("#btn-print").addEventListener("click", async () => {
 // ------------------------------------------------------------------ liaison
 $("#sel-medecin").addEventListener("change", () => {
   $("#medecin-libre").style.display = $("#sel-medecin").value === "__libre" ? "block" : "none";
+  localStorage.setItem(LASTMED_KEY, $("#sel-medecin").value);
   refreshSoon();
 });
 ["#ml-nom", "#ml-spec", "#ml-tel", "#ml-rpps", "#ml-mail", "#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen",
  "#pt-tel", "#ol-texte", "#ol-ald", "#ol-nonald", "#ol-duree"]
   .forEach((id) => $(id).addEventListener("input", refreshSoon));
 
+// -------------------------------------------- modèles d'ordonnances libres
+const OLM_KEY = "endoc.ordomodeles.v1";
+const listOlModeles = () => {
+  try { return JSON.parse(localStorage.getItem(OLM_KEY) || "[]"); } catch (_) { return []; }
+};
+function renderOlModeles(selectName) {
+  const arr = listOlModeles();
+  $("#ol-modele").innerHTML =
+    `<option value="">— choisir un modèle enregistré —</option>` +
+    arr.map((m) => `<option value="${m.name.replace(/"/g, "&quot;")}" ${m.name === selectName ? "selected" : ""}>${m.name}</option>`).join("");
+}
+$("#ol-modele").addEventListener("change", () => {
+  const m = listOlModeles().find((x) => x.name === $("#ol-modele").value);
+  if (!m) return;
+  $("#ol-mode").value = m.mode || "simple";
+  $("#ol-texte").value = m.texte || "";
+  $("#ol-ald").value = m.textAld || "";
+  $("#ol-nonald").value = m.textNonAld || "";
+  $("#ol-duree").value = m.duree || "";
+  const ald = m.mode === "ald";
+  $("#ol-zone-simple").style.display = ald ? "none" : "block";
+  $("#ol-zone-ald").style.display = ald ? "block" : "none";
+  refreshSoon();
+});
+$("#ol-save-modele").addEventListener("click", () => {
+  const name = prompt("Nom du modèle (ex. « IPP post-mucosectomie ») :");
+  if (!name || !name.trim()) return;
+  const arr = listOlModeles().filter((x) => x.name !== name.trim());
+  arr.push({
+    name: name.trim(), mode: $("#ol-mode").value, texte: $("#ol-texte").value,
+    textAld: $("#ol-ald").value, textNonAld: $("#ol-nonald").value, duree: $("#ol-duree").value,
+  });
+  localStorage.setItem(OLM_KEY, JSON.stringify(arr));
+  renderOlModeles(name.trim());
+  toast(`💾 Modèle « ${name.trim()} » enregistré sur ce poste.`, 5000);
+});
+$("#ol-del-modele").addEventListener("click", () => {
+  const name = $("#ol-modele").value;
+  if (!name) return;
+  if (!confirm(`Supprimer le modèle « ${name} » ?`)) return;
+  localStorage.setItem(OLM_KEY, JSON.stringify(listOlModeles().filter((x) => x.name !== name)));
+  renderOlModeles();
+});
+
 $("#btn-create-ordo").addEventListener("click", () => {
   ordoOpen = true;
   $("#ordolibre-card").style.display = "block";
+  renderOlModeles($("#ol-modele").value);
   $("#ol-texte").focus();
   refreshSoon();
 });
@@ -990,6 +1224,22 @@ $("#ol-mode").addEventListener("change", () => {
 $("#chk-generic").addEventListener("change", () => {
   $("#panel-patient").style.opacity = $("#chk-generic").checked ? ".45" : "1";
   refreshSoon();
+});
+
+// ------------------------------------------------------------ bienvenue
+if (!localStorage.getItem("endoc.welcomed")) {
+  openModal("#modal-welcome");
+}
+$("#wl-close").addEventListener("click", () => {
+  localStorage.setItem("endoc.welcomed", "1");
+  closeModals();
+});
+$("#wl-add-me").addEventListener("click", () => {
+  localStorage.setItem("endoc.welcomed", "1");
+  closeModals();
+  renderMedList();
+  openModal("#modal-medecins");
+  $("#btn-med-add").click();
 });
 
 // Date du document : pré-remplie à aujourd'hui (fuseau local)

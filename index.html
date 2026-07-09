@@ -34,6 +34,7 @@
         <button class="subtle small" id="btn-import-doc" title="Importer un document JSON partagé par un collègue">Importer</button>
       </h2>
 
+      <button class="big" id="btn-parcours" style="margin:0 0 8px; background:var(--bleu-fonce);">⚡ Parcours types (tout en un clic)</button>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 0 10px;">
         <button class="ghost" id="btn-create-ordo">💊 Créer une ordonnance</button>
         <button class="ghost" id="btn-create-demande">🩺 Demande d'examen</button>
@@ -47,6 +48,13 @@
           <button class="subtle small" id="btn-remove-ordo">✕ retirer</button>
         </div>
         <div id="ordolibre-fields" style="margin-top:8px;">
+          <div style="display:flex; gap:6px; align-items:flex-end; margin-bottom:8px;">
+            <label class="field" style="flex:1; margin:0;"><span class="lbl">Mes modèles d'ordonnance</span>
+              <select id="ol-modele"></select>
+            </label>
+            <button type="button" class="subtle small" id="ol-save-modele" title="Enregistrer le texte actuel comme modèle réutilisable">💾</button>
+            <button type="button" class="subtle small" id="ol-del-modele" title="Supprimer le modèle sélectionné">🗑</button>
+          </div>
           <label class="field"><span class="lbl">Type d'ordonnance</span>
             <select id="ol-mode">
               <option value="simple">Ordonnance simple (une zone)</option>
@@ -131,8 +139,9 @@
       </label>
       <button class="big" id="btn-print" disabled>🖨 Imprimer / Enregistrer en PDF</button>
       <button class="big orange" id="btn-emails" style="display:none; margin-top:8px;">📧 Générer les e-mails (PJ incluses)</button>
+      <button class="big" id="btn-all" style="display:none; margin-top:8px; background:var(--bleu-fonce);">⚡ Tout générer (impression + e-mails)</button>
       <div class="hint">Un seul flux d'impression : chaque document démarre sur une nouvelle page. Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF » pour obtenir le fichier.</div>
-      <div class="hint" style="margin-top:10px;"><a href="https://github.com/antoinedebourdeau-dbd/endoscopie-docs/releases/latest/download/endoscopie-docs-hors-ligne.zip">⬇ Télécharger la version hors-ligne</a> (dossier à copier sur un poste sans internet).</div>
+      <div class="hint" style="margin-top:10px;"><a href="https://github.com/antoinedebourdeau-dbd/endoscopie-docs/releases/latest/download/endoscopie-docs-hors-ligne.zip">⬇ Télécharger la version hors-ligne</a> (dossier à copier sur un poste sans internet) · <a href="#" id="btn-affiche">🖼 Affiche QR du service</a></div>
     </div>
   </aside>
 
@@ -259,9 +268,43 @@
     <label class="field"><span class="lbl">Endoscopie digestive</span><input type="text" id="mc-endo"></label>
     <label class="field"><span class="lbl">Explorations fonctionnelles</span><input type="text" id="mc-explo"></label>
     <label class="field"><span class="lbl">Radiologie — Saint-Éloi</span><input type="text" id="mc-radio-ste"></label>
+    <div style="border-top:1px solid var(--bord); margin:14px 0 10px;"></div>
+    <div class="mhint" style="margin-bottom:8px;"><strong>Modèles de texte des e-mails</strong> — variables disponibles : {civilite} {prenom} {nom} {ne_le} {ddn} {examens} {delai} {liste_documents} {medecin} {tel_secretariat} {balf}</div>
+    <label class="field"><span class="lbl">E-mail au secrétariat (demande d'examen)</span><textarea id="mc-tpl-demande" rows="6"></textarea></label>
+    <label class="field"><span class="lbl">E-mail au patient (documents)</span><textarea id="mc-tpl-patient" rows="6"></textarea></label>
     <div class="btnrow">
       <button id="mc-save">Enregistrer</button>
-      <button class="subtle" id="mc-defaults">Rétablir les adresses par défaut</button>
+      <button class="subtle" id="mc-defaults">Rétablir les valeurs par défaut</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== MODALE PARCOURS ============================== -->
+<div class="modal-back no-print" id="modal-parcours">
+  <div class="modal">
+    <button class="modal-close" data-close>✕</button>
+    <h3>⚡ Parcours types</h3>
+    <div class="mhint">Un clic prépare tous les documents du parcours (notes, ordonnance de préparation, demande d'examen pré-remplie). Vous pouvez ensuite ajuster.</div>
+    <div id="parcours-list"></div>
+    <div style="border-top:1px solid var(--bord); margin:12px 0 10px;"></div>
+    <div class="btnrow">
+      <button class="ghost" id="btn-save-parcours">💾 Enregistrer la sélection actuelle comme parcours</button>
+    </div>
+    <div class="hint">Astuce : cochez vos documents habituels + créez votre demande type, puis enregistrez-les comme parcours personnel — il apparaîtra dans cette liste sur ce poste.</div>
+  </div>
+</div>
+
+<!-- ============================== MODALE BIENVENUE ============================== -->
+<div class="modal-back no-print" id="modal-welcome">
+  <div class="modal">
+    <h3>👋 Bienvenue</h3>
+    <div class="mhint">Documents patients d'endoscopie digestive — CHU de Montpellier. Trois choses à savoir :</div>
+    <div class="pill-info" style="margin-bottom:8px;"><strong>1 · Ajoutez-vous comme médecin</strong> (une seule fois) : nom, secrétariat, RPPS, BALF — vos documents et ordonnances seront automatiquement à votre en-tête.</div>
+    <div class="pill-info" style="margin-bottom:8px;"><strong>2 · Préparez un dossier</strong> : « ⚡ Parcours types » pour tout préparer en un clic, ou choisissez vos documents ; renseignez le patient (optionnel).</div>
+    <div class="pill-info" style="margin-bottom:14px;"><strong>3 · Imprimez ou envoyez</strong> : PDF en un clic, envoi par e-mail au secrétariat et au patient. Aucune donnée patient ne quitte votre poste.</div>
+    <div class="btnrow">
+      <button id="wl-add-me">👨‍⚕️ Ajouter ma fiche médecin</button>
+      <button class="subtle" id="wl-close">C'est parti</button>
     </div>
   </div>
 </div>
