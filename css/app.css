@@ -125,6 +125,7 @@ button.small { padding: 5px 10px; font-size: 12px; border-radius: 7px; }
 /* Contenu riche rendu sur l'ordonnance */
 .ordo-body ul, .ordo-body ol { margin: 6px 0; padding-left: 24px; }
 .ordo-body li { margin: 4px 0; }
+.rich blockquote, .ordo-body blockquote { margin: 3px 0 3px 26px; padding: 0; border: none; }
 
 .hint { font-size: 11.5px; color: var(--gris-clair); line-height: 1.45; margin-top: 6px; }
 .pill-info {

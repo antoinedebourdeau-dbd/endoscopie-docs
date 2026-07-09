@@ -311,7 +311,7 @@ export function renderOrdo(key, ctx) {
 
 // Contenu riche saisi dans l'éditeur (gras, italique, listes…) — nettoyé
 // avant impression. Compatibilité : un ancien texte brut est converti.
-const RICH_ALLOWED = new Set(["B", "STRONG", "I", "EM", "U", "UL", "OL", "LI", "BR", "DIV", "P", "SPAN"]);
+const RICH_ALLOWED = new Set(["B", "STRONG", "I", "EM", "U", "UL", "OL", "LI", "BR", "DIV", "P", "SPAN", "BLOCKQUOTE"]);
 export function sanitizeRich(html) {
   const s = String(html || "");
   if (!/[<>]/.test(s)) return esc(s).replace(/\n/g, "<br>"); // ancien format texte

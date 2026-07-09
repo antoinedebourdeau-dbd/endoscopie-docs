@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "2.2";
+export const APP_VERSION = "2.3";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -1234,6 +1234,14 @@ $("#ol-del-modele").addEventListener("click", () => {
   localStorage.setItem(OLM_KEY, JSON.stringify(listOlModeles().filter((x) => x.name !== name)));
   renderOlModeles();
 });
+
+// Tab / Maj+Tab dans les éditeurs riches : retrait (sans quitter le champ)
+$$(".rich").forEach((ed) => ed.addEventListener("keydown", (e) => {
+  if (e.key !== "Tab") return;
+  e.preventDefault();
+  document.execCommand(e.shiftKey ? "outdent" : "indent", false, null);
+  refreshSoon();
+}));
 
 // Collage dans les éditeurs riches : contenu nettoyé (balises sûres uniquement)
 $$(".rich").forEach((ed) => ed.addEventListener("paste", (e) => {
