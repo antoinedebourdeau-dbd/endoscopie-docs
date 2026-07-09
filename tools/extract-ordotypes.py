@@ -18,8 +18,47 @@ EXCLUDE = {
     "Régime SR", "GLUTEN Conseils", "INFORMATIONS COLONISATION BACTERIENNE GRELE ",
     "Anticorps anti IFX et ADA", "Ferinject-Venofer", "ORDO vierge",
 }
-CAT_ORDER = ["BILAN BIO", "COLO", "DIVERS", "GREFFE", "HEPATO", "IDE",
-             "MICI", "NUTRITION GEP", "ONCO", "PROCTO", "RGO-HP", "TFI"]
+# --- Taxonomie cible (13 catégories cliniques) -----------------------------
+CAT_ORDER = [
+    "BILANS BIOLOGIQUES", "COLOSCOPIE — PRÉPARATION", "RGO & H. PYLORI",
+    "HÉPATOLOGIE", "MICI", "FONCTIONNELS & MOTILITÉ", "PROCTOLOGIE",
+    "ONCOLOGIE", "NUTRITION & GEP", "FER, VITAMINES & CARENCES",
+    "SOINS À DOMICILE (IDE)", "AUTRES TRAITEMENTS",
+]
+# dossier source → catégorie par défaut
+FOLDER_CAT = {
+    "BILAN BIO": "BILANS BIOLOGIQUES", "COLO": "COLOSCOPIE — PRÉPARATION",
+    "RGO-HP": "RGO & H. PYLORI", "HEPATO": "HÉPATOLOGIE", "GREFFE": "HÉPATOLOGIE",
+    "MICI": "MICI", "TFI": "FONCTIONNELS & MOTILITÉ", "PROCTO": "PROCTOLOGIE",
+    "ONCO": "ONCOLOGIE", "NUTRITION GEP": "NUTRITION & GEP",
+    "IDE": "SOINS À DOMICILE (IDE)", "DIVERS": "AUTRES TRAITEMENTS",
+}
+# reclassements ordonnance par ordonnance (clé = nom de fichier, NFC)
+CAT_OVERRIDES = {
+    # BILAN BIO → domaines
+    "ORDO BIO Hepatite aigue + suivi  LM": "HÉPATOLOGIE",
+    "ORDO BIO Hepatopathie chronique  LM": "HÉPATOLOGIE",
+    "ORDO Cirrhose bio echo  LM": "HÉPATOLOGIE",
+    "ORDO BIO tumeurs endocrine LM": "ONCOLOGIE",
+    # DIVERS → domaines
+    "ORDO Ferinject LM": "FER, VITAMINES & CARENCES",
+    "ORDO Ferinject IDE LM": "FER, VITAMINES & CARENCES",
+    "ORDO Ferinject matériel LM": "FER, VITAMINES & CARENCES",
+    "ORDO Ferinject pharma LM": "FER, VITAMINES & CARENCES",
+    "ORDO B12 B9 D LM": "FER, VITAMINES & CARENCES",
+    "ORDO Uvedose LM": "FER, VITAMINES & CARENCES",
+    "ORDO BIO suivi maladie Biermer LM": "FER, VITAMINES & CARENCES",
+    "ORDO BIO suivi maladie coeliaque LM": "BILANS BIOLOGIQUES",
+    "ORDO maladie coeliaque bilan LM": "BILANS BIOLOGIQUES",
+    "ORDO Diabete LM": "BILANS BIOLOGIQUES",
+    "ORDO IST LM": "BILANS BIOLOGIQUES",
+    "ORDO Pansement laparotomie. LM": "SOINS À DOMICILE (IDE)",
+    "ORDO Peristeen LM": "FONCTIONNELS & MOTILITÉ",
+    "ORDO Questran. LM": "FONCTIONNELS & MOTILITÉ",
+    "ORDO saignées LM": "HÉPATOLOGIE",
+    "ORDO Zoometa bilan dentaire LM": "ONCOLOGIE",
+    # MICI → carences (le doublon B12 reste en MICI, celui de DIVERS part en FER)
+}
 
 # ---------------------------------------------------------------------------
 # Nomenclature éditoriale : nom de fichier → intitulé clair + mots-clés de
@@ -209,9 +248,13 @@ for root, _, files in os.walk(SRC):
             skipped.append(stem); continue
         rel = os.path.relpath(os.path.join(root, f), SRC)
         parts = rel.split(os.sep)
-        cat = parts[0] if len(parts) > 1 else None
-        if cat is None:
+        folder = parts[0] if len(parts) > 1 else None
+        if folder is None:
             skipped.append(stem); continue
+        nfc = unicodedata.normalize("NFC", stem)
+        cat = (CAT_OVERRIDES.get(nfc) or CAT_OVERRIDES.get(nfc.rstrip())
+               or CAT_OVERRIDES.get(re.sub(r"\s+", " ", nfc).strip())
+               or FOLDER_CAT.get(folder, folder))
         body = parse(open(os.path.join(root, f), encoding="utf-8", errors="replace").read())
         if len(body) < 15:
             empties.append(rel); continue
@@ -225,15 +268,15 @@ for root, _, files in os.walk(SRC):
             entry["kw"] = kw
         cats.setdefault(cat, []).append(entry)
 
-# Ordonnances DGBI / motilité (spec MD d'Antoine) — fusionnées avec TFI
+# Ordonnances DGBI / motilité + ajouts rédigés (specs validées par Antoine)
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from dgbi_items import DGBI_ITEMS
-cats.setdefault("TFI", []).extend(DGBI_ITEMS)
+from dgbi_items import DGBI_ITEMS, EXTRA_ITEMS
+cats.setdefault("FONCTIONNELS & MOTILITÉ", []).extend(DGBI_ITEMS)
+for it in EXTRA_ITEMS:
+    cats.setdefault(it["cat"], []).append({k: v for k, v in it.items() if k != "cat"})
 
-CAT_LABELS = {"TFI": "FONCTIONNELS & MOTILITÉ"}
-
-ordered = [{"cat": CAT_LABELS.get(c, c), "items": sorted(cats[c], key=lambda x: x["name"].lower())}
+ordered = [{"cat": c, "items": sorted(cats[c], key=lambda x: x["name"].lower())}
            for c in CAT_ORDER if c in cats]
 
 with open(OUT, "w", encoding="utf-8") as fh:

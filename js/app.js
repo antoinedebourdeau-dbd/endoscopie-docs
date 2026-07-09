@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "2.7";
+export const APP_VERSION = "2.8";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";

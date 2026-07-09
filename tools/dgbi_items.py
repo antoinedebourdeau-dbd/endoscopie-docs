@@ -7,6 +7,14 @@ Contenu HTML (balises b/i/u/ul/li/br autorisées par le sanitizer du site).
 
 HORS_AMM = "<i>Prescription hors AMM à visée neuromodulatrice / symptomatique, conforme aux recommandations internationales.</i>"
 
+# Ordonnances supplémentaires rédigées à la demande (avec catégorie cible)
+EXTRA_ITEMS = [
+ {"cat": "HÉPATOLOGIE",
+  "name": "Carvédilol — prophylaxie de rupture de VO (Baveno VII)",
+  "kw": "carvedilol bêta-bloquant non cardiosélectif NSBB varices œsophagiennes hypertension portale cirrhose baveno prophylaxie primaire secondaire",
+  "content": "<b>CARVÉDILOL 6,25 mg, comprimé sécable</b><br><b>Initiation :</b> 3,125 mg (½ comprimé) matin et soir pendant 3 à 7 jours.<br><b>Puis dose cible :</b> 6,25 mg matin et soir (<b>12,5 mg/j</b>) si bonne tolérance.<br><i>Ne pas dépasser 12,5 mg/j dans cette indication (doses supérieures réservées à une HTA associée).</i><br>Durée : au long cours — QSP 3 mois, à renouveler.<br><br><b><u>Objectifs et surveillance</u></b><ul><li>Fréquence cardiaque de repos cible : <b>55–60/min</b> ; pression artérielle systolique <b>≥ 90 mmHg</b>.</li><li>Contrôle TA + FC avant chaque augmentation de palier, puis à chaque renouvellement.</li><li><b>Réduire ou arrêter</b> si : PAS &lt; 90 mmHg, FC &lt; 50/min, hypotension symptomatique, ascite réfractaire avec hypotension, natrémie &lt; 130 mmol/L ou insuffisance rénale aiguë.</li></ul><i>Bêta-bloquant non cardiosélectif de référence (Baveno VII) en prophylaxie primaire et secondaire de la rupture de varices œsophagiennes — prescription hors AMM dans cette indication (AMM : HTA, angor, insuffisance cardiaque).</i><br><i>Contre-indications : asthme / BPCO sévère, BAV 2-3, bradycardie &lt; 50/min, hypotension. Ne pas arrêter brutalement.</i>"},
+]
+
 DGBI_ITEMS = [
  # ---------------------------------------------------------- pyrosis
  {"name": "Pyrosis fonctionnel — 1ʳᵉ ligne (amitriptyline + alginate)",
