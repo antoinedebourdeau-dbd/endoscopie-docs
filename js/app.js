@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.4";
+export const APP_VERSION = "3.5";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -384,18 +384,26 @@ async function refresh() {
   $("#preview-empty").style.display = items.length ? "none" : "block";
   const selItems = [];
   for (const g of CATALOG) for (const it of g.items) if (selection.has(it.id)) selItems.push(it);
-  $("#sel-count").style.display = selItems.length ? "block" : "none";
-  if (selItems.length) {
+  const extraChips = [
+    ...ordos.filter((o) => !o.fresh).map((o) => ({ kind: "ordo", id: o.id, label: "💊 Ordonnance" + ordoResume(o) })),
+    ...demandes.filter((d) => d.type).map((d) => ({ kind: "dem", id: d.id, label: "🩺 " + (DEM_LABELS[d.type] || "Demande") })),
+  ];
+  $("#sel-count").style.display = selItems.length || extraChips.length ? "block" : "none";
+  if (selItems.length || extraChips.length) {
+    const total = selItems.length + extraChips.length;
+    const chip = (label, attr) => `<span style="display:inline-flex; align-items:center; gap:5px; background:var(--bleu-pale); border:1px solid #cfe1f0; border-radius:20px; padding:2px 4px 2px 9px; font-size:11px; color:var(--bleu-fonce); max-width:100%;">
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:240px;">${label}</span>
+          <a href="#" ${attr} title="Retirer" style="flex:none; width:15px; height:15px; border-radius:50%; background:#fff; color:var(--rouge); font-weight:800; font-size:10px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; border:1px solid #e7b3ab;">✕</a>
+        </span>`;
     $("#sel-count").innerHTML =
-      `<div style="margin-bottom:4px;"><strong>${selItems.length} document${selItems.length > 1 ? "s" : ""} coché${selItems.length > 1 ? "s" : ""}</strong> — <a href="#" id="clear-sel">tout décocher</a></div>
+      `<div style="margin-bottom:4px;"><strong>${total} élément${total > 1 ? "s" : ""} dans le dossier</strong> — <a href="#" id="clear-sel">tout retirer</a></div>
       <div style="display:flex; flex-wrap:wrap; gap:4px;">
-        ${selItems.map((it) => `<span style="display:inline-flex; align-items:center; gap:5px; background:var(--bleu-pale); border:1px solid #cfe1f0; border-radius:20px; padding:2px 4px 2px 9px; font-size:11px; color:var(--bleu-fonce); max-width:100%;">
-          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:240px;">${it.label}</span>
-          <a href="#" data-unsel="${it.id}" title="Décocher ce document" style="flex:none; width:15px; height:15px; border-radius:50%; background:#fff; color:var(--rouge); font-weight:800; font-size:10px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; border:1px solid #e7b3ab;">✕</a>
-        </span>`).join("")}
+        ${selItems.map((it) => chip(it.label, `data-unsel="${it.id}"`)).join("")}
+        ${extraChips.map((c) => chip(c.label, `data-unchip="${c.kind}:${c.id}"`)).join("")}
       </div>`;
   }
 
+  saveSession();
   const seq = ++renderSeq;
   const ctx = {
     medecin: currentMedecin(),
@@ -500,6 +508,39 @@ $("#med-form").addEventListener("submit", (e) => {
   renderMedList(); renderMedecinSelect(); renderProfileChip(); refreshSoon();
 });
 $("#btn-med-export").addEventListener("click", () => download("medecins-endoscopie-chu.json", exportMedecins()));
+$("#btn-cfg-export").addEventListener("click", () => {
+  const cfg = {
+    type: "dochge-config", version: 1,
+    medecins: listMedecins(),
+    ordotypes: listUserTypes(),
+    ordotypecats: listUserCats(),
+    packs: listParcoursPerso(),
+    mails: mailCfg(),
+  };
+  download("dochge-configuration-poste.json", JSON.stringify(cfg, null, 2));
+  toast("💾 Configuration du poste exportée (médecins, ordonnances perso, packs, e-mails).", 6000);
+});
+$("#btn-cfg-import").addEventListener("click", () => pickFile((txt) => {
+  try {
+    const cfg = JSON.parse(txt);
+    if (cfg.type !== "dochge-config") throw new Error("Ce fichier n'est pas une configuration Doc'HGE.");
+    if (Array.isArray(cfg.medecins)) importMedecins(JSON.stringify({ medecins: cfg.medecins }));
+    if (Array.isArray(cfg.ordotypes)) {
+      const cur = listUserTypes();
+      for (const t of cfg.ordotypes) if (!cur.some((x) => x.name === t.name && x.cat === t.cat)) cur.push({ ...t, id: "ut" + Math.random().toString(36).slice(2, 9) });
+      saveUserTypes(cur);
+    }
+    if (Array.isArray(cfg.ordotypecats)) saveUserCats([...new Set([...listUserCats(), ...cfg.ordotypecats])]);
+    if (Array.isArray(cfg.packs)) {
+      const cur = listParcoursPerso();
+      for (const p of cfg.packs) if (!cur.some((x) => x.name === p.name)) cur.push(p);
+      localStorage.setItem(PARCOURS_KEY, JSON.stringify(cur));
+    }
+    if (cfg.mails) localStorage.setItem(MAIL_KEY, JSON.stringify(cfg.mails));
+    renderMedList(); renderMedecinSelect(); renderProfileChip();
+    toast("📥 Configuration importée : médecins, ordonnances perso, packs et e-mails fusionnés.", 7000);
+  } catch (e) { alert("Import impossible : " + e.message); }
+}));
 $("#btn-med-import").addEventListener("click", () => pickFile((txt) => {
   try {
     const { added, updated } = importMedecins(txt);
@@ -813,10 +854,13 @@ async function buildPatientJob() {
 /** Bouton « Générer les e-mails » : PDF téléchargés + modale guidée. */
 let sendJobs = [];
 async function generateAllEmails() {
-  toast("⏳ Génération des PDF…", 60000);
+  const todo = demandes.filter((x) => x.type && x.opts.sendMail);
+  const totalJobs = todo.length + ($("#chk-mail-patient").checked ? 1 : 0);
+  let done = 0;
+  const prog = () => toast(`⏳ Génération des PDF… ${++done} / ${totalJobs}`, 60000);
   const jobs = [];
-  for (const d of demandes.filter((x) => x.type && x.opts.sendMail)) jobs.push(await buildDemandeJob(d));
-  if ($("#chk-mail-patient").checked) jobs.push(await buildPatientJob());
+  for (const d of todo) { jobs.push(await buildDemandeJob(d)); prog(); }
+  if ($("#chk-mail-patient").checked) { jobs.push(await buildPatientJob()); prog(); }
   if (!jobs.length) throw new Error("Aucun envoi coché.");
   for (const j of jobs) {
     const a = document.createElement("a");
@@ -873,6 +917,7 @@ function renderSendModal() {
       if (k < chosen.length - 1) await new Promise((ok) => setTimeout(ok, 2200)); // laisse Outlook ouvrir chaque brouillon
     }
     btn.textContent = `✓ ${chosen.length} brouillon(s) ouvert(s) — joignez les PDF puis envoyez`;
+    toastNext(`📧 ${chosen.length} brouillon(s) ouvert(s) — joignez les PDF puis envoyez.`);
   });
 
   const emlAll = document.querySelector("#send-eml-all");
@@ -892,11 +937,11 @@ function updateEmailButton() {
   $("#btn-all").style.display = any ? "block" : "none";
 }
 $("#btn-emails").addEventListener("click", () => {
-  if (!confirmDemandeWarnings()) return;
+  if (!checkBeforeOutput()) return;
   generateAllEmails().catch((e) => toast("❌ " + e.message, 8000));
 });
 $("#btn-all").addEventListener("click", () => {
-  if (!confirmDemandeWarnings()) return;
+  if (!checkBeforeOutput()) return;
   openPrintChooser(true);
 });
 $("#chk-mail-patient").addEventListener("change", () => {
@@ -915,6 +960,8 @@ const EXAMENS_ENDO_UI = [
   ["enteroscopie", "Entéroscopie"], ["duodenoscopie", "Duodénoscopie"],
   ["gep", "GEP"], ["biopsie_transjug", "Biopsie hép. transjugulaire"],
 ];
+
+const SUGG_INDICATIONS = ["Dépistage", "Surveillance de polypes", "Anémie ferriprive", "Douleurs abdominales", "Rectorragies", "Troubles du transit", "Bilan d'extension", "Contrôle"];
 
 const DEM_LABELS = {
   endo: "Endoscopie digestive", echo: "Échographie / Doppler", radio: "Radiographie",
@@ -977,7 +1024,10 @@ function demandeCardImagerie(d) {
     `<label class="field"><span class="lbl">${t === "tdm" || t === "irm" ? "Région anatomique à explorer *" : "Examen demandé *"}</span>${inp("examen", o.examen, t === "interv" ? "ex. drainage biliaire, TIPS, chimio-embolisation…" : "")}</label>`;
 
   const indicRow = `<label class="field"><span class="lbl">${t === "tep" ? "Histologie et commentaires *" : "Indication / contexte clinique *"}</span>
-    <textarea data-d="${d.id}" data-k="indications" rows="3">${o.indications || ""}</textarea></label>`;
+    <textarea data-d="${d.id}" data-k="indications" rows="3">${o.indications || ""}</textarea></label>
+    <div style="display:flex; flex-wrap:wrap; gap:4px; margin:-4px 0 8px;">
+      ${SUGG_INDICATIONS.map((s) => `<button type="button" class="subtle small" data-d="${d.id}" data-sugg="${s.replace(/"/g, "&quot;")}" style="padding:2px 8px; font-size:10.5px;">${s}</button>`).join("")}
+    </div>`;
 
   const isoRows = `
     ${nonOui("risqueInf", o.risqueInf, "Risque infectieux / isolement")}
@@ -1145,6 +1195,9 @@ function demandeCard(d) {
   <label class="field"><span class="lbl">Indications *</span>
     <textarea data-d="${d.id}" data-k="indications" rows="3" placeholder="Contexte clinique et indication de l'examen">${o.indications}</textarea>
   </label>
+  <div style="display:flex; flex-wrap:wrap; gap:4px; margin:-4px 0 8px;">
+    ${SUGG_INDICATIONS.map((s) => `<button type="button" class="subtle small" data-d="${d.id}" data-sugg="${s.replace(/"/g, "&quot;")}" style="padding:2px 8px; font-size:10.5px;">${s}</button>`).join("")}
+  </div>
   <div class="grid2">
     <label class="field"><span class="lbl">Délai souhaité</span>
       ${sel("delai", [["urgent48", "Urgent ++ (< 48 h)"], ["urgent7", "Urgent (< 7 jours)"], ["semi15", "Semi-urgent (< 15 jours)"], ["autre", "Autre…"]], o.delai)}
@@ -1266,6 +1319,18 @@ function renderDemandes() {
 
 // Saisie dans les formulaires de demande : mise à jour sans re-render (focus conservé),
 // sauf changements structurels (examens cochés, délai/hospit/iso) qui re-rendent la carte.
+$("#demandes").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-sugg]");
+  if (!b) return;
+  const d = demandes.find((x) => x.id === b.dataset.d);
+  if (!d) return;
+  d.opts.indications = (d.opts.indications ? d.opts.indications.replace(/\s+$/, "") + ". " : "") + b.dataset.sugg;
+  const ta = document.querySelector(`textarea[data-d="${d.id}"][data-k="indications"]`);
+  if (ta) ta.value = d.opts.indications;
+  refreshDemandeWarnings();
+  refreshSoon();
+});
+
 $("#demandes").addEventListener("input", (e) => {
   const t = e.target, d = demandes.find((x) => x.id === t.dataset.d);
   if (!d) return;
@@ -1354,9 +1419,31 @@ function elemLabel(el) {
 
 let currentPack = null; // {name, elements} affiché dans l'écran de composition
 
+const PACKRECENT_KEY = "endoc.packrecents.v1";
+function pushRecentPack(ci, id) {
+  let arr = [];
+  try { arr = JSON.parse(localStorage.getItem(PACKRECENT_KEY) || "[]"); } catch (_) {}
+  arr = [`${ci}:${id}`, ...arr.filter((x) => x !== `${ci}:${id}`)].slice(0, 4);
+  localStorage.setItem(PACKRECENT_KEY, JSON.stringify(arr));
+}
+function recentPacks() {
+  let arr = [];
+  try { arr = JSON.parse(localStorage.getItem(PACKRECENT_KEY) || "[]"); } catch (_) {}
+  return arr.map((s) => {
+    const [ci, id] = s.split(":");
+    const p = PARCOURS_DEFS[Number(ci)]?.items.find((x) => x.id === id);
+    return p ? { ci: Number(ci), p } : null;
+  }).filter(Boolean);
+}
+
 function renderParcoursList() {
   const perso = listParcoursPerso();
+  const recents = recentPacks();
   $("#parcours-list").innerHTML =
+    (recents.length ? `<div class="mhint" style="margin:0 0 4px;"><strong>⭐ Récents</strong></div>
+      <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px;">
+        ${recents.map((r, i) => `<button class="small" data-recent="${i}">${r.p.name}</button>`).join("")}
+      </div>` : "") +
     PARCOURS_DEFS.map((c, ci) => `<details ${ci === 0 ? "open" : ""} style="margin-bottom:6px;">
       <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--bleu-fonce); padding:4px 2px;">${c.icon} ${c.cat} <span style="color:var(--gris-clair); font-weight:600; font-size:11px;">${c.items.length}</span></summary>
       ${c.items.map((p) => `<button class="subtle small" data-pack="${ci}:${p.id}" style="display:block; width:100%; text-align:left; margin-top:3px;">${p.name}${p.desc ? `<br><span style="font-weight:400; color:var(--gris-clair); font-size:10.5px;">${p.desc}</span>` : ""}</button>`).join("")}
@@ -1367,6 +1454,9 @@ function renderParcoursList() {
         <button class="danger small" data-del-pack="${i}">✕</button>
       </div>`).join("") : "");
 
+  $$("#parcours-list [data-recent]").forEach((b) => b.addEventListener("click", () => {
+    openPackCompose(recentPacks()[Number(b.dataset.recent)].p);
+  }));
   $$("#parcours-list [data-pack]").forEach((b) => b.addEventListener("click", () => {
     const [ci, id] = b.dataset.pack.split(":");
     const p = PARCOURS_DEFS[Number(ci)].items.find((x) => x.id === id);
@@ -1419,17 +1509,21 @@ $("#pc-apply").addEventListener("click", () => {
       const it = findOrdoType(name);
       if (!it) { toast("Ordonnance type introuvable : " + name, 6000); return; }
       const med = currentMedecin();
-      newOrdo({
-        mode: "simple",
-        texte: it.content.replaceAll("{MEDECIN}", med ? med.nom : "votre médecin").replaceAll("{FAX}", med?.fax || "………………"),
-      });
+      const texte = it.content.replaceAll("{MEDECIN}", med ? med.nom : "votre médecin").replaceAll("{FAX}", med?.fax || "………………");
+      const strip = (s) => s.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+      if (ordos.some((o) => strip(o.texte + o.textAld) === strip(texte))) { n--; return; } // déjà présent
+      newOrdo({ mode: "simple", texte });
     } else if (el.t === "demande") {
+      const sig = JSON.stringify([el.kind || "endo", el.opts?.examens || [], el.opts?.actes || ""]);
+      if (demandes.some((d) => JSON.stringify([d.type, d.opts.examens || [], d.opts.actes || ""]) === sig)) { n--; return; } // déjà présente
       newDemande();
       const d = demandes[demandes.length - 1];
       d.type = el.kind || "endo";
       d.opts = { ...initDemandeOpts(d.type), ...JSON.parse(JSON.stringify(el.opts || {})) };
     }
   });
+  for (let ci = 0; ci < PARCOURS_DEFS.length; ci++)
+    if (PARCOURS_DEFS[ci].items.some((x) => x.id === currentPack.id)) pushRecentPack(ci, currentPack.id);
   renderDemandes();
   renderCatalog();
   refresh();
@@ -1612,7 +1706,64 @@ $("#btn-etp").addEventListener("click", () => { renderEtpModal(); openModal("#mo
 $("#etp-search").addEventListener("input", () => renderEtpModal($("#etp-search").value));
 
 // ------------------------------------------------------------------ recherche
-$("#search").addEventListener("input", applyCatalogVisibility);
+function renderSearchExtra() {
+  const words = norm($("#search").value.trim()).split(/\s+/).filter(Boolean);
+  const box = $("#search-extra");
+  if (!words.length) { box.style.display = "none"; box.innerHTML = ""; return; }
+  const hits = [];
+  // ordonnances types (nom + mots-clés + contenu)
+  outer1:
+  for (const c of ORDO_TYPES) for (const it of c.items) {
+    const hay = norm(it.name + " " + (it.kw || "") + " " + it.content);
+    if (words.every((w) => hay.includes(w))) {
+      hits.push({ k: "type", label: it.name, cat: c.cat, name: it.name });
+      if (hits.length >= 8) break outer1;
+    }
+  }
+  // packs
+  for (const c of PARCOURS_DEFS) for (const p of c.items) {
+    const hay = norm(p.name + " " + c.cat + " " + (p.desc || ""));
+    if (words.every((w) => hay.includes(w)) && hits.length < 10) hits.push({ k: "pack", label: p.name, ci: PARCOURS_DEFS.indexOf(c), id: p.id });
+  }
+  if (!hits.length) { box.style.display = "none"; box.innerHTML = ""; return; }
+  box.style.display = "block";
+  box.innerHTML = hits.slice(0, 6).map((h2, i) =>
+    `<button class="subtle small" data-sx="${i}" style="display:flex; width:100%; text-align:left; gap:7px; margin-top:3px; align-items:center;">
+      <span style="flex:none;">${h2.k === "type" ? "💊" : "📦"}</span>
+      <span style="flex:1;">${h2.k === "type" ? "Ordonnance type : " : "Pack : "}<strong>${h2.label}</strong></span>
+      <span style="flex:none; color:var(--gris-clair); font-weight:800;">＋</span>
+    </button>`).join("");
+  box.querySelectorAll("[data-sx]").forEach((b) => b.addEventListener("click", () => {
+    const h2 = hits[Number(b.dataset.sx)];
+    if (h2.k === "type") {
+      activeOrdoId = null;
+      applyOrdoType(findOrdoType(h2.name));
+    } else {
+      const p = PARCOURS_DEFS[h2.ci].items.find((x) => x.id === h2.id);
+      openPackCompose(p);
+      openModal("#modal-parcours");
+      $("#parcours-home").style.display = "none";
+      $("#parcours-compose").style.display = "block";
+    }
+    $("#search").value = "";
+    applyCatalogVisibility();
+    renderSearchExtra();
+  }));
+}
+$("#search").addEventListener("input", () => { applyCatalogVisibility(); renderSearchExtra(); });
+$("#search").addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  // 1er document visible non coché → cocher ; sinon 1re action étendue
+  const cb = [...document.querySelectorAll("#catalogue .doc-item input[data-doc]")].find((x) => x.closest(".doc-item").offsetParent !== null && x.closest(".cat-group").style.display !== "none" && !x.checked);
+  if (cb) {
+    cb.checked = true;
+    cb.dispatchEvent(new Event("change"));
+    toast("✓ " + cb.closest(".doc-item").textContent.trim().split("\n")[0].slice(0, 60), 2500);
+    return;
+  }
+  document.querySelector("#search-extra [data-sx]")?.click();
+});
 
 // compteur de sélection : « tout décocher » + décocher un document précis
 $("#sel-count").addEventListener("click", (e) => {
@@ -1624,9 +1775,20 @@ $("#sel-count").addEventListener("click", (e) => {
     refresh();
     return;
   }
+  const unchip = e.target.closest("[data-unchip]");
+  if (unchip) {
+    e.preventDefault();
+    const [kind, id] = unchip.dataset.unchip.split(":");
+    if (kind === "ordo") { ordos.splice(ordos.findIndex((o) => o.id === id), 1); renderOrdos(); }
+    else { demandes.splice(demandes.findIndex((d) => d.id === id), 1); renderDemandes(); updateEmailButton(); }
+    refresh();
+    return;
+  }
   if (e.target.id !== "clear-sel") return;
   e.preventDefault();
   selection.clear();
+  ordos.length = 0; renderOrdos();
+  demandes.length = 0; renderDemandes(); updateEmailButton();
   renderCatalog();
   refresh();
 });
@@ -1766,6 +1928,7 @@ $("#btn-reset").addEventListener("click", () => {
   $("#panel-patient").style.opacity = "1";
   const d = new Date();
   $("#doc-date").value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  sessionStorage.removeItem("endoc.session.v1");
   // Le médecin sélectionné est conservé.
   renderCatalog();
   refresh();
@@ -1813,11 +1976,30 @@ async function doPrint(chosen) {
       dateDoc: $("#chk-generic").checked ? null : $("#doc-date").value || null,
     };
     $("#print-root").innerHTML = await assembleDocs(chosen, ctx);
+    // le PDF « Enregistrer en PDF » prendra le nom du patient
+    const p = currentPatient();
+    const oldTitle = document.title;
+    document.title = p && (p.nom || p.prenom) ? `${[p.nom?.toUpperCase(), p.prenom].filter(Boolean).join(" ")} — Doc'HGE` : "Documents — Doc'HGE";
     window.print(); // bloquant jusqu'à fermeture du dialogue
+    document.title = oldTitle;
     refresh(); // restaure l'aperçu complet
   }
   if (printThenEmails) generateAllEmails().catch((e) => toast("❌ " + e.message, 8000));
+  else if (chosen.length) toastNext("🖨 Impression lancée.");
 }
+
+/** Toast avec enchaînement patient suivant / nouveau dossier. */
+function toastNext(prefix) {
+  toast(`${prefix}<br><a href="#" data-tnext="keep" style="color:#8fc2ea; font-weight:700;">🆕 Patient suivant (mêmes documents)</a> &nbsp;·&nbsp; <a href="#" data-tnext="new" style="color:#8fc2ea; font-weight:700;">↺ Nouveau dossier</a>`, 12000);
+}
+$("#toast").addEventListener("click", (e) => {
+  const t = e.target.closest("[data-tnext]");
+  if (!t) return;
+  e.preventDefault();
+  $("#toast").style.display = "none";
+  if (t.dataset.tnext === "keep") newPatientKeepDocs();
+  else $("#btn-reset").click();
+});
 
 $("#btn-print-go").addEventListener("click", () => {
   const chosen = printItems.filter((_, i) => document.querySelector(`[data-print-idx="${i}"]`)?.checked);
@@ -1826,8 +2008,15 @@ $("#btn-print-go").addEventListener("click", () => {
 });
 
 // --------------------------------------------------------------- impression
+function checkBeforeOutput() {
+  if (!$("#chk-generic").checked && !currentMedecin()) {
+    if (!confirm("⚠ Aucun médecin sélectionné (saisie libre vide) : les documents sortiront en version GÉNÉRIQUE, sans nom de médecin ni RPPS.\n\nContinuer quand même ?")) return false;
+  }
+  return confirmDemandeWarnings();
+}
+
 $("#btn-print").addEventListener("click", () => {
-  if (!confirmDemandeWarnings()) return;
+  if (!checkBeforeOutput()) return;
   openPrintChooser(false);
 });
 
@@ -1835,6 +2024,7 @@ $("#btn-print").addEventListener("click", () => {
 $("#sel-medecin").addEventListener("change", () => {
   $("#medecin-libre").style.display = $("#sel-medecin").value === "__libre" ? "block" : "none";
   localStorage.setItem(LASTMED_KEY, $("#sel-medecin").value);
+  renderTopbarMed();
   refreshSoon();
 });
 ["#ml-nom", "#ml-spec", "#ml-tel", "#ml-rpps", "#ml-mail", "#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen",
@@ -2054,6 +2244,14 @@ function setProfile(p) {
   localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
   renderProfileChip();
 }
+function renderTopbarMed() {
+  const sel = $("#topbar-med");
+  const isSec = getProfile()?.type === "secretariat";
+  sel.style.display = isSec ? "block" : "none";
+  if (!isSec) return;
+  sel.innerHTML = listMedecins().map((m) => `<option value="${m.id}" ${$("#sel-medecin").value === m.id ? "selected" : ""}>👨‍⚕️ ${m.nom}</option>`).join("");
+}
+
 function renderProfileChip() {
   const p = getProfile();
   let label = "Choisir mon profil";
@@ -2063,8 +2261,14 @@ function renderProfileChip() {
     label = "👨‍⚕️ " + (m ? m.nom : "Médecin");
   }
   $("#profile-chip").textContent = label;
+  renderTopbarMed();
 }
 $("#profile-chip").addEventListener("click", () => openModal("#modal-welcome"));
+$("#topbar-med").addEventListener("change", () => {
+  $("#sel-medecin").value = $("#topbar-med").value;
+  localStorage.setItem(LASTMED_KEY, $("#topbar-med").value);
+  refreshSoon();
+});
 
 if (!localStorage.getItem("endoc.welcomed")) {
   openModal("#modal-welcome");
@@ -2090,14 +2294,130 @@ $("#wl-secretariat").addEventListener("click", () => {
   toast("🗂 Profil secrétariat : tous les médecins de la liste sont disponibles. Pensez à importer la liste du service (« Gérer les médecins » → Importer).", 9000);
 });
 
+// ---------------------------------------------- coller l'identité (DPI)
+function parseIdentity(raw) {
+  let s = raw.replace(/\s+/g, " ").trim();
+  if (!s) return null;
+  const out = {};
+  // civilité
+  const civ = s.match(/\b(M\.|Mr|Monsieur|Mme|Madame|Mlle)\b\.?/i);
+  if (civ) {
+    out.civ = /^m(r|\.|onsieur)?$/i.test(civ[1].replace(".", "")) || /^mr$/i.test(civ[1]) || /^monsieur$/i.test(civ[1]) || civ[1] === "M." ? "M." : "Mme";
+    s = s.replace(civ[0], " ");
+  }
+  // date (jj/mm/aaaa, jj-mm-aaaa, jj.mm.aaaa ou aaaa-mm-jj)
+  const d1 = s.match(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})\b/);
+  const d2 = s.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+  if (d1) { out.ddn = `${d1[3]}-${d1[2].padStart(2, "0")}-${d1[1].padStart(2, "0")}`; s = s.replace(d1[0], " "); }
+  else if (d2) { out.ddn = d2[0]; s = s.replace(d2[0], " "); }
+  // né(e) le, etc.
+  s = s.replace(/\bn[ée]e?\s*(\(e\))?\s*le\b/gi, " ").replace(/[,;·]/g, " ").replace(/\s+/g, " ").trim();
+  const toks = s.split(" ").filter((t) => /[A-Za-zÀ-ÿ'-]{2,}/.test(t));
+  if (toks.length) {
+    const upper = toks.filter((t) => t === t.toUpperCase() && t !== t.toLowerCase());
+    const rest = toks.filter((t) => !(t === t.toUpperCase() && t !== t.toLowerCase()));
+    if (upper.length && rest.length) { out.nom = upper.join(" "); out.prenom = rest.join(" "); }
+    else if (toks.length >= 2) { out.nom = toks[0].toUpperCase(); out.prenom = toks.slice(1).join(" "); }
+    else out.nom = toks[0].toUpperCase();
+  }
+  return (out.nom || out.ddn) ? out : null;
+}
+
+$("#pt-paste").addEventListener("input", () => {
+  const p = parseIdentity($("#pt-paste").value);
+  if (!p || (!p.nom && !p.ddn)) return;
+  if (p.civ) $("#pt-civ").value = p.civ;
+  if (p.nom) $("#pt-nom").value = p.nom;
+  if (p.prenom) $("#pt-prenom").value = p.prenom;
+  if (p.ddn) $("#pt-ddn").value = p.ddn;
+  $("#pt-paste").value = "";
+  toast(`⚡ Identité remplie : ${p.civ || ""} ${p.nom || ""} ${p.prenom || ""}${p.ddn ? " · " + p.ddn.split("-").reverse().join("/") : ""}`, 4000);
+  refreshSoon();
+});
+
+// ---------------------------------------------- patient suivant (mode série)
+function newPatientKeepDocs() {
+  ["#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen", "#pt-tel", "#pt-civ", "#pt-mail", "#pt-paste"].forEach((id) => ($(id).value = ""));
+  $("#chk-mail-patient").checked = false;
+  $("#mail-patient-fields").style.display = "none";
+  updateEmailButton();
+  refresh();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  $("#pt-paste").focus();
+  toast("🆕 Patient suivant — documents, ordonnances et demandes conservés.", 4000);
+}
+$("#btn-next-patient").addEventListener("click", newPatientKeepDocs);
+
 // Date du document : pré-remplie à aujourd'hui (fuseau local)
 const now = new Date();
 $("#doc-date").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 $("#doc-date").addEventListener("input", refreshSoon);
 
+// Raccourcis : Ctrl/Cmd+Entrée = imprimer · Échap = fermer les fenêtres
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && !$("#btn-print").disabled) {
+    e.preventDefault();
+    $("#btn-print").click();
+  }
+  if (e.key === "Escape") closeModals();
+});
+
 document.querySelector(".topbar .t2").textContent += ` · v${APP_VERSION}`;
 renderProfileChip();
 
+// ------------------------------------------- autosauvegarde de session
+// sessionStorage : survit au rechargement / plantage d'onglet, disparaît à la
+// fermeture — aucune donnée patient persistante sur poste partagé.
+const SESSION_KEY = "endoc.session.v1";
+function saveSession() {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+      sel: [...selection],
+      ordos: ordos.map((o) => ({ ...o })),
+      demandes: demandes.map((d) => ({ id: d.id, type: d.type, opts: d.opts })),
+      patient: { civ: $("#pt-civ").value, nom: $("#pt-nom").value, prenom: $("#pt-prenom").value, ddn: $("#pt-ddn").value, examen: $("#pt-examen").value, tel: $("#pt-tel").value, mail: $("#pt-mail").value, mailChk: $("#chk-mail-patient").checked },
+      date: $("#doc-date").value,
+      generic: $("#chk-generic").checked,
+    }));
+  } catch (_) { /* stockage plein : tant pis */ }
+}
+function restoreSession() {
+  let s;
+  try { s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null"); } catch (_) { return false; }
+  if (!s) return false;
+  const hasContent = (s.sel || []).length || (s.ordos || []).length || (s.demandes || []).length || s.patient?.nom;
+  if (!hasContent) return false;
+  (s.sel || []).forEach((id) => selection.add(id));
+  (s.ordos || []).forEach((o) => { ordos.push({ ...o, id: "ord" + (++ordoSeq) }); });
+  (s.demandes || []).forEach((d) => { demandes.push({ id: "dem" + (++demandeSeq), type: d.type, opts: d.opts }); });
+  const p = s.patient || {};
+  $("#pt-civ").value = p.civ || ""; $("#pt-nom").value = p.nom || ""; $("#pt-prenom").value = p.prenom || "";
+  $("#pt-ddn").value = p.ddn || ""; $("#pt-examen").value = p.examen || ""; $("#pt-tel").value = p.tel || "";
+  $("#pt-mail").value = p.mail || ""; $("#chk-mail-patient").checked = !!p.mailChk;
+  $("#mail-patient-fields").style.display = p.mailChk ? "block" : "none";
+  if (s.date) $("#doc-date").value = s.date;
+  $("#chk-generic").checked = !!s.generic;
+  renderOrdos(); renderDemandes(); updateEmailButton();
+  toast("💾 Dossier en cours restauré — « ↺ Nouveau » pour repartir de zéro.", 6000);
+  return true;
+}
+
+// Détection de nouvelle version (contre les caches) — toutes les 5 min + au focus
+async function checkVersion() {
+  try {
+    const r = await fetch("version.json?t=" + Math.floor(Date.now() / 60000), { cache: "no-store" });
+    if (!r.ok) return;
+    const v = (await r.json()).version;
+    if (v && v !== APP_VERSION) {
+      toast(`🔄 Nouvelle version disponible (v${v}) — <a href="#" onclick="location.reload(true); return false;" style="color:#8fc2ea; font-weight:700;">Recharger</a>`, 30000);
+    }
+  } catch (_) { /* hors-ligne : silencieux */ }
+}
+setInterval(checkVersion, 5 * 60 * 1000);
+window.addEventListener("focus", checkVersion);
+setTimeout(checkVersion, 15000);
+
 renderCatalog();
 renderMedecinSelect();
+restoreSession();
 refresh();

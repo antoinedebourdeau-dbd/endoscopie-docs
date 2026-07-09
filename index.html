@@ -20,6 +20,8 @@
     <div class="t2">Hépato-Gastroentérologie · CHU de Montpellier</div>
   </div>
   <button class="ghost" id="profile-chip" style="background:#fff;" title="Changer de profil (médecin / secrétariat)">Choisir mon profil</button>
+  <select id="topbar-med" class="ghost" style="display:none; max-width:190px; background:#fff; border:1.5px solid var(--bleu); border-radius:9px; font:700 12.5px 'Barlow',sans-serif; color:var(--bleu); padding:8px;" title="Changer de médecin (profil secrétariat)"></select>
+  <button class="ghost" id="btn-next-patient" style="background:#fff;" title="Patient suivant : efface le patient, garde documents / ordonnances / demandes (travail en série)">🆕 Patient suivant</button>
   <button class="ghost" id="btn-reset" style="background:#fff;" title="Tout remettre à zéro : documents, ordonnances, demandes, patient">↺ Nouveau</button>
   <button class="ghost" id="btn-new-doc" style="background:#fff;">✏️ Rédiger un document</button>
   <button class="ghost" id="btn-medecins" style="background:#fff;">Gérer les médecins</button>
@@ -29,9 +31,36 @@
 <div class="layout">
   <aside class="sidebar no-print">
 
+    <!-- PATIENT (en premier : c'est la première info dont on dispose) -->
+    <div class="panel" id="panel-patient">
+      <h2><span class="step">1</span> Patient <span style="color:var(--gris-clair); font-weight:600; text-transform:none; letter-spacing:0;">(optionnel)</span></h2>
+      <label class="field" style="margin-bottom:6px;">
+        <input type="text" id="pt-paste" placeholder="⚡ Collez l'identité depuis le DPI : « MARTIN Jeanne 14/03/1958 »" autocomplete="off">
+      </label>
+      <div style="display:grid; grid-template-columns:64px 1fr 1fr; gap:0 8px;">
+        <label class="field"><span class="lbl">Civ.</span>
+          <select id="pt-civ"><option value=""></option><option value="M.">M.</option><option value="Mme">Mme</option></select>
+        </label>
+        <label class="field"><span class="lbl">Nom</span><input type="text" id="pt-nom" autocomplete="off"></label>
+        <label class="field"><span class="lbl">Prénom</span><input type="text" id="pt-prenom" autocomplete="off"></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span class="lbl">Date de naissance</span><input type="date" id="pt-ddn"></label>
+        <label class="field"><span class="lbl">Date de l'examen</span><input type="date" id="pt-examen"></label>
+        <label class="field" style="grid-column:1 / -1;"><span class="lbl">Téléphone (pour les demandes d'examen)</span><input type="tel" id="pt-tel"></label>
+      </div>
+      <label class="doc-item" style="margin-top:2px;">
+        <input type="checkbox" id="chk-mail-patient">
+        <span>📧 <strong>Envoyer les documents au patient par mail</strong></span>
+      </label>
+      <div id="mail-patient-fields" style="display:none;">
+        <label class="field"><span class="lbl">E-mail du patient</span><input type="text" id="pt-mail" placeholder="patient@exemple.fr" autocomplete="off"></label>
+      </div>
+    </div>
+
     <!-- ÉTAPE 1 : documents -->
     <div class="panel">
-      <h2><span class="step">1</span> Choisir les documents <span class="spacer"></span>
+      <h2><span class="step">2</span> Choisir les documents <span class="spacer"></span>
         <button class="subtle small" id="btn-import-doc" title="Importer un document JSON partagé par un collègue">Importer</button>
       </h2>
 
@@ -50,13 +79,14 @@
       <div id="demandes"></div>
 
       <label class="field" style="margin-bottom:8px;"><input type="text" id="search" placeholder="🔍 Rechercher un document (ex. coloscopie, plenvu, dilatation…)" autocomplete="off"></label>
+      <div id="search-extra" style="display:none; margin:0 0 8px;"></div>
       <div id="sel-count" class="hint" style="display:none; margin:0 0 8px;"></div>
       <div id="catalogue"></div>
     </div>
 
     <!-- ÉTAPE 2 : médecin -->
     <div class="panel">
-      <h2><span class="step">2</span> Médecin</h2>
+      <h2><span class="step">3</span> Médecin</h2>
       <label class="field"><span class="lbl">Médecin référent</span>
         <select id="sel-medecin"></select>
       </label>
@@ -75,32 +105,8 @@
       </label>
     </div>
 
-    <!-- ÉTAPE 3 : patient -->
-    <div class="panel" id="panel-patient">
-      <h2><span class="step">3</span> Patient <span style="color:var(--gris-clair); font-weight:600; text-transform:none; letter-spacing:0;">(optionnel)</span></h2>
-      <div class="grid2">
-        <label class="field"><span class="lbl">Civilité</span>
-          <select id="pt-civ"><option value=""></option><option value="M.">M.</option><option value="Mme">Mme</option></select>
-        </label>
-        <span></span>
-        <label class="field"><span class="lbl">Nom</span><input type="text" id="pt-nom" autocomplete="off"></label>
-        <label class="field"><span class="lbl">Prénom</span><input type="text" id="pt-prenom" autocomplete="off"></label>
-        <label class="field"><span class="lbl">Date de naissance</span><input type="date" id="pt-ddn"></label>
-        <label class="field"><span class="lbl">Date de l'examen</span><input type="date" id="pt-examen"></label>
-        <label class="field" style="grid-column:1 / -1;"><span class="lbl">Téléphone (pour les demandes d'examen)</span><input type="tel" id="pt-tel"></label>
-      </div>
-      <label class="doc-item" style="margin-top:2px;">
-        <input type="checkbox" id="chk-mail-patient">
-        <span>📧 <strong>Envoyer les documents au patient par mail</strong></span>
-      </label>
-      <div id="mail-patient-fields" style="display:none;">
-        <label class="field"><span class="lbl">E-mail du patient</span><input type="text" id="pt-mail" placeholder="patient@exemple.fr" autocomplete="off"></label>
-      </div>
-      <div class="hint">Les informations patient restent dans ce navigateur : rien n'est transmis sur internet.</div>
-    </div>
-
-    <!-- IMPRESSION -->
-    <div class="panel">
+    <!-- IMPRESSION (zone collante) -->
+    <div class="panel" id="actions-panel">
       <label class="field"><span class="lbl">Date du document (« Fait à Montpellier, le… »)</span>
         <input type="date" id="doc-date">
       </label>
@@ -129,6 +135,8 @@
       <button id="btn-med-add">＋ Ajouter un médecin</button>
       <button class="ghost" id="btn-med-export">Exporter la liste</button>
       <button class="ghost" id="btn-med-import">Importer une liste</button>
+      <button class="subtle" id="btn-cfg-export" title="Tout le poste : médecins, ordonnances perso, packs perso, e-mails">💾 Exporter la config du poste</button>
+      <button class="subtle" id="btn-cfg-import">📥 Importer une config</button>
     </div>
     <form id="med-form" style="display:none; margin-top:14px; border-top:1px solid var(--bord); padding-top:12px;">
       <input type="hidden" id="mf-id">

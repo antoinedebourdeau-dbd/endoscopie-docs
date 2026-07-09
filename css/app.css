@@ -171,6 +171,28 @@ textarea.mono { font: 12px/1.5 ui-monospace, 'SF Mono', Menlo, monospace; min-he
 .validation-ok { color: #146c3a; background: #E6F4EC; border: 1px solid #b7dfc6; border-radius: 9px; padding: 8px 12px; font-size: 12.5px; margin-top: 8px; }
 .validation-err { color: var(--rouge); background: #FCECEA; border: 1px solid #e7b3ab; border-radius: 9px; padding: 8px 12px; font-size: 12.5px; margin-top: 8px; white-space: pre-wrap; }
 
+/* Zone d'actions collante en bas de la colonne */
+#actions-panel {
+  position: sticky; bottom: 0; z-index: 30;
+  box-shadow: 0 -6px 18px rgba(13, 43, 69, .10);
+  border: 1px solid var(--bord);
+  margin-bottom: 0;
+}
+
+/* ------------------------------------------------------------- responsive -- */
+@media (max-width: 1100px) {
+  .layout { flex-direction: column; }
+  .sidebar { width: 100%; position: static; max-height: none; padding: 12px 12px 0; }
+  .preview { padding: 12px; }
+  .topbar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+  .topbar .titles { flex-basis: 100%; }
+  section.doc, section.fiche > .fichepage { transform-origin: top left; }
+}
+@media (max-width: 640px) {
+  .modal { padding: 14px; }
+  .grid2 { grid-template-columns: 1fr; }
+}
+
 /* =================================================================== APERÇU */
 #print-root { display: block; }
 .preview-empty {
