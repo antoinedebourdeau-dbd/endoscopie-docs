@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "2.8";
+export const APP_VERSION = "2.9";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -20,6 +20,7 @@ const $$ = (sel) => [...document.querySelectorAll(sel)];
 // ---------------------------------------------------------------- catalogue
 const ORDO_ITEMS = [
   { key: "citrafleet", label: "Ordonnance + guide — CITRAFLEET®" },
+  { key: "izinova", label: "Ordonnance + guide — IZINOVA®" },
   { key: "moviprep", label: "Ordonnance + guide — MOVIPREP®" },
   { key: "plenvu", label: "Ordonnance + guide — PLENVU®" },
   { key: "ximepeg", label: "Ordonnance + guide — XIMEPEG®" },
@@ -1101,7 +1102,7 @@ $("#btn-cat-notes").addEventListener("click", () => openCategory("g-notes"));
 
 // ------------------------------------------------------------ parcours types
 const PARCOURS_KEY = "endoc.parcours.v1";
-const PREPS = [["plenvu", "PLENVU®"], ["moviprep", "MOVIPREP®"], ["ximepeg", "XIMEPEG®"], ["citrafleet", "CITRAFLEET®"]];
+const PREPS = [["plenvu", "PLENVU®"], ["izinova", "IZINOVA®"], ["moviprep", "MOVIPREP®"], ["ximepeg", "XIMEPEG®"], ["citrafleet", "CITRAFLEET®"]];
 const PARCOURS_PREDEF = [
   { name: "Coloscopie", desc: "Note info + ordonnance de préparation + demande d'examen", docs: ["note:coloscopie"], prepChoice: true, demande: { examens: ["coloscopie"], ag: "oui" } },
   { name: "Gastroscopie", desc: "Note info + demande d'examen", docs: ["note:gastroscopie"], demande: { examens: ["gastroscopie"], ag: "oui" } },

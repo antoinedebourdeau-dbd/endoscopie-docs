@@ -21,6 +21,11 @@ export const ORDO_TYPES = [
     "kw": "standard"
    },
    {
+    "name": "Bilan biologique pré-coloscopie",
+    "content": "Bilan biologique à réaliser avant les endoscopies<br><br>- NFS, plaquettes<br>- TP / INR<br>- CRP<br>- Iono, urée, créatinine<br><br><br>Merci de faxer les résultats au {FAX}",
+    "kw": "NFS TP anesthésie"
+   },
+   {
     "name": "Diabète — bilan biologique",
     "content": "- 1 kit avec lecteur de glycémie ACCU-CHEK Go<br>- 1 flacon de 10 bandelettes ACCU-CHEK Multiclix.<br>- 2 barrillets de 6 lancettes ACCU-CHEK Multiclix.<br>- 1 trousse de rangement<br>- 1 carnet de suivi des glycémies",
     "kw": "HbA1c glycémie"
@@ -74,61 +79,6 @@ export const ORDO_TYPES = [
     "name": "β-hCG — test de grossesse",
     "content": "Bilan Biologique à réaliser au laboratoire, 2 jours avant l’examen:<br>- Béta-HCG plasmatiques<br><br>Date des dernières règles (à remplir par la patiente) :<br><br>Résultats à faxer au médecin traitant et au {MEDECIN} au 04 67 33 85 74",
     "kw": "beta hcg enceinte"
-   }
-  ]
- },
- {
-  "cat": "COLOSCOPIE — PRÉPARATION",
-  "items": [
-   {
-    "name": "Bilan biologique pré-coloscopie",
-    "content": "Bilan biologique à réaliser avant les endoscopies<br><br>- NFS, plaquettes<br>- TP / INR<br>- CRP<br>- Iono, urée, créatinine<br><br><br>Merci de faxer les résultats au {FAX}",
-    "kw": "NFS TP anesthésie"
-   },
-   {
-    "name": "Préparation colique — IZINOVA (prise fractionnée)",
-    "content": "IZINOVA: 1 coffret comprenant 2 flacons<br><br>1) LA VEILLE AU SOIR DE L’EXAMEN :<br><br>- De 18h à 19h: boire 1 flacon d’IZINOVA à diluer dans le godet de 500 ml avec de l’eau fraiche<br><br>- De 19h à 20h: boire 1 L de liquide clair (eau, soupe claire, jus de fruit sans pulpe, boissons sans alcool, thé, café, PAS DE LAIT)<br><br>2) LE MATIN DE L’EXAMEN : être à jeun sauf la préparation à prendre comme suit :<br><br>- De 06h00 à 07h00: boire 1 flacon d’IZINOVA à diluer dans le godet de 500 ml avec de l’eau fraiche<br>- De 07h00 à 08h00: boire 1 L de liquide clair (eau, soupe claire, jus de fruit sans pulpe, boissons sans alcool, thé, café, PAS DE LAIT)",
-    "kw": "purge coloscopie split dose"
-   },
-   {
-    "name": "Préparation colique — IZINOVA (tout la veille)",
-    "content": "IZINOVA: 1 coffret comprenant 2 flacons à prendre la veille<br><br>- De 18h à 19h: boire 1 flacon d’IZINOVA à diluer dans le godet de 500 ml avec de l’eau fraiche<br><br>- De 19h à 20h: boire 1 L de liquide clair (eau, soupe claire, jus de fruit sans pulpe, boissons sans alcool, thé, café, PAS DE LAIT)<br><br>- De 20h à 21h00: boire 1 flacon d’IZINOVA à diluer dans le godet de 500 ml avec de l’eau fraiche<br>- De 21h00 à 22h00: boire 1 L de liquide clair (eau, soupe claire, jus de fruit sans pulpe, boissons sans alcool, thé, café, PAS DE LAIT)",
-    "kw": "purge coloscopie"
-   },
-   {
-    "name": "Préparation colique — KLEAN-PREP",
-    "content": "- KLEAN PREP: 3 sachets à diluer dans 2L d&amp;#39;eau à boire de 14h à 17h<br>- NORMACOL: 1 lavement la veille au soir et 1 le matin de l’examen.",
-    "kw": "purge PEG 4 litres"
-   },
-   {
-    "name": "Préparation colique — KLEAN-PREP + PRÉPACOL",
-    "content": "- KLEAN PREP: 2 sachets à diluer dans 2L d’eau à boire de 14h à 17h la veille<br>- PREPACOL: 1 coffret: solution buvable à 18h30, comprimés au coucher la veille<br>- NORMACOL: 1 lavement la veille au soir et 1 le matin de l’examen.",
-    "kw": "purge PEG bisacodyl"
-   },
-   {
-    "name": "Préparation colique — MOVIPREP ou CITRAFLEET (schéma 1 jour)",
-    "content": "- CITRA FLEET un coffret<br><br>- MOVIPREP 2 boites<br><br>[Zone hors ALD :]<br>POUR LA PREPARATION COLIQUE<br><br>Cinq jours avant la coloscopie, commencer le régime sans résidus.<br><br>La veille de l&#x27;examen :<br><br>Un peu avant 16 h prendre une légère collation  (par exemple compote, bouillon). Plus aucun aliment solide n’est ensuite autorisé.<br><br>A 16 h boire le contenu du 1er  sachet de CITRAFLEET dans un verre d’eau.<br><br>Entre 16 h 30 et 19 h 30 boire impérativement 1 litre minimum de boissons claires autorisées (eau, sodas et jus de fruit sans pulpe, thé ou café sans lait, bouillons clairs) puis 1 litre de Moviprep (coffret A+B dilué dans 1 litre d’eau)<br><br>A 19 h  30 prendre le 2ème sachet de CITRAFLEET dans un verre d’eau.<br><br>Entre 20 h et 21 h  Boire impérativement  1 litre minimum des boissons claires autorisées avant le coucher en une heure minimum<br><br>Entre 21 h et 22 h  boire  1 litre de MOVIPREP (coffret A+B dilué dans 1 litre d’eau).<br><br>RESTER A JEUN LE MATIN DE L&#x27;EXAMEN<br><br>(ne pas manger, ni boire, ni fumer)",
-    "kw": "purge picosulfate"
-   },
-   {
-    "name": "Préparation colique — MOVIPREP ou CITRAFLEET (schéma 2 jours)",
-    "content": "Préparation sur 2 jours :<br><br>- CITRA FLEET un coffret<br><br>- MOVIPREP 2 boites<br><br>[Zone hors ALD :]<br>POUR LA PREPARATION COLIQUE<br><br>Cinq jours avant la coloscopie, commencer le régime sans résidus.<br><br>I) L’avant-veille de l’examen :<br>- De 18h à 19h: boire 1 sachet de MOVIPREP dilué dans 1 L d&#x27;eau<br>- De 19h à 20h: boire 1 L de liquide clair (eau, soupe claire, jus de fruit sans pulpe, boissons sans alcool, thé, café, PAS DE LAIT)<br>- De 20h à 21h30: Pause, pas de boisson<br>- De 21h30 à 22h30: boire 1 sachet de MOVIPREP dilué dans 1 L d&#x27;eau<br>- De 22h30 à 23h30: boire 1 L de liquide clair (eau, soupe claire, jus de fruit sans pulpe, boissons sans alcool, thé, café, PAS DE LAIT)<br><br>II) La veille de l&#x27;examen :<br><br>Un peu avant 16 h prendre une légère collation  (par exemple compote, bouillon). Plus aucun aliment solide n’est ensuite autorisé.<br><br>A 16 h boire le contenu du 1er  sachet de CITRAFLEET dans un verre d’eau.<br><br>Entre 16 h 30 et 19 h 30 boire impérativement 1 litre minimum de boissons claires autorisées (eau, sodas et jus de fruit sans pulpe, thé ou café sans lait, bouillons clairs) puis 1 litre de Moviprep (coffret A+B dilué dans 1 litre d’eau)<br><br>A 19 h  30 prendre le 2ème sachet de CITRAFLEET dans un verre d’eau.<br><br>Entre 20 h et 21 h  Boire impérativement  1 litre minimum des boissons claires autorisées avant le coucher en une heure minimum<br><br>Entre 21 h et 22 h  boire  1 litre de MOVIPREP (coffret A+B dilué dans 1 litre d’eau).<br><br>RESTER A JEUN LE MATIN DE L&#x27;EXAMEN<br><br>(ne pas manger, ni boire, ni fumer)",
-    "kw": "purge picosulfate"
-   },
-   {
-    "name": "Préparation colique — MOVIPREP seul",
-    "content": "MOVIPREP: 2 sachets la veille<br><br>- De 18h à 19h: boire 1 Litre de MOVIPREP reconstitué dans de l’eau (sachet A+B)<br><br>- De 19h à 20h: boire 1 L de liquide clair (eau, soupe claire, jus de fruit sans pulpe, boissons sans alcool, thé, café, tisane PAS DE LAIT)<br><br>- De 20h à 21h30: Pause, pas de boisson<br><br>- De 21h30 à 22h30: boire 1 Litre de MOVIPREP reconstitué dans de l’eau (sachet A+B)<br><br>- De 22h30 à 23h30: boire 1 L de liquide clair (eau, soupe claire, jus de fruit sans pulpe, boissons sans alcool, thé, café, tisane, PAS DE LAIT)",
-    "kw": "purge PEG"
-   },
-   {
-    "name": "Préparation colique — PICOPREP",
-    "content": "PICOPREP:<br>1er sachet à diluer dans 1 verre d&#x27;eau dans la matinée entre 8h et 10h la veille de l&#x27;examen<br>Puis boire 1.5 à 2L de liquides clairs (eau, thé, café, jus d&#x27;orange, sirop de citron)<br>2ème sachet à diluer dans 1 verre d&#x27;eau 6h plus tard la veille de l&#x27;examen<br>Puis boire 1.5 à 2 L de liquides clairs<br><br>NORMACOL: 1 lavement la veille au soir et 1 le matin de l&#x27;examen.",
-    "kw": "purge picosulfate sodium"
-   },
-   {
-    "name": "Régime sans résidu — consignes patient",
-    "content": "REGIME SANS RESIDUS POUR<br>PREPARATION A UN EXAMEN SUR LE COLON<br><br>2 jours avant l’examen<br><br>SUPPRIMER :<br>Tous les légumes crus et cuits,la sauce tomate<br>La pomme de terre<br>Tous les fruits crus ou cuits<br>Tous les fruits secs et oléagineux<br>-  Les aliments complets (y compris le pain complet et les biscottes complètes)<br>-  Les légumes secs<br>-  Le pain<br>- Les boissons gazeuses<br>-  L’alcool sous toutes ses formes<br><br>Exemple de répartition de repas :<br><br>Petit déjeuner et 16 heures :<br>SYMBOL 183 \\f &quot;Symbol&quot; \\s 11 \\h Thé ou café ou tisane ou chocolat<br>SYMBOL 183 \\f &quot;Symbol&quot; \\s 11 \\h Biscottes<br>SYMBOL 183 \\f &quot;Symbol&quot; \\s 11 \\h Beurre ou fromage<br>SYMBOL 183 \\f &quot;Symbol&quot; \\s 11 \\h Gelée ou miel<br><br>Déjeuner et dîner :<br>• Potage de pâtes ou de semoule<br>• Viande tendre ou poisson ou œufs ou jambon<br>• Pâtes, riz, semoule (+ beurre ou huile ou gratin)<br>• Fromage à pâte ferme (cantal, gruyère, édam, hollande, tome …) crème de gruyère<br>• Laitages , compote (sans peau),Biscuits (sans fruit, ni fruit sec) type boudoir, sablé, petit beurre, meringue,<br>pâtes de fruits sans graines<br>• Biscottes<br><br>BOISSONS AUTORISEES :<br><br>-  Eau plate<br>-  Thé, café, tisane, chocolat<br>-  Sirop<br>-  Jus de fruit sans pulpe<br><br>... /...<br><br>Y.DIE.003a",
-    "kw": "fibres coloscopie alimentation"
    }
   ]
  },
@@ -773,6 +723,11 @@ export const ORDO_TYPES = [
     "name": "Relais AVK ↔ LOVENOX (HBPM)",
     "content": "-     Arrêt du Previscan 5 jours avant l&#x27;examen<br>-     48h plus tard: relai par LOVENOX : 1 injection SC 0. mL matin et soir jusqu&#x27;à la veille au soir inclus.<br>Ne pas la faire le matin de l&#x27;examen.<br><br>Le lendemain de l’examen :<br>Reprendre le LOVENOX 0,  ml matin et soir jusqu’à équilibre de l’INR, à définir avec le médecin traitant<br>Reprendre le PREVISCAN 20 mg 0,5 cp le soir, à adapter à l’INR",
     "kw": "anticoagulant pont héparine énoxaparine"
+   },
+   {
+    "name": "Régime sans résidu — consignes patient",
+    "content": "REGIME SANS RESIDUS POUR<br>PREPARATION A UN EXAMEN SUR LE COLON<br><br>2 jours avant l’examen<br><br>SUPPRIMER :<br>Tous les légumes crus et cuits,la sauce tomate<br>La pomme de terre<br>Tous les fruits crus ou cuits<br>Tous les fruits secs et oléagineux<br>-  Les aliments complets (y compris le pain complet et les biscottes complètes)<br>-  Les légumes secs<br>-  Le pain<br>- Les boissons gazeuses<br>-  L’alcool sous toutes ses formes<br><br>Exemple de répartition de repas :<br><br>Petit déjeuner et 16 heures :<br>SYMBOL 183 \\f &quot;Symbol&quot; \\s 11 \\h Thé ou café ou tisane ou chocolat<br>SYMBOL 183 \\f &quot;Symbol&quot; \\s 11 \\h Biscottes<br>SYMBOL 183 \\f &quot;Symbol&quot; \\s 11 \\h Beurre ou fromage<br>SYMBOL 183 \\f &quot;Symbol&quot; \\s 11 \\h Gelée ou miel<br><br>Déjeuner et dîner :<br>• Potage de pâtes ou de semoule<br>• Viande tendre ou poisson ou œufs ou jambon<br>• Pâtes, riz, semoule (+ beurre ou huile ou gratin)<br>• Fromage à pâte ferme (cantal, gruyère, édam, hollande, tome …) crème de gruyère<br>• Laitages , compote (sans peau),Biscuits (sans fruit, ni fruit sec) type boudoir, sablé, petit beurre, meringue,<br>pâtes de fruits sans graines<br>• Biscottes<br><br>BOISSONS AUTORISEES :<br><br>-  Eau plate<br>-  Thé, café, tisane, chocolat<br>-  Sirop<br>-  Jus de fruit sans pulpe<br><br>... /...<br><br>Y.DIE.003a",
+    "kw": "fibres coloscopie alimentation"
    }
   ]
  }

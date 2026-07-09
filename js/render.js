@@ -9,6 +9,8 @@
 
 import { DOCS, SERVICES } from "./endoc-docs.js";
 import { ORDOS } from "./tpl-ordos.js";
+import { IZINOVA } from "./tpl-izinova.js";
+ORDOS.izinova = IZINOVA;
 import { code128svg } from "./barcode.js";
 
 export const FINESS = "340782036";

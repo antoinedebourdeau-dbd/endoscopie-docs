@@ -15,19 +15,24 @@ SRC = "/tmp/ordotypes"
 OUT = os.path.join(os.path.dirname(__file__), "..", "js", "tpl-ordotypes.js")
 
 EXCLUDE = {
-    "Régime SR", "GLUTEN Conseils", "INFORMATIONS COLONISATION BACTERIENNE GRELE ",
+    "GLUTEN Conseils", "INFORMATIONS COLONISATION BACTERIENNE GRELE ",
     "Anticorps anti IFX et ADA", "Ferinject-Venofer", "ORDO vierge",
+    # préparations coliques : doublons de la section « Préparations & ordonnances » du site
+    "ORDO IZINOVA split  LM", "ORDO IZINOVA veille  LM",
+    "ORDO KLEAN PREP + prepacol LM", "ORDO KLEAN PREP LM",
+    "ORDO MOVIPREP CITRAFLEET 1j LM", "ORDO MOVIPREP CITRAFLEET 2j LM",
+    "ORDO MOVIPREP seul LM", "ORDO PICOPREP LM",
 }
 # --- Taxonomie cible (13 catégories cliniques) -----------------------------
 CAT_ORDER = [
-    "BILANS BIOLOGIQUES", "COLOSCOPIE — PRÉPARATION", "RGO & H. PYLORI",
+    "BILANS BIOLOGIQUES", "RGO & H. PYLORI",
     "HÉPATOLOGIE", "MICI", "FONCTIONNELS & MOTILITÉ", "PROCTOLOGIE",
     "ONCOLOGIE", "NUTRITION & GEP", "FER, VITAMINES & CARENCES",
     "SOINS À DOMICILE (IDE)", "AUTRES TRAITEMENTS",
 ]
 # dossier source → catégorie par défaut
 FOLDER_CAT = {
-    "BILAN BIO": "BILANS BIOLOGIQUES", "COLO": "COLOSCOPIE — PRÉPARATION",
+    "BILAN BIO": "BILANS BIOLOGIQUES", "COLO": "AUTRES TRAITEMENTS",
     "RGO-HP": "RGO & H. PYLORI", "HEPATO": "HÉPATOLOGIE", "GREFFE": "HÉPATOLOGIE",
     "MICI": "MICI", "TFI": "FONCTIONNELS & MOTILITÉ", "PROCTO": "PROCTOLOGIE",
     "ONCO": "ONCOLOGIE", "NUTRITION GEP": "NUTRITION & GEP",
@@ -35,6 +40,9 @@ FOLDER_CAT = {
 }
 # reclassements ordonnance par ordonnance (clé = nom de fichier, NFC)
 CAT_OVERRIDES = {
+    # COLO (hors préparations, qui sont exclues)
+    "ORDO BIO colo LM": "BILANS BIOLOGIQUES",
+    "Régime SR": "AUTRES TRAITEMENTS",
     # BILAN BIO → domaines
     "ORDO BIO Hepatite aigue + suivi  LM": "HÉPATOLOGIE",
     "ORDO BIO Hepatopathie chronique  LM": "HÉPATOLOGIE",
