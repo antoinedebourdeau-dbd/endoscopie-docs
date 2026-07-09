@@ -100,6 +100,7 @@ button.big { font-size: 15px; padding: 12px 20px; width: 100%; }
 button.orange { background: var(--orange); }
 button.ghost { background: #fff; color: var(--bleu); border: 1.5px solid var(--bleu); }
 button.ghost:hover { background: var(--bleu-pale); }
+button.ghost.active { background: var(--bleu); color: #fff; }
 button.subtle { background: #edf2f7; color: var(--gris); font-weight: 600; }
 button.danger { background: #fff; color: var(--rouge); border: 1.5px solid var(--rouge); }
 button.small { padding: 5px 10px; font-size: 12px; border-radius: 7px; }

@@ -59,6 +59,30 @@ function buildCatalog() {
 
 let CATALOG = buildCatalog();
 const selection = new Set();
+let activeCat = null; // catégorie affichée (null = catalogue masqué)
+const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+function applyCatalogVisibility() {
+  const q = norm($("#search").value.trim());
+  $$("#catalogue .cat-group").forEach((g) => {
+    if (q) {
+      let visible = 0;
+      g.querySelectorAll(".doc-item").forEach((it) => {
+        const hit = norm(it.textContent).includes(q);
+        it.style.display = hit ? "" : "none";
+        if (hit) visible++;
+      });
+      g.style.display = visible ? "" : "none";
+      g.classList.toggle("open", visible > 0);
+    } else {
+      g.querySelectorAll(".doc-item").forEach((it) => (it.style.display = ""));
+      g.style.display = g.dataset.g === activeCat ? "" : "none";
+      g.classList.toggle("open", g.dataset.g === activeCat);
+    }
+  });
+  $("#btn-cat-prepa")?.classList.toggle("active", activeCat === "g-ordo");
+  $("#btn-cat-notes")?.classList.toggle("active", activeCat === "g-notes");
+}
 
 function renderCatalog() {
   CATALOG = buildCatalog();
@@ -75,7 +99,7 @@ function renderCatalog() {
         <span>${it.label}${it.local ? `<span class="badge-local">Document local</span>` : ""}<br><span class="sub">${it.sub || ""}</span>
         ${it.local ? `<span class="sub"> · <a href="#" data-export-local="${it.doc.id}">exporter</a> · <a href="#" data-del-local="${it.doc.id}" style="color:var(--rouge);">supprimer</a></span>` : ""}</span>
       </label>`).join("");
-    return `<div class="cat-group ${gi === 0 ? "open" : ""}" data-g="${g.id}">
+    return `<div class="cat-group" data-g="${g.id}">
       <div class="cat-title"><span class="chev">▶</span>${g.title}<span class="count">${g.items.length}</span></div>
       <div class="cat-docs">${items}</div>
     </div>`;
@@ -106,6 +130,8 @@ function renderCatalog() {
         refresh();
       }
     }));
+
+  applyCatalogVisibility();
 }
 
 // ------------------------------------------------------------------ médecin
@@ -181,6 +207,9 @@ async function refresh() {
   const items = selectedItems();
   $("#btn-print").disabled = !items.length;
   $("#preview-empty").style.display = items.length ? "none" : "block";
+  const nCat = [...selection].length;
+  $("#sel-count").style.display = nCat ? "block" : "none";
+  if (nCat) $("#sel-count").innerHTML = `<strong>${nCat} document${nCat > 1 ? "s" : ""} coché${nCat > 1 ? "s" : ""}</strong> — <a href="#" id="clear-sel">tout décocher</a>`;
 
   const seq = ++renderSeq;
   const ctx = {
@@ -734,33 +763,27 @@ $("#btn-create-demande").addEventListener("click", () => {
   $("#demandes").lastElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 });
 
-// Boutons d'accès rapide aux catégories du catalogue
+// Boutons d'accès rapide : ouvrent / referment une catégorie (masquée par défaut)
 function openCategory(gid) {
   $("#search").value = "";
-  $$("#catalogue .cat-group").forEach((g) => {
-    g.style.display = "";
-    g.querySelectorAll(".doc-item").forEach((it) => (it.style.display = ""));
-    g.classList.toggle("open", g.dataset.g === gid);
-  });
-  document.querySelector(`#catalogue .cat-group[data-g="${gid}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  activeCat = activeCat === gid ? null : gid;
+  applyCatalogVisibility();
+  if (activeCat)
+    document.querySelector(`#catalogue .cat-group[data-g="${gid}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 $("#btn-cat-prepa").addEventListener("click", () => openCategory("g-ordo"));
 $("#btn-cat-notes").addEventListener("click", () => openCategory("g-notes"));
 
 // ------------------------------------------------------------------ recherche
-const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-$("#search").addEventListener("input", () => {
-  const q = norm($("#search").value.trim());
-  $$("#catalogue .cat-group").forEach((g) => {
-    let visible = 0;
-    g.querySelectorAll(".doc-item").forEach((it) => {
-      const hit = !q || norm(it.textContent).includes(q);
-      it.style.display = hit ? "" : "none";
-      if (hit) visible++;
-    });
-    g.style.display = q && !visible ? "none" : "";
-    if (q && visible) g.classList.add("open");
-  });
+$("#search").addEventListener("input", applyCatalogVisibility);
+
+// « tout décocher » (lien du compteur de sélection)
+$("#sel-count").addEventListener("click", (e) => {
+  if (e.target.id !== "clear-sel") return;
+  e.preventDefault();
+  selection.clear();
+  renderCatalog();
+  refresh();
 });
 
 // --------------------------------------------------------------- reprographie
@@ -879,9 +902,10 @@ $("#btn-import-doc").addEventListener("click", () => pickFile((txt) => {
 
 // ------------------------------------------------------------ réinitialiser
 $("#btn-reset").addEventListener("click", () => {
-  // Documents cochés + recherche
+  // Documents cochés + recherche + catalogue replié
   selection.clear();
   $("#search").value = "";
+  activeCat = null;
   // Ordonnance libre
   ordoOpen = false;
   $("#ordolibre-card").style.display = "none";
