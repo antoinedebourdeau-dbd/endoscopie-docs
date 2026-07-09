@@ -11,6 +11,7 @@ import { DOCS, SERVICES } from "./endoc-docs.js";
 import { ORDOS } from "./tpl-ordos.js";
 import { IZINOVA } from "./tpl-izinova.js";
 import { REGIMES, REGIME_NIVEAUX, REGIME_ERREURS } from "./tpl-regimes.js";
+import { ETP } from "./tpl-etp.js";
 ORDOS.izinova = IZINOVA;
 import { code128svg } from "./barcode.js";
 
@@ -1007,6 +1008,175 @@ export function renderRegime(id, ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// Fiches d'éducation thérapeutique (brief ETP HGE) — fiches cliniques + livrets
+// de rééducation à paliers. Pièce maîtresse : la carte feu tricolore.
+// ---------------------------------------------------------------------------
+
+export function findEtp(id) {
+  for (const a of ETP) {
+    const f = a.items.find((i) => i.id === id);
+    if (f) return { ...f, axe: a.axe };
+  }
+  return null;
+}
+
+function etpH2(t, color = "#0072BC", hc = "#0d2b45") {
+  return `<div style="display:flex; align-items:center; gap:9px; margin-top:15px;"><span style="flex:none; width:5px; height:17px; border-radius:2px; background:${color};"></span><h2 style="${F} font-weight:700; font-size:15px; color:${hc}; margin:0; line-height:1.15;">${t}</h2></div>`;
+}
+const etpLi = (t, accent = "#0072BC") =>
+  `<div style="display:flex; gap:9px; margin-top:5px; ${F} font-size:12.5px; color:#1c3a52; line-height:1.5;"><span style="flex:none; width:6px; height:6px; border-radius:50%; background:${accent}; margin-top:6px;"></span><div style="flex:1;">${t}</div></div>`;
+const chkLine = (t) =>
+  `<div style="display:flex; gap:9px; margin-top:6px; ${F} font-size:12.5px; color:#1c3a52; line-height:1.5;"><span style="flex:none; width:13px; height:13px; border:1.5px solid #0072BC; border-radius:3px; margin-top:2px;"></span><div style="flex:1;">${t}</div></div>`;
+
+function carteFeu(feu) {
+  if (!feu) return "";
+  const row = (emoji, titre, items, color, bg) => items && items.length
+    ? `<div style="display:flex; gap:10px; background:${bg}; padding:8px 12px; border-top:1px solid #fff;">
+        <span style="flex:none; font-size:16px;">${emoji}</span>
+        <div style="flex:1;">
+          <div style="${FC} text-transform:uppercase; letter-spacing:.04em; font-weight:800; font-size:11.5px; color:${color};">${titre}</div>
+          ${items.map((i) => `<div style="${F} font-size:12px; color:#1c3a52; line-height:1.5; margin-top:2px;">${i}</div>`).join("")}
+        </div>
+      </div>` : "";
+  return `<div style="border:2px solid #0d2b45; border-radius:12px; overflow:hidden; margin-top:14px; break-inside:avoid;">
+    <div style="background:#0d2b45; color:#fff; padding:7px 14px; ${F} font-weight:700; font-size:13.5px;">🚦 Savoir réagir — ma carte feu tricolore</div>
+    ${row("🟢", "Tout va bien — je continue", feu.v, "#146c3a", "#E6F4EC")}
+    ${row("🟠", "Je surveille / j'adapte / je prends conseil", feu.o, "#b35a00", "#FFF4E6")}
+    ${row("🔴", "J'appelle / je vais aux urgences", feu.r, "#a5271a", "#FCECEA")}
+  </div>`;
+}
+
+export function renderEtp(id, ctx) {
+  const f = findEtp(id);
+  if (!f) throw new Error("Fiche ETP inconnue : " + id);
+  const med = ctx.medecin;
+  const p = ctx.patient;
+
+  const qui = p && (p.nom || p.prenom)
+    ? `${p.civ ? esc(p.civ) + " " : ""}<strong>${esc(patientNom(p))}</strong>`
+    : "Madame, Monsieur";
+  const doc = med ? `votre gastroentérologue, le <strong>${esc(med.nom)}</strong>` : "votre gastroentérologue";
+  const entete = `<div style="background:#EAF3FB; border-radius:10px; padding:12px 16px; margin-top:12px; ${F} font-size:13px; color:#1c3a52; line-height:1.55;">
+    ${qui}, cette fiche a été préparée pour vous par ${doc}. Elle vous aide à <strong>comprendre</strong>, à <strong>vous surveiller</strong> et à <strong>savoir réagir</strong>. Elle complète — sans les remplacer — les explications données en consultation.
+  </div>`;
+
+  let body = `<div style="${F}">
+    <div style="${FC} text-transform:uppercase; letter-spacing:.08em; color:#0072BC; font-weight:700; font-size:13px;">Éducation thérapeutique — ${esc(f.axe)}</div>
+    <h1 style="font-weight:800; color:#0d2b45; font-size:23px; line-height:1.1; margin:4px 0 0; text-wrap:balance;">${esc(f.name)}</h1>
+    <div style="height:3px; width:64px; background:#EF7D00; border-radius:2px; margin-top:10px;"></div>
+  </div>` + entete;
+
+  // Objectifs (checklist)
+  body += etpH2("Ce que je vais comprendre et savoir faire") +
+    f.objectifs.map((o) => chkLine(o)).join("");
+
+  // En clair
+  if (f.enclair) body += etpH2("Ma situation en clair") +
+    `<div style="${F} font-size:12.5px; color:#1c3a52; line-height:1.55; margin-top:7px;">${f.enclair}</div>`;
+
+  if (f.materiel) body += `<div style="${F} font-size:12px; color:#4a5b68; margin-top:8px;"><strong>Matériel :</strong> ${esc(f.materiel)}</div>`;
+
+  // Auto-surveillance
+  if (f.autosurv) body += etpH2("Ce que je surveille moi-même") +
+    `<div style="border:1px solid #cfe1f0; border-radius:10px; padding:8px 12px 10px; margin-top:7px;">${f.autosurv.map((s) => etpLi(s)).join("")}</div>`;
+
+  // Consignes de suites (péri-procédure)
+  if (f.consignes) body += `<div style="border:1.5px solid #0072BC; background:#EAF3FB; border-radius:10px; padding:9px 14px; margin-top:14px; break-inside:avoid;">
+    <div style="${FC} text-transform:uppercase; letter-spacing:.04em; font-weight:800; color:#0072BC; font-size:12px;">Consignes de suites</div>
+    ${f.consignes.map((c) => etpLi(c)).join("")}
+  </div>`;
+
+  // Carte feu
+  body += carteFeu(f.feu);
+
+  // Livret : paliers
+  if (f.type === "livret" && f.paliers) {
+    body += etpH2("Ma progression par paliers — je ne passe au suivant qu'après avoir atteint le critère de réussite", "#EF7D00");
+    f.paliers.forEach((pal, i) => {
+      body += `<div style="border:1px solid #cfe1f0; border-radius:12px; overflow:hidden; margin-top:10px; break-inside:avoid;">
+        <div style="background:#0072BC; color:#fff; padding:7px 14px; display:flex; align-items:center; gap:10px;">
+          <span style="flex:none; width:26px; height:26px; border-radius:50%; background:#fff; color:#0072BC; font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center;">${i + 1}</span>
+          <span style="${F} font-weight:700; font-size:14px;">${esc(pal.t)}</span>
+        </div>
+        <div style="padding:9px 14px; ${F} font-size:12.5px; color:#1c3a52; line-height:1.55;">
+          <div><strong>🎯 Micro-objectif :</strong> ${pal.obj}</div>
+          <div style="margin-top:5px;"><strong>Comment faire :</strong> ${pal.comment}</div>
+          ${pal.freq ? `<div style="margin-top:5px;"><strong>Fréquence :</strong> ${esc(pal.freq)}${pal.duree ? ` · <strong>Durée avant progression :</strong> ${esc(pal.duree)}` : ""}</div>` : (pal.duree ? `<div style="margin-top:5px;"><strong>Durée avant progression :</strong> ${esc(pal.duree)}</div>` : "")}
+          <div style="margin-top:6px; background:#E6F4EC; border-radius:8px; padding:6px 10px; color:#146c3a;"><strong>✅ Je passe au palier suivant quand :</strong> ${pal.critere}</div>
+        </div>
+      </div>`;
+    });
+    if (f.erreurs) body += `<div style="background:#FCECEA; border:2px solid #C0392B; border-radius:10px; padding:9px 14px; margin-top:12px; break-inside:avoid;">
+      <div style="${FC} text-transform:uppercase; letter-spacing:.04em; font-weight:800; color:#C0392B; font-size:12.5px;">⛔ Erreurs fréquentes à éviter</div>
+      ${f.erreurs.map((e2) => etpLi(e2, "#C0392B")).join("")}
+    </div>`;
+    if (f.orienter) body += `<div style="${F} font-size:12px; color:#1c3a52; background:#FFF4E6; border:1px solid #f3c98a; border-radius:10px; padding:8px 12px; margin-top:10px;"><strong>Quand se faire aider :</strong> ${f.orienter}</div>`;
+    if (f.journal) {
+      const cols = f.journal.cols;
+      const head = `<tr><th style="padding:5px 8px; background:#0d2b45; color:#fff; font-size:10.5px; text-align:left;">Jour</th>${cols.map((c) => `<th style="padding:5px 8px; background:#0d2b45; color:#fff; font-size:10.5px; text-align:center;">${esc(c)}</th>`).join("")}</tr>`;
+      let rows = "";
+      for (let s = 1; s <= 2; s++) {
+        rows += `<tr><td colspan="${cols.length + 1}" style="padding:4px 8px; background:#EAF3FB; ${FC} text-transform:uppercase; font-size:10px; font-weight:700; color:#0072BC;">Semaine ${s}</td></tr>`;
+        for (const j of ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]) {
+          rows += `<tr><td style="padding:4px 8px; font-size:11px; border-top:1px solid #e3ebf2; color:#4a5b68;">${j}</td>${cols.map(() => `<td style="border-top:1px solid #e3ebf2; border-left:1px solid #eef3f8;">&nbsp;</td>`).join("")}</tr>`;
+        }
+      }
+      body += etpH2(`Mon journal de bord (${esc(f.journal.duree)})`) +
+        `<table style="width:100%; border-collapse:collapse; margin-top:8px; ${F} border:1px solid #cfe1f0;">${head}${rows}</table>
+        <div style="${F} font-size:10px; color:#7a8794; margin-top:4px;">Photocopiez ou réimprimez cette page pour les semaines suivantes.</div>`;
+    }
+  }
+
+  // Vivre avec
+  if (f.vivre) body += etpH2("Vivre avec au quotidien") + f.vivre.map((v) => etpLi(v)).join("");
+
+  // Alerte forte
+  if (f.alerte) body += `<div style="background:#FCECEA; border:2px solid #C0392B; border-radius:10px; padding:9px 14px; margin-top:12px; break-inside:avoid; ${F}">
+    <span style="font-weight:800; color:#C0392B;">⛔ Important :</span> <span style="font-size:12.5px; color:#1c3a52;">${f.alerte}</span></div>`;
+
+  // Illustrations (placeholders descriptifs)
+  if (f.illus) body += f.illus.map((d) => `<div style="border:1.5px dashed #9db4c6; border-radius:10px; padding:10px 14px; margin-top:10px; ${F} font-size:11.5px; color:#4a5b68; text-align:center;">🖼 Schéma expliqué en consultation : ${esc(d)}</div>`).join("");
+
+  // Auto-évaluation (checklist dérivée des objectifs)
+  body += etpH2("Ai-je bien compris ? — je coche quand c'est acquis", "#146c3a") +
+    f.objectifs.map((o) => {
+      let t = o.trim();
+      t = t.charAt(0).toLowerCase() + t.slice(1);
+      if (!/^(je|j'|l'|la|le|ne|savoir|comprendre|distinguer|repérer|identifier|adopter|pousser|relâcher|installer|localiser|développer|contracter|être|réaliser|respecter|utiliser|gérer|faire|fixer|fractionner|dédramatiser|tenir|surveiller|anticiper|planifier|connaître|reconnaître|adhérer|éviter|préparer|suivre|maîtriser|supprimer|manger|hydratation|photoprotection)/i.test(t)) t = t;
+      return chkLine("Je sais : " + t);
+    }).join("");
+
+  // Plan d'action
+  const dot = (w) => `<span style="display:inline-block; min-width:${w}px; border-bottom:1px dotted #9db4c6;">&nbsp;</span>`;
+  body += `<div style="border:1.5px solid #0072BC; border-radius:12px; overflow:hidden; margin-top:16px; break-inside:avoid;">
+    <div style="background:#0d2b45; color:#fff; padding:7px 14px; ${F} font-weight:700; font-size:13.5px;">📋 Mon plan d'action personnalisé (rempli en consultation)</div>
+    <div style="padding:10px 14px; ${F} font-size:12px; color:#1c3a52; line-height:2;">
+      Mon objectif : ${dot(330)}<br>
+      Mon traitement : ${dot(320)}<br>
+      ${f.planTable ? `<table style="width:100%; border-collapse:collapse; margin:6px 0; font-size:11.5px;"><tr><th style="text-align:left; padding:3px 6px; background:#EAF3FB;">Molécule</th><th style="text-align:left; padding:3px 6px; background:#EAF3FB;">Dernière prise avant le geste</th><th style="text-align:left; padding:3px 6px; background:#EAF3FB;">Date de reprise</th><th style="text-align:left; padding:3px 6px; background:#EAF3FB;">Relais éventuel</th></tr>${"<tr>" + "<td style=\"border-top:1px solid #e3ebf2; padding:6px;\">&nbsp;</td>".repeat(4) + "</tr>"}${"<tr>" + "<td style=\"border-top:1px solid #e3ebf2; padding:6px;\">&nbsp;</td>".repeat(4) + "</tr>"}</table>` : ""}
+      Prochains contrôles : ${dot(280)}<br>
+      Numéros utiles : ${dot(300)}
+    </div>
+  </div>`;
+
+  // Mention pied
+  const nomAff = p ? `${p.civ ? esc(p.civ) + " " : ""}${esc(patientNom(p))}` : "vous";
+  body += `<div style="${F} font-size:9.5px; color:#7a8794; margin-top:14px; line-height:1.5; border-top:1px solid #e3ebf2; padding-top:8px;">Ce document d'éducation thérapeutique a été préparé par le Dr Antoine Debourdeau, gastroentérologue${med && med.nom !== "Dr Antoine DEBOURDEAU" ? ", et remis par " + esc(med.nom) : ""}, pour ${nomAff}. Il ne remplace ni une consultation, ni une rééducation encadrée par un professionnel. En cas de doute, de symptôme nouveau ou d'aggravation (voir la carte 🔴), <strong>contactez votre médecin ou les urgences</strong>.</div>`;
+
+  const footer = `<div style="display:flex; justify-content:space-between; align-items:center; ${F} font-size:9px; color:#7a8794; border-top:1px solid #d9e2ea; padding-top:5px;">
+    <span>CHU de Montpellier — Hépato-Gastroentérologie · Doc'HGE</span>
+    <span style="${FC} letter-spacing:.05em; text-transform:uppercase; color:#0072BC; font-weight:600;">${f.type === "livret" ? "Livret de rééducation" : "Éducation thérapeutique"} · ${esc(f.axe)}</span>
+  </div>`;
+  return `<section class="doc">
+    <table class="frame">
+      <thead><tr><td><div class="hdr">${noteHeader({ service: "endoscopie" }, ctx)}</div></td></tr></thead>
+      <tbody><tr><td class="bodycell">${body}</td></tr></tbody>
+      <tfoot><tr><td><div class="ftr">${footer}</div></td></tr></tfoot>
+    </table>
+  </section>`;
+}
+
+// ---------------------------------------------------------------------------
 // Fiches illustrées (pages A4 à gabarit fixe) — chargées à la demande
 // ---------------------------------------------------------------------------
 
@@ -1062,6 +1232,7 @@ export async function assembleDocs(items, ctx) {
     else if (it.type === "demande-endo") parts.push(renderDemandeEndoscopie(it.opts, ctx));
     else if (it.type === "demande-imagerie") parts.push(renderDemandeImagerie(it.kind, it.opts, ctx));
     else if (it.type === "regime") parts.push(renderRegime(it.key, ctx));
+    else if (it.type === "etp") parts.push(renderEtp(it.key, ctx));
     else if (it.type === "fiche") parts.push(await renderFiche(it.key, ctx));
   }
   return parts.join("\n");

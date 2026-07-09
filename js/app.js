@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.1";
+export const APP_VERSION = "3.2";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -14,6 +14,7 @@ import {
 import { renderNote, sanitizeRich } from "./render.js";
 import { ORDO_TYPES } from "./tpl-ordotypes.js";
 import { REGIMES, REGIME_NIVEAUX } from "./tpl-regimes.js";
+import { ETP } from "./tpl-etp.js";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -53,6 +54,10 @@ function buildCatalog() {
     { id: "g-ordo", title: "Préparations coliques & ordonnances", items: ORDO_ITEMS.map((o) => ({ id: "ordo:" + o.key, type: "ordo", key: o.key, label: o.label, sub: "Ordonnance (page 1) + guide patient" })) },
     { id: "g-notes", title: "Notes d'information & consentement", items: notesEndo },
     { id: "g-regimes", title: "Fiches régimes", items: regimeItems },
+    { id: "g-etp", title: "Éducation thérapeutique", items: ETP.flatMap((ax) => ax.items.map((f) => ({
+      id: "etp:" + f.id, type: "etp", key: f.id, label: f.name,
+      sub: `${f.type === "livret" ? "Livret rééducation" : "Fiche ETP"} · ${ax.cat || ax.axe}${f.star ? " · " + "★".repeat(f.star) : ""}`,
+    }))) },
   ];
 
   // Sections personnalisées + documents locaux
@@ -1329,6 +1334,41 @@ function renderRegimesModal(query = "") {
 $("#btn-regimes").addEventListener("click", () => { renderRegimesModal(); openModal("#modal-regimes"); });
 $("#rg-search").addEventListener("input", () => renderRegimesModal($("#rg-search").value));
 
+// ------------------------------------------------------- éducation thérapeutique
+function renderEtpModal(query = "") {
+  const words = norm(query.trim()).split(/\s+/).filter(Boolean);
+  const q = words.length > 0;
+  $("#etp-list").innerHTML = ETP.map((ax) => {
+    const items = ax.items.filter((f) => {
+      if (!q) return true;
+      const hay = norm(f.name + " " + ax.axe + " " + (f.enclair || "") + " " + (f.objectifs || []).join(" "));
+      return words.every((w) => hay.includes(w));
+    });
+    if (!items.length) return "";
+    return `<details ${q ? "open" : ""} style="margin-bottom:6px;">
+      <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--bleu-fonce); padding:4px 2px;">${ax.icon || ""} ${ax.axe} <span style="color:var(--gris-clair); font-weight:600; font-size:11px;">${items.length}</span></summary>
+      ${items.map((f) => {
+        const on = selection.has("etp:" + f.id);
+        return `<button class="subtle small" data-etp="${f.id}" style="display:flex; width:100%; text-align:left; margin-top:3px; gap:8px; align-items:center; ${on ? "background:var(--bleu-pale); border:1px solid var(--bleu);" : ""}">
+          <span style="flex:none;">${f.type === "livret" ? "📘" : "📄"}</span>
+          <span style="flex:1;">${f.name}${f.star ? ` <span style="color:#E1A500;">${"★".repeat(f.star)}</span>` : ""}</span>
+          <span style="flex:none; font-weight:800; color:${on ? "var(--bleu)" : "var(--gris-clair)"};">${on ? "✓ ajoutée" : "+"}</span>
+        </button>`;
+      }).join("")}
+    </details>`;
+  }).join("") || `<div class="hint">Aucun résultat.</div>`;
+
+  $$("#etp-list [data-etp]").forEach((b) => b.addEventListener("click", () => {
+    const id = "etp:" + b.dataset.etp;
+    selection.has(id) ? selection.delete(id) : selection.add(id);
+    renderCatalog();
+    refresh();
+    renderEtpModal($("#etp-search").value);
+  }));
+}
+$("#btn-etp").addEventListener("click", () => { renderEtpModal(); openModal("#modal-etp"); });
+$("#etp-search").addEventListener("input", () => renderEtpModal($("#etp-search").value));
+
 // ------------------------------------------------------------------ recherche
 $("#search").addEventListener("input", applyCatalogVisibility);
 
@@ -1645,6 +1685,14 @@ function allTypeCats() {
   return cats;
 }
 
+const ORDO_CAT_ICONS = {
+  "BILANS BIOLOGIQUES": "🧪", "RGO & H. PYLORI": "🔥", "HÉPATOLOGIE": "🫀",
+  "MICI": "🟣", "FONCTIONNELS & MOTILITÉ": "🌀", "PROCTOLOGIE": "🍑",
+  "ONCOLOGIE": "🎗", "NUTRITION & GEP": "🥤", "FER, VITAMINES & CARENCES": "🩸",
+  "SOINS À DOMICILE (IDE)": "🏠", "AUTRES TRAITEMENTS": "💊",
+};
+const catIcon = (c) => ORDO_CAT_ICONS[c] || "📁";
+
 function renderOrdoTypes(query = "") {
   const words = norm(query.trim()).split(/\s+/).filter(Boolean);
   const q = words.length > 0;
@@ -1659,7 +1707,7 @@ function renderOrdoTypes(query = "") {
     const isUserCat = !ORDO_TYPES.some((b) => b.cat === c.cat);
     if (!builtin.length && !perso.length && (q || !isUserCat)) return "";
     return `<details ${q ? "open" : ""} style="margin-bottom:6px;">
-      <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--bleu-fonce); padding:4px 2px;">${c.cat}
+      <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--bleu-fonce); padding:4px 2px;">${catIcon(c.cat)} ${c.cat}
         <span style="color:var(--gris-clair); font-weight:600; font-size:11px;">${builtin.length + perso.length}</span>
         ${isUserCat ? `<span style="float:right;"><a href="#" data-cat-ren="${c.cat}" title="Renommer la catégorie">✎</a>&nbsp;&nbsp;<a href="#" data-cat-del="${c.cat}" title="Supprimer la catégorie" style="color:var(--rouge);">✕</a></span>` : ""}
       </summary>
@@ -1748,7 +1796,7 @@ $("#btn-save-type").addEventListener("click", () => {
   if (ordoEditorsEmpty()) { toast("L'ordonnance est vide.", 4000); return; }
   const cats = [...ORDO_TYPES.map((c) => c.cat), ...listUserCats()];
   $("#st-cat").innerHTML =
-    cats.map((c) => `<option value="${c}">${c}</option>`).join("") +
+    cats.map((c) => `<option value="${c}">${catIcon(c)} ${c}</option>`).join("") +
     `<option value="__new">＋ Nouvelle catégorie…</option>`;
   $("#st-name").value = "";
   openModal("#modal-savetype");

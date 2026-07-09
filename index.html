@@ -42,7 +42,7 @@
         <button class="ghost" id="btn-cat-prepa">🧴 Préparations coliques</button>
         <button class="ghost" id="btn-cat-notes">📄 Notes info &amp; consentement</button>
         <button class="ghost" id="btn-regimes">🍽 Régimes</button>
-        <button class="ghost" disabled title="Bientôt disponible" style="opacity:.55;">🎓 Éducation thérapeutique (bientôt)</button>
+        <button class="ghost" id="btn-etp">🎓 Éducation thérapeutique</button>
       </div>
 
       <div id="ordolibre-card" style="display:none; border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:var(--bleu-pale);">
@@ -278,6 +278,17 @@
     <div class="pill-info" style="margin:0 0 10px;"><strong>Tous les régimes n'ont pas le même poids.</strong> Certains sont vitaux et sans exception (ex. sans gluten dans la maladie cœliaque). D'autres se règlent sur mesure et n'ont rien d'absolu (ex. pauvre en FODMAP). Se sur-restreindre « pour bien faire » peut être aussi nocif que ne pas suivre un régime réellement indispensable.</div>
     <label class="field"><input type="text" id="rg-search" placeholder="🔍 Rechercher une fiche (ex. gluten, fodmap, cirrhose…)" autocomplete="off"></label>
     <div id="rg-list" style="max-height:52vh; overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- ============================== MODALE ETP ============================== -->
+<div class="modal-back no-print" id="modal-etp">
+  <div class="modal">
+    <button class="modal-close" data-close>✕</button>
+    <h3>🎓 Éducation thérapeutique</h3>
+    <div class="mhint">Fiches pour <strong>comprendre, s'auto-surveiller et savoir réagir</strong> (carte feu 🟢🟠🔴), et livrets de <strong>rééducation par paliers</strong> avec journal de bord. Personnalisées au patient, à imprimer ou envoyer.</div>
+    <label class="field"><input type="text" id="etp-search" placeholder="🔍 Rechercher (ex. cirrhose, éructations, poussée, biothérapie…)" autocomplete="off"></label>
+    <div id="etp-list" style="max-height:55vh; overflow-y:auto;"></div>
   </div>
 </div>
 
