@@ -83,6 +83,12 @@ function extractOrdo({ key, file, product }) {
   if (!rppsBloc) throw new Error(`bloc RPPS introuvable : ${file}`);
   html = html.replace(rppsBloc[0], `@@RPPS_BLOCK@@`);
 
+  // ℞ → puce ronde de la charte (esthétique, pro)
+  html = html.replaceAll(
+    `<span style="flex:none; color:#0072BC; font-weight:800;">℞</span>`,
+    `<span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>`
+  );
+
   const finessImg = html.match(/<img src="finess-barcode\.png"[^>]*>/);
   if (!finessImg) throw new Error(`img FINESS introuvable : ${file}`);
   html = html.replace(finessImg[0], `@@FINESS_BARCODE@@`);

@@ -53,15 +53,15 @@ export const ORDOS = {
 
     <div style="margin-top:14px; display:flex; flex-direction:column; gap:12px; font-size:14.5px; line-height:1.5;">
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span><strong>CITRAFLEET®</strong> — 2 sachets, en <strong>prise fractionnée</strong> : 1 sachet la veille au soir + 1 sachet le matin de l'examen.</span>
       </div>
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span><strong>Régime sans résidu strict</strong> pendant les 48 h précédant l'examen.</span>
       </div>
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span>Qsp 1 préparation colique pour coloscopie.</span>
       </div>
     </div>
@@ -461,15 +461,15 @@ export const ORDOS = {
 
     <div style="margin-top:14px; display:flex; flex-direction:column; gap:12px; font-size:14.5px; line-height:1.5;">
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span><strong>MOVIPREP®</strong> — 1 boîte (2 sachets A + 2 sachets B), en <strong>prise fractionnée</strong> : 1 litre la veille au soir + 1 litre le matin de l'examen.</span>
       </div>
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span><strong>Régime sans résidu strict</strong> pendant les 48 h précédant l'examen.</span>
       </div>
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span>Qsp 1 préparation colique pour coloscopie.</span>
       </div>
     </div>
@@ -865,15 +865,15 @@ export const ORDOS = {
 
     <div style="margin-top:14px; display:flex; flex-direction:column; gap:12px; font-size:14.5px; line-height:1.5;">
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span><strong>PLENVU®</strong> — 1 boîte (3 sachets : Dose 1 ; Dose 2 = sachets A + B), en <strong>prise fractionnée</strong> : Dose 1 la veille au soir + Dose 2 le matin de l'examen.</span>
       </div>
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span><strong>Régime sans résidu strict</strong> pendant les 48 h précédant l'examen.</span>
       </div>
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span>Qsp 1 préparation colique pour coloscopie.</span>
       </div>
     </div>
@@ -1270,15 +1270,15 @@ export const ORDOS = {
 
     <div style="margin-top:14px; display:flex; flex-direction:column; gap:12px; font-size:14.5px; line-height:1.5;">
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span><strong>XIMEPEG®</strong> — 1 boîte (4 sachets A + 4 sachets B), en <strong>prise fractionnée</strong> : 1 litre (2 A + 2 B) la veille au soir + 1 litre (2 A + 2 B) le matin de l'examen.</span>
       </div>
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span><strong>Régime sans résidu strict</strong> pendant les 48 h précédant l'examen.</span>
       </div>
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span>Qsp 1 préparation colique pour coloscopie.</span>
       </div>
     </div>

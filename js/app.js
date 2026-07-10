@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.11";
+export const APP_VERSION = "3.12";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -228,7 +228,6 @@ const RICHBAR = `
     <button type="button" data-cmd="insertOrderedList" title="Liste numérotée">1.&nbsp;Liste</button>
     <button type="button" data-cmd="indent" title="Augmenter le retrait (Tab)">⇥</button>
     <button type="button" data-cmd="outdent" title="Diminuer le retrait (Maj+Tab)">⇤</button>
-    <button type="button" data-insert="℞ " title="Insérer le symbole ℞">℞</button>
   </div>`;
 
 function ordoResume(o) {

@@ -52,15 +52,15 @@ export const IZINOVA = {
 
     <div style="margin-top:14px; display:flex; flex-direction:column; gap:12px; font-size:14.5px; line-height:1.5;">
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span><strong>IZINOVA®</strong> — 1 coffret (2 flacons de 176 mL + godet doseur), en <strong>prise fractionnée</strong> : flacon 1 la veille au soir + flacon 2 le matin de l'examen.</span>
       </div>
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span><strong>Régime sans résidu strict</strong> pendant les 48 h précédant l'examen.</span>
       </div>
       <div style="display:flex; gap:12px;">
-        <span style="flex:none; color:#0072BC; font-weight:800;">℞</span>
+        <span style="flex:none; width:7px; height:7px; border-radius:50%; background:#0072BC; margin-top:8px;"></span>
         <span>Qsp 1 préparation colique pour coloscopie.</span>
       </div>
     </div>
