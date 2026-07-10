@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.18";
+export const APP_VERSION = "3.19";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -1920,7 +1920,7 @@ function renderRegimesModal(query = "") {
   $("#rg-list").innerHTML = REGIMES.map((c) => {
     const items = c.items.filter((f) => {
       if (!q) return true;
-      const hay = norm(f.name + " " + c.cat + " " + f.pourquoi);
+      const hay = norm(f.name + " " + c.cat + " " + (f.secs?.find((s) => s.k === "pourquoi")?.text || ""));
       return words.every((w) => hay.includes(w));
     });
     if (!items.length) return "";
