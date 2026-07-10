@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.20";
+export const APP_VERSION = "3.21";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -1157,7 +1157,8 @@ function renderSendModal() {
     radio("mailto", "📧 Mail pré-rempli + PDF à joindre à la main",
       "Le brouillon s'ouvre dans votre messagerie, le PDF se télécharge : glissez-le dans le mail puis envoyez. Compatible partout (PC / Mac).") +
     radio("eml", "📎 Brouillon .eml avec PJ déjà incluse",
-      "Un fichier .eml se télécharge, PDF déjà joint : double-cliquez-le → il s'ouvre prêt à envoyer. Validé sur Mac ✓ — à tester sur Outlook PC.") +
+      "Un fichier .eml se télécharge, PDF déjà joint : double-cliquez-le → il s'ouvre prêt à envoyer. Validé sur Mac ✓ — à tester sur Outlook PC."
+      + (/Edg\//.test(navigator.userAgent) ? "<br><strong>⚠ Edge bloque parfois ce type de fichier</strong> : dans la barre de téléchargements, survolez le fichier → <strong>⋯ → Conserver → Conserver quand même</strong>. La DSI peut exempter définitivement ce site (politique Edge « ExemptFileTypeDownloadWarnings »)." : "")) +
     `<div class="btnrow" style="margin-top:10px;">
       ${method === "share"
         ? `<div class="pill-info" style="margin:0; flex:1;">📤 Partagez chaque envoi avec son bouton ci-dessus — iOS demande un geste par partage.</div>`
