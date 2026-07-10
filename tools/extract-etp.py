@@ -65,7 +65,7 @@ def sec_to_data(sec):
             m = re.match(r"^(🟢|🟠|🔴)\s*(.*)$", txt)
             if not m:  # ligne de contexte (ex. par complication) → orange par défaut
                 (o if not r else r).append(inline(txt)); continue
-            content = inline(re.sub(r"^\*\*[^*]*\*\*\s*:?\s*", lambda mm: "<strong>" + mm.group(0).strip("* :") + " :</strong> ", m.group(2)) if m.group(2).startswith("**") else m.group(2))
+            content = inline(m.group(2))  # inline() gère déjà **gras** proprement
             {"🟢": v, "🟠": o, "🔴": r}[m.group(1)].append(content)
         d["feu"] = {"v": v, "o": o, "r": r}
     elif e == "✅":  # quiz vrai/faux fourni

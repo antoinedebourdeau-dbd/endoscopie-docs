@@ -45,13 +45,13 @@ export const ETP = [
       "t": "Savoir réagir",
       "feu": {
        "v": [
-        "&lt;strong&gt;Tout va bien :&lt;/strong&gt; selles habituelles, pas de sang, bon état général, pas de réveil nocturne. → Je poursuis mon traitement."
+        "<strong>Tout va bien</strong> : selles habituelles, pas de sang, bon état général, pas de réveil nocturne. → Je poursuis mon traitement."
        ],
        "o": [
-        "&lt;strong&gt;Je prends conseil (jours qui viennent) :&lt;/strong&gt; augmentation du nombre de selles, glaires, un peu de sang, douleurs, faux besoins, fatigue inhabituelle, douleurs articulaires. → Contacter le service/médecin, ne pas laisser traîner."
+        "<strong>Je prends conseil (jours qui viennent)</strong> : augmentation du nombre de selles, glaires, un peu de sang, douleurs, faux besoins, fatigue inhabituelle, douleurs articulaires. → Contacter le service/médecin, ne pas laisser traîner."
        ],
        "r": [
-        "&lt;strong&gt;Urgences :&lt;/strong&gt; fièvre élevée + douleur abdominale intense + <strong>ventre dur/ballonné</strong> + <strong>arrêt des gaz et des selles</strong>, ou <strong>saignement abondant</strong>, ou vomissements incoercibles, ou signes de déshydratation. → Urgences."
+        "<strong>Urgences</strong> : fièvre élevée + douleur abdominale intense + <strong>ventre dur/ballonné</strong> + <strong>arrêt des gaz et des selles</strong>, ou <strong>saignement abondant</strong>, ou vomissements incoercibles, ou signes de déshydratation. → Urgences."
        ]
       }
      },
@@ -158,7 +158,7 @@ export const ETP = [
         "Réaction locale au point d'injection, retard de dose, symptôme infectieux léger, aphtes/éruption. → Prendre conseil."
        ],
        "r": [
-        "&lt;strong&gt;Fièvre élevée / infection sévère :&lt;/strong&gt; , réaction allergique (gêne respiratoire, urticaire diffus, malaise pendant/juste après une perfusion). → Urgences / appel immédiat."
+        "<strong>Fièvre élevée / infection sévère</strong>, réaction allergique (gêne respiratoire, urticaire diffus, malaise pendant/juste après une perfusion). → Urgences / appel immédiat."
        ]
       }
      },
@@ -261,10 +261,10 @@ export const ETP = [
         "Symptômes stables et habituels."
        ],
        "o": [
-        "&lt;strong&gt;Sous 24–72 h :&lt;/strong&gt; plus de selles que d'habitude, glaires, un peu de sang, douleurs, faux besoins, fatigue inhabituelle. → Contacter le service/médecin."
+        "<strong>Sous 24–72 h</strong> : plus de selles que d'habitude, glaires, un peu de sang, douleurs, faux besoins, fatigue inhabituelle. → Contacter le service/médecin."
        ],
        "r": [
-        "&lt;strong&gt;Urgences :&lt;/strong&gt; fièvre &gt; 38,5 °C, <strong>douleur abdominale intense</strong>, <strong>ventre dur</strong>, <strong>arrêt des gaz et des selles</strong>, vomissements, <strong>sang abondant</strong>, malaise/étourdissements."
+        "<strong>Urgences</strong> : fièvre &gt; 38,5 °C, <strong>douleur abdominale intense</strong>, <strong>ventre dur</strong>, <strong>arrêt des gaz et des selles</strong>, vomissements, <strong>sang abondant</strong>, malaise/étourdissements."
        ]
       }
      },
@@ -587,10 +587,10 @@ export const ETP = [
         "Poids stable, ventre souple, esprit clair, pas de saignement."
        ],
        "o": [
-        "&lt;strong&gt;Contacter (adapter le traitement) :&lt;/strong&gt; prise de poids &gt; 2 kg en quelques jours, jambes qui gonflent, ventre plus tendu, fatigue croissante."
+        "<strong>Contacter (adapter le traitement)</strong> : prise de poids &gt; 2 kg en quelques jours, jambes qui gonflent, ventre plus tendu, fatigue croissante."
        ],
        "r": [
-        "&lt;strong&gt;Urgences :&lt;/strong&gt; <strong>vomissement de sang ou selles noires</strong> ; <strong>confusion/somnolence anormale</strong> ; <strong>fièvre + douleur du ventre</strong> ; <strong>jaunisse qui s'aggrave</strong> ; urines très rares ; malaise."
+        "<strong>Urgences</strong> : <strong>vomissement de sang ou selles noires</strong> ; <strong>confusion/somnolence anormale</strong> ; <strong>fièvre + douleur du ventre</strong> ; <strong>jaunisse qui s'aggrave</strong> ; urines très rares ; malaise."
        ]
       }
      },
@@ -872,7 +872,7 @@ export const ETP = [
         "Pouls très lent, fatigue, vertiges, mains/pieds froids. → Prendre conseil (adaptation)."
        ],
        "r": [
-        "&lt;strong&gt;Vomissement de sang / selles noires :&lt;/strong&gt; → <strong>urgence absolue</strong>."
+        "<strong>Vomissement de sang / selles noires</strong> → <strong>urgence absolue</strong>."
        ]
       }
      },
@@ -983,7 +983,7 @@ export const ETP = [
         "Fatigue, fièvre modérée, anomalie de bilan, oubli de prise. → Contacter l'équipe de greffe."
        ],
        "r": [
-        "&lt;strong&gt;Fièvre élevée, jaunisse, douleur sur le greffon, infection sévère :&lt;/strong&gt; → urgences / équipe de greffe."
+        "<strong>Fièvre élevée, jaunisse, douleur sur le greffon, infection sévère</strong> → urgences / équipe de greffe."
        ]
       }
      },
@@ -1055,7 +1055,7 @@ export const ETP = [
        "v": [],
        "o": [],
        "r": [
-        "&lt;strong&gt;Sang :&lt;/strong&gt; dans les selles, <strong>amaigrissement</strong>, <strong>anémie</strong>, <strong>réveils nocturnes</strong> par les symptômes, <strong>fièvre</strong>, <strong>début après 50 ans</strong>, antécédents familiaux de cancer/MICI. → Consulter (bilan)."
+        "<strong>Sang</strong> dans les selles, <strong>amaigrissement</strong>, <strong>anémie</strong>, <strong>réveils nocturnes</strong> par les symptômes, <strong>fièvre</strong>, <strong>début après 50 ans</strong>, antécédents familiaux de cancer/MICI. → Consulter (bilan)."
        ]
       }
      },
@@ -1188,7 +1188,7 @@ export const ETP = [
        "v": [],
        "o": [],
        "r": [
-        "&lt;strong&gt;difficulté à avaler, amaigrissement, vomissements de sang, anémie :&lt;/strong&gt; → consulter (endoscopie)."
+        "<strong>difficulté à avaler, amaigrissement, vomissements de sang, anémie</strong> → consulter (endoscopie)."
        ]
       }
      },
@@ -1256,7 +1256,7 @@ export const ETP = [
         "Bouche sèche, constipation, somnolence diurne. → Ajuster (hydratation, horaire, dose)."
        ],
        "r": [
-        "&lt;strong&gt;Palpitations, rétention d'urine, confusion :&lt;/strong&gt; → arrêter et consulter."
+        "<strong>Palpitations, rétention d'urine, confusion</strong> → arrêter et consulter."
        ]
       }
      },
@@ -1394,7 +1394,7 @@ export const ETP = [
         "Fébricule, douleur modérée persistante, petit saignement qui se répète. → Prendre conseil."
        ],
        "r": [
-        "&lt;strong&gt;Vomissement de sang / selles noires abondantes :&lt;/strong&gt; , <strong>douleur abdominale ou thoracique intense</strong>, <strong>fièvre</strong>, <strong>ventre dur</strong> → <strong>urgences</strong> (hémorragie / perforation)."
+        "<strong>Vomissement de sang / selles noires abondantes</strong>, <strong>douleur abdominale ou thoracique intense</strong>, <strong>fièvre</strong>, <strong>ventre dur</strong> → <strong>urgences</strong> (hémorragie / perforation)."
        ]
       }
      },
@@ -1463,7 +1463,7 @@ export const ETP = [
         "Douleur thoracique modérée, gêne à avaler transitoire. → Prendre conseil."
        ],
        "r": [
-        "&lt;strong&gt;Douleur intense + fièvre :&lt;/strong&gt; , <strong>difficulté à respirer</strong>, <strong>vomissement de sang</strong> → <strong>urgences</strong>."
+        "<strong>Douleur intense + fièvre</strong>, <strong>difficulté à respirer</strong>, <strong>vomissement de sang</strong> → <strong>urgences</strong>."
        ]
       }
      },
@@ -1510,7 +1510,7 @@ export const ETP = [
         "Douleur abdominale modérée, nausées. → Surveiller / prendre conseil."
        ],
        "r": [
-        "&lt;strong&gt;Fièvre/frissons + jaunisse + douleur :&lt;/strong&gt; (<strong>angiocholite</strong>) ; ou <strong>douleur abdominale intense irradiant dans le dos + vomissements</strong> (<strong>pancréatite</strong>) ; ou <strong>selles noires</strong> → <strong>urgences</strong>."
+        "<strong>Fièvre/frissons + jaunisse + douleur</strong> (<strong>angiocholite</strong>) ; ou <strong>douleur abdominale intense irradiant dans le dos + vomissements</strong> (<strong>pancréatite</strong>) ; ou <strong>selles noires</strong> → <strong>urgences</strong>."
        ]
       }
      },
@@ -1577,7 +1577,7 @@ export const ETP = [
        "v": [],
        "o": [],
        "r": [
-        "&lt;strong&gt;fièvre + jaunisse :&lt;/strong&gt; (prothèse bouchée/infectée), drain arraché/qui ne coule plus → consulter en <strong>urgence</strong>."
+        "<strong>fièvre + jaunisse</strong> (prothèse bouchée/infectée), drain arraché/qui ne coule plus → consulter en <strong>urgence</strong>."
        ]
       }
      },
@@ -1624,7 +1624,7 @@ export const ETP = [
         "Rougeur, écoulement, petite fuite, bourgeon charnu. → Soins / prendre conseil."
        ],
        "r": [
-        "&lt;strong&gt;Sonde arrachée :&lt;/strong&gt; (l'orifice peut se <strong>refermer en quelques heures</strong> — agir vite), <strong>douleur abdominale + fièvre</strong>, saignement, sonde totalement bouchée. → <strong>Urgences / contact rapide</strong>."
+        "<strong>Sonde arrachée</strong> (l'orifice peut se <strong>refermer en quelques heures</strong> — agir vite), <strong>douleur abdominale + fièvre</strong>, saignement, sonde totalement bouchée. → <strong>Urgences / contact rapide</strong>."
        ]
       }
      },
@@ -1678,8 +1678,8 @@ export const ETP = [
        "v": [],
        "o": [],
        "r": [
-        "&lt;strong&gt;Après reprise :&lt;/strong&gt; saignement abondant (selles noires, sang rouge, saignement qui ne s'arrête pas). → Urgences.",
-        "&lt;strong&gt;Pendant l'arrêt :&lt;/strong&gt; signes de caillot — <strong>douleur thoracique</strong>, <strong>paralysie/trouble de la parole</strong> (AVC), <strong>jambe douloureuse et gonflée</strong> (phlébite). → Urgences."
+        "<strong>Après reprise</strong> : saignement abondant (selles noires, sang rouge, saignement qui ne s'arrête pas). → Urgences.",
+        "<strong>Pendant l'arrêt</strong> : signes de caillot — <strong>douleur thoracique</strong>, <strong>paralysie/trouble de la parole</strong> (AVC), <strong>jambe douloureuse et gonflée</strong> (phlébite). → Urgences."
        ]
       }
      },
@@ -1815,7 +1815,7 @@ export const ETP = [
        "v": [],
        "o": [],
        "r": [
-        "&lt;strong&gt;Sang dans les selles, amaigrissement, anémie, changement durable du transit :&lt;/strong&gt; → consulter <strong>sans attendre</strong> le prochain test."
+        "<strong>Sang dans les selles, amaigrissement, anémie, changement durable du transit</strong> → consulter <strong>sans attendre</strong> le prochain test."
        ]
       }
      },
@@ -1905,7 +1905,7 @@ export const ETP = [
        "v": [],
        "o": [],
        "r": [
-        "&lt;strong&gt;douleur intense + vomissements + fièvre :&lt;/strong&gt; → urgences (poussée aiguë)."
+        "<strong>douleur intense + vomissements + fièvre</strong> → urgences (poussée aiguë)."
        ]
       }
      },
@@ -2052,7 +2052,7 @@ export const ETP = [
         "Débit très élevé, peau irritée, fuites. → Soins / stomathérapeute."
        ],
        "r": [
-        "&lt;strong&gt;Arrêt du débit + douleurs/vomissements :&lt;/strong&gt; (occlusion), <strong>signes de déshydratation</strong> (peu d'urines, malaise). → <strong>Urgences</strong>."
+        "<strong>Arrêt du débit + douleurs/vomissements</strong> (occlusion), <strong>signes de déshydratation</strong> (peu d'urines, malaise). → <strong>Urgences</strong>."
        ]
       }
      },
@@ -2314,7 +2314,7 @@ export const ETP = [
        "v": [],
        "o": [],
        "r": [
-        "&lt;strong&gt;selles noires, vomissement de sang, saignement qui ne s'arrête pas, malaise :&lt;/strong&gt; → <strong>urgences</strong>."
+        "<strong>selles noires, vomissement de sang, saignement qui ne s'arrête pas, malaise</strong> → <strong>urgences</strong>."
        ]
       }
      },
@@ -2380,7 +2380,7 @@ export const ETP = [
       "feu": {
        "v": [],
        "o": [
-        "&lt;strong&gt;Saignement récidivant :&lt;/strong&gt; → consulter (ne pas tout attribuer aux hémorroïdes : un saignement doit être <strong>expliqué</strong>)."
+        "<strong>Saignement récidivant</strong> → consulter (ne pas tout attribuer aux hémorroïdes : un saignement doit être <strong>expliqué</strong>)."
        ],
        "r": [
         "Douleur aiguë intense (thrombose), saignement abondant, association à un amaigrissement/anémie. → Consulter."
