@@ -179,7 +179,7 @@ function consentBlock(doc, ctx) {
 
   const signMention = c.mention ? " (précédée de « Lu et approuvé »)" : "";
   inner += `<div style="display:flex; gap:24px; margin-top:20px; align-items:flex-end;">
-      <div style="flex:none;"><span style="${FC} text-transform:uppercase; letter-spacing:.04em; color:#4a5b68; font-size:11px; font-weight:600;">Date</span><div style="border-bottom:1px solid #90a4b4; width:150px; height:22px;"></div></div>
+      <div style="flex:none;"><span style="${FC} text-transform:uppercase; letter-spacing:.04em; color:#4a5b68; font-size:11px; font-weight:600;">Date</span><div style="border-bottom:1px solid #90a4b4; width:150px; height:22px;">${ctx.patientSign && ctx.dateDoc ? `<div style="font-weight:700; font-size:12.5px; padding-top:4px;">${esc(frDate(ctx.dateDoc))}</div>` : ""}</div></div>
       <div style="flex:1;"><span style="${FC} text-transform:uppercase; letter-spacing:.04em; color:#4a5b68; font-size:11px; font-weight:600;">Signature du patient${signMention}</span><div style="border-bottom:1px solid #90a4b4; height:44px; display:flex; align-items:flex-end;">${ctx.patientSign ? signImgTag(ctx.patientSign, 42) : ""}</div></div>
       <div style="flex:1;"><span style="${FC} text-transform:uppercase; letter-spacing:.04em; color:#4a5b68; font-size:11px; font-weight:600;">Signature &amp; cachet du médecin</span><div style="border-bottom:1px solid #90a4b4; height:44px; display:flex; align-items:flex-end;">${med?.sign ? signImgTag(med.sign, 40) : ""}</div></div>
     </div>`;
