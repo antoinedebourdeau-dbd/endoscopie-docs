@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.15";
+export const APP_VERSION = "3.16";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -2717,6 +2717,13 @@ $("#btn-preview-mob").addEventListener("click", () => {
   fitPreviewMobile();
 });
 $("#preview-close").addEventListener("click", () => document.body.classList.remove("show-preview"));
+
+// Menu ☰ mobile : relaie vers les boutons de la barre du haut (masqués en mobile)
+$("#btn-mobmenu").addEventListener("click", () => openModal("#modal-mobmenu"));
+$$("#modal-mobmenu [data-mm]").forEach((b) => b.addEventListener("click", () => {
+  closeModals();
+  $(b.dataset.mm)?.click();
+}));
 
 renderCatalog();
 renderMedecinSelect();

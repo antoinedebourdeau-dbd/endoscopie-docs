@@ -25,6 +25,7 @@
     <div class="t1">Doc'HGE — Documents patients</div>
     <div class="t2">Hépato-Gastroentérologie · CHU de Montpellier</div>
   </div>
+  <button class="ghost mob-only" id="btn-mobmenu" style="background:#fff; font-size:19px; padding:8px 14px;" title="Menu">☰</button>
   <button class="ghost" id="profile-chip" style="background:#fff;" title="Changer de profil (médecin / secrétariat)">Choisir mon profil</button>
   <select id="topbar-med" class="ghost" style="display:none; max-width:190px; background:#fff; border:1.5px solid var(--bleu); border-radius:9px; font:700 12.5px 'Barlow',sans-serif; color:var(--bleu); padding:8px;" title="Changer de médecin (profil secrétariat)"></select>
   <button class="ghost" id="btn-next-patient" style="background:#fff;" title="Patient suivant : efface le patient, garde documents / ordonnances / demandes (travail en série)">🆕 Patient suivant</button>
@@ -75,13 +76,13 @@
       </h2>
 
       <button class="big" id="btn-parcours" style="margin:0 0 8px; background:var(--bleu-fonce);">📦 Packs de prise en charge</button>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0 0 10px;">
-        <button class="ghost" id="btn-create-ordo">💊 Créer une ordonnance</button>
-        <button class="ghost" id="btn-create-demande">🩺 Demande d'examen</button>
-        <button class="ghost" id="btn-cat-prepa">🧴 Préparations coliques</button>
-        <button class="ghost" id="btn-cat-notes">📄 Notes info &amp; consentement</button>
-        <button class="ghost" id="btn-regimes">🍽 Régimes</button>
-        <button class="ghost" id="btn-etp">🎓 Éducation thérapeutique</button>
+      <div class="catgrid" style="margin:0 0 10px;">
+        <button class="ghost catbtn" id="btn-create-ordo"><span class="ico">💊</span><span>Créer une ordonnance</span></button>
+        <button class="ghost catbtn" id="btn-create-demande"><span class="ico">🩺</span><span>Demande d'examen</span></button>
+        <button class="ghost catbtn" id="btn-cat-prepa"><span class="ico">🧴</span><span>Préparations coliques</span></button>
+        <button class="ghost catbtn" id="btn-cat-notes"><span class="ico">📄</span><span>Notes info &amp; consentement</span></button>
+        <button class="ghost catbtn" id="btn-regimes"><span class="ico">🍽</span><span>Régimes</span></button>
+        <button class="ghost catbtn" id="btn-etp"><span class="ico">🎓</span><span>Éducation thérapeutique</span></button>
       </div>
 
       <div id="ordos"></div>
@@ -380,6 +381,22 @@
       <button class="subtle" id="wl-close">Plus tard</button>
     </div>
     <div class="hint" style="margin-top:8px;">Médecin : créez votre fiche (une fois) — vos documents seront à votre nom par défaut. Secrétariat : accès à tous les médecins de la liste pour générer leurs documents.</div>
+  </div>
+</div>
+
+<!-- ============================== MENU MOBILE ============================== -->
+<div class="modal-back no-print" id="modal-mobmenu">
+  <div class="modal">
+    <button class="modal-close" data-close>✕</button>
+    <h3>Menu</h3>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+      <button class="ghost mm-item" data-mm="#profile-chip">👤 Profil / médecin</button>
+      <button class="ghost mm-item" data-mm="#btn-next-patient">🆕 Patient suivant <span class="mm-sub">garde les documents (travail en série)</span></button>
+      <button class="ghost mm-item" data-mm="#btn-reset">↺ Nouveau dossier <span class="mm-sub">tout remettre à zéro</span></button>
+      <button class="ghost mm-item" data-mm="#btn-medecins">👥 Gérer les médecins <span class="mm-sub">fiche, RPPS, BALF, signature</span></button>
+      <button class="ghost mm-item" data-mm="#btn-new-doc">✏️ Rédiger un document</button>
+      <button class="ghost mm-item" data-mm="#btn-repro">🖨 Pack reprographie</button>
+    </div>
   </div>
 </div>
 
