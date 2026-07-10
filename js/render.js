@@ -180,8 +180,8 @@ function consentBlock(doc, ctx) {
   const signMention = c.mention ? " (précédée de « Lu et approuvé »)" : "";
   inner += `<div style="display:flex; gap:24px; margin-top:20px; align-items:flex-end;">
       <div style="flex:none;"><span style="${FC} text-transform:uppercase; letter-spacing:.04em; color:#4a5b68; font-size:11px; font-weight:600;">Date</span><div style="border-bottom:1px solid #90a4b4; width:150px; height:22px;"></div></div>
-      <div style="flex:1;"><span style="${FC} text-transform:uppercase; letter-spacing:.04em; color:#4a5b68; font-size:11px; font-weight:600;">Signature du patient${signMention}</span><div style="border-bottom:1px solid #90a4b4; height:44px;"></div></div>
-      <div style="flex:1;"><span style="${FC} text-transform:uppercase; letter-spacing:.04em; color:#4a5b68; font-size:11px; font-weight:600;">Signature &amp; cachet du médecin</span><div style="border-bottom:1px solid #90a4b4; height:44px;"></div></div>
+      <div style="flex:1;"><span style="${FC} text-transform:uppercase; letter-spacing:.04em; color:#4a5b68; font-size:11px; font-weight:600;">Signature du patient${signMention}</span><div style="border-bottom:1px solid #90a4b4; height:44px; display:flex; align-items:flex-end;">${ctx.patientSign ? signImgTag(ctx.patientSign, 42) : ""}</div></div>
+      <div style="flex:1;"><span style="${FC} text-transform:uppercase; letter-spacing:.04em; color:#4a5b68; font-size:11px; font-weight:600;">Signature &amp; cachet du médecin</span><div style="border-bottom:1px solid #90a4b4; height:44px; display:flex; align-items:flex-end;">${med?.sign ? signImgTag(med.sign, 40) : ""}</div></div>
     </div>`;
 
   return `<div style="margin-top:20px; break-inside:avoid; border:1.5px solid #0072BC; border-radius:12px; overflow:hidden;">
@@ -245,6 +245,22 @@ export function renderNote(slugOrDoc, ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// Signatures : image du médecin (fiche locale, jamais transmise) ou tracé
+// patient à l'écran (mémoire vive uniquement — ctx.patientSign).
+// ---------------------------------------------------------------------------
+
+const signImgTag = (data, h) =>
+  `<img src="${data}" alt="" style="height:${h}px; max-width:230px; object-fit:contain; object-position:left bottom; display:block;">`;
+
+const SIGN_ZONE_EMPTY = `<div style="border-top:1px dashed #9db4c6; margin-top:40px; padding-top:5px; font-size:10.5px; color:#8a9aa8; text-align:center;">Signature et cachet du prescripteur</div>`;
+
+function signZone(med) {
+  return med?.sign
+    ? `<div style="margin-top:6px;">${signImgTag(med.sign, 56)}</div><div style="border-top:1px dashed #9db4c6; margin-top:4px; padding-top:5px; font-size:10.5px; color:#8a9aa8; text-align:center;">Signature et cachet du prescripteur</div>`
+    : SIGN_ZONE_EMPTY;
+}
+
+// ---------------------------------------------------------------------------
 // Ordonnances + guides de préparation colique
 // ---------------------------------------------------------------------------
 
@@ -299,6 +315,7 @@ export function renderOrdo(key, ctx) {
 
   const tokens = ordoTokens(ctx);
   for (const [tok, val] of Object.entries(tokens)) html = html.replaceAll(tok, val);
+  html = html.replaceAll(SIGN_ZONE_EMPTY, signZone(ctx.medecin));
 
   return `<section class="doc">
     <table class="frame">
@@ -419,7 +436,7 @@ export function renderOrdoLibre(opts, ctx) {
     <div style="width:300px; ${F} color:#1c3a52;">
       <div style="font-weight:700; font-size:14px; margin-top:10px;">${t["@@MED_NOM@@"]}</div>
       <div style="font-size:11px; color:#4a5b68;">${t["@@MED_SPEC@@"]} — CHU de Montpellier</div>
-      <div style="border-top:1px dashed #9db4c6; margin-top:40px; padding-top:5px; font-size:10.5px; color:#8a9aa8; text-align:center;">Signature et cachet du prescripteur</div>
+      ${signZone(med)}
     </div>
   </div>`;
 
@@ -685,7 +702,7 @@ function identiteDemandeur(o, ctx, opts = {}) {
       ${fline("Service :", esc(o.service || ""))}
       <div style="display:flex; gap:10px;"><span style="flex:1;">${fline("Code UF :", esc(o.uf || ""))}</span><span style="flex:1;">${fline("☎ :", esc(o.telDemandeur || med?.tel || ""))}</span></div>
       ${fline("Médecin demandeur (capitales) :", med ? esc(med.nom.toUpperCase()) : "")}
-      <div style="display:flex; gap:6px; align-items:flex-end; margin-top:4px;"><span style="color:#4a5b68; flex:none;">Signature${opts.sigOblig ? " obligatoire" : ""} :</span><span style="flex:1; border-bottom:1px solid #9db4c6; height:22px;"></span></div>
+      <div style="display:flex; gap:6px; align-items:flex-end; margin-top:4px;"><span style="color:#4a5b68; flex:none;">Signature${opts.sigOblig ? " obligatoire" : ""} :</span><span style="flex:1; border-bottom:1px solid #9db4c6; min-height:22px; display:flex; align-items:flex-end;">${med?.sign ? signImgTag(med.sign, 26) : ""}</span></div>
     </div>`, "flex:1;");
   return `<div style="display:flex; gap:10px; margin-top:8px;">${identite}${demandeur}</div>`;
 }

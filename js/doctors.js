@@ -41,6 +41,7 @@ export function saveMedecin(m) {
     fax: (m.fax || "").trim(),
     rpps: (m.rpps || "").replace(/\s+/g, ""),
     mail: (m.mail || "").trim(), // BALF générique gérée par le secrétariat
+    sign: m.sign || undefined, // signature (image dataURL) — locale au navigateur
   };
   const i = arr.findIndex((x) => x.id === clean.id);
   if (i >= 0) arr[i] = clean;

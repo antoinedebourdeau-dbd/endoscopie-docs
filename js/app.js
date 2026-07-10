@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.12";
+export const APP_VERSION = "3.13";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -198,6 +198,131 @@ function currentPatient() {
   return p.nom || p.prenom || p.ddn || p.examen ? p : null;
 }
 
+// ------------------------------------------------------------- signatures
+// Signature du patient : MÉMOIRE VIVE UNIQUEMENT (jamais localStorage ni
+// sessionStorage) — apposée sur le cadre consentement, effacée au changement
+// de patient. Signature du médecin : image dans sa fiche (localStorage).
+let patientSign = null;
+
+function clearPatientSign() {
+  patientSign = null;
+  updatePatientSignUI();
+}
+function updatePatientSignUI() {
+  $("#sign-patient-state").innerHTML = patientSign
+    ? `✅ signé — <a href="#" id="sign-patient-del">retirer</a>`
+    : "";
+  $("#sign-patient-del")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    clearPatientSign(); refreshSoon();
+  });
+}
+$("#btn-sign-patient").addEventListener("click", () => openSignPad("patient"));
+
+// --- pad tactile partagé (médecin / patient)
+let signPadTarget = null;
+let spDrawn = false;
+
+function openSignPad(target) {
+  signPadTarget = target;
+  $("#sp-title").textContent = target === "med" ? "✍️ Signature du médecin" : "✍️ Signature du patient";
+  $("#sp-hint").textContent = target === "med"
+    ? "Tracez votre signature (doigt, stylet ou souris) — elle sera enregistrée avec votre fiche, uniquement dans ce navigateur."
+    : "Le patient signe dans le cadre ci-dessous. La signature apparaît sur les consentements de ce dossier et n'est jamais enregistrée.";
+  openModal("#modal-signpad");
+  const cv = $("#sp-canvas");
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth || 500;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(220 * dpr);
+  const g = cv.getContext("2d");
+  g.clearRect(0, 0, cv.width, cv.height);
+  g.lineWidth = 2.4 * dpr; g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = "#1c3a52";
+  spDrawn = false;
+}
+
+{
+  const cv = $("#sp-canvas");
+  let tracing = false;
+  const pos = (e) => {
+    const r = cv.getBoundingClientRect();
+    const dpr = cv.width / r.width;
+    return [(e.clientX - r.left) * dpr, (e.clientY - r.top) * dpr];
+  };
+  cv.addEventListener("pointerdown", (e) => {
+    e.preventDefault(); cv.setPointerCapture(e.pointerId);
+    tracing = true; spDrawn = true;
+    const g = cv.getContext("2d"), [x, y] = pos(e);
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + 0.1, y + 0.1); g.stroke();
+  });
+  cv.addEventListener("pointermove", (e) => {
+    if (!tracing) return;
+    const g = cv.getContext("2d"), [x, y] = pos(e);
+    g.lineTo(x, y); g.stroke();
+  });
+  ["pointerup", "pointercancel"].forEach((ev) => cv.addEventListener(ev, () => { tracing = false; }));
+}
+$("#sp-clear").addEventListener("click", () => {
+  const cv = $("#sp-canvas");
+  cv.getContext("2d").clearRect(0, 0, cv.width, cv.height);
+  spDrawn = false;
+});
+$("#sp-ok").addEventListener("click", () => {
+  if (!spDrawn) { toast("Le cadre est vide — signez d'abord.", 3500); return; }
+  const cv = $("#sp-canvas");
+  // recadre sur le tracé (marge 8 px)
+  const g = cv.getContext("2d");
+  const img = g.getImageData(0, 0, cv.width, cv.height).data;
+  let minX = cv.width, minY = cv.height, maxX = 0, maxY = 0;
+  for (let y = 0; y < cv.height; y++)
+    for (let x = 0; x < cv.width; x++)
+      if (img[(y * cv.width + x) * 4 + 3] > 10) {
+        if (x < minX) minX = x; if (x > maxX) maxX = x;
+        if (y < minY) minY = y; if (y > maxY) maxY = y;
+      }
+  const pad = 8;
+  minX = Math.max(0, minX - pad); minY = Math.max(0, minY - pad);
+  maxX = Math.min(cv.width, maxX + pad); maxY = Math.min(cv.height, maxY + pad);
+  const out = document.createElement("canvas");
+  out.width = maxX - minX; out.height = maxY - minY;
+  out.getContext("2d").drawImage(cv, minX, minY, out.width, out.height, 0, 0, out.width, out.height);
+  const data = out.toDataURL("image/png");
+  if (signPadTarget === "med") { mfSign = data; renderMfSign(); }
+  else { patientSign = data; updatePatientSignUI(); refreshSoon(); }
+  // ne ferme que le pad : la modale médecins reste ouverte si on vient d'elle
+  $("#modal-signpad").classList.remove("open");
+});
+
+// --- signature dans le formulaire médecin (photo importée ou tracé)
+let mfSign = null;
+function renderMfSign() {
+  const box = $("#mf-sign-preview");
+  box.innerHTML = mfSign ? `<img src="${mfSign}" alt="signature" style="max-height:52px; max-width:100%; object-fit:contain;">` : "Aucune signature";
+  $("#mf-sign-del").style.display = mfSign ? "block" : "none";
+}
+$("#mf-sign-draw").addEventListener("click", () => openSignPad("med"));
+$("#mf-sign-file-btn").addEventListener("click", () => $("#mf-sign-file").click());
+$("#mf-sign-del").addEventListener("click", () => { mfSign = null; renderMfSign(); });
+$("#mf-sign-file").addEventListener("change", () => {
+  const f = $("#mf-sign-file").files[0];
+  $("#mf-sign-file").value = "";
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      // réduit (max 520×220) pour rester léger dans le localStorage
+      const k = Math.min(1, 520 / im.width, 220 / im.height);
+      const c = document.createElement("canvas");
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      mfSign = c.toDataURL("image/png");
+      renderMfSign();
+    };
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(f);
+});
+
 // ------------------------------------------------------------------- aperçu
 // ------------------------------------------------ ordonnances (cartes multiples)
 const ordos = [];
@@ -208,6 +333,7 @@ function newOrdo(prefill) {
   const o = {
     id: "ord" + (++ordoSeq),
     fresh: !prefill, // affiche le choix type/vierge
+    fold: !!prefill?.fold, // carte repliée (ajout par pack : garde la vue d'ensemble)
     mode: prefill?.mode || "simple",
     texte: prefill?.texte || "",
     textAld: prefill?.textAld || "",
@@ -239,10 +365,12 @@ function renderOrdos() {
   const root = $("#ordos");
   root.innerHTML = ordos.map((o, idx) => `
   <div style="border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:var(--bleu-pale);" data-ordo-card="${o.id}">
-    <div style="display:flex; align-items:center; gap:8px;">
+    <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" data-fold-ordo="${o.id}" title="Replier / déplier">
+      <span style="flex:none; font-size:10px; color:var(--gris-clair);">${o.fold && !o.fresh ? "▸" : "▾"}</span>
       <strong style="flex:1; font-size:13px;">💊 Ordonnance${ordos.length > 1 ? " " + (idx + 1) : ""}${o.mode === "ald" ? " (ALD)" : ""}${ordoResume(o)}</strong>
       <button class="subtle small" data-del-ordo="${o.id}">✕ retirer</button>
     </div>
+    <div style="display:${o.fold && !o.fresh ? "none" : "block"};">
     ${o.fresh ? `
     <div style="margin-top:8px;">
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -277,6 +405,7 @@ function renderOrdos() {
         <input type="text" data-oid="${o.id}" data-ok="duree" value="${(o.duree || "").replace(/"/g, "&quot;")}" placeholder="ex. 3 mois — QSP 6 mois">
       </label>
     </div>`}
+    </div>
   </div>`).join("");
 
   // injecte le contenu riche (innerHTML ne peut pas être mis dans le template sans double-échappement)
@@ -304,6 +433,13 @@ function renderOrdos() {
   root.querySelectorAll("[data-save-type]").forEach((b) => b.addEventListener("click", () => {
     activeOrdoId = b.dataset.saveType;
     openSaveTypeModal();
+  }));
+  root.querySelectorAll("[data-fold-ordo]").forEach((h) => h.addEventListener("click", (e) => {
+    if (e.target.closest("button")) return;
+    const o = ordos.find((x) => x.id === h.dataset.foldOrdo);
+    if (!o || o.fresh) return;
+    o.fold = !o.fold;
+    renderOrdos();
   }));
 }
 
@@ -409,6 +545,7 @@ async function refresh() {
     patient: currentPatient(),
     // Date du document : aujourd'hui par défaut, modifiable ; jamais en mode générique.
     dateDoc: $("#chk-generic").checked ? null : $("#doc-date").value || null,
+    patientSign: $("#chk-generic").checked ? null : patientSign,
   };
   const html = await assembleDocs(items, ctx);
   if (seq === renderSeq) $("#print-root").innerHTML = html;
@@ -467,6 +604,7 @@ function renderMedList() {
     $("#mf-id").value = m.id; $("#mf-nom").value = m.nom; $("#mf-spec").value = m.specialite;
     $("#mf-tel").value = m.tel; $("#mf-fax").value = m.fax || ""; $("#mf-rpps").value = m.rpps || "";
     $("#mf-mail").value = m.mail || "";
+    mfSign = m.sign || null; renderMfSign();
     $("#med-form").style.display = "block";
   }));
   $$("[data-med-del]").forEach((b) => b.addEventListener("click", () => {
@@ -481,6 +619,7 @@ function renderMedList() {
 $("#btn-medecins").addEventListener("click", () => { renderMedList(); openModal("#modal-medecins"); });
 $("#btn-med-add").addEventListener("click", () => {
   $("#med-form").reset(); $("#mf-id").value = ""; $("#mf-spec").value = "Hépato-Gastroentérologie";
+  mfSign = null; renderMfSign();
   $("#med-form").style.display = "block"; $("#mf-nom").focus();
 });
 $("#mf-cancel").addEventListener("click", () => { $("#med-form").style.display = "none"; });
@@ -494,7 +633,7 @@ $("#med-form").addEventListener("submit", (e) => {
     id: $("#mf-id").value || undefined,
     nom: $("#mf-nom").value, specialite: $("#mf-spec").value,
     tel: $("#mf-tel").value, fax: $("#mf-fax").value, rpps: $("#mf-rpps").value,
-    mail: $("#mf-mail").value,
+    mail: $("#mf-mail").value, sign: mfSign,
   });
   const prof = getProfile();
   if (prof?.type === "medecin" && !prof.medecinId) {
@@ -725,7 +864,7 @@ function mailTexts(d) {
 }
 
 function demandeCtx() {
-  return { medecin: currentMedecin(), patient: currentPatient(), dateDoc: $("#doc-date").value || null };
+  return { medecin: currentMedecin(), patient: currentPatient(), dateDoc: $("#doc-date").value || null, patientSign };
 }
 
 /**
@@ -1298,12 +1437,15 @@ function renderDemandes() {
     } else if (d.type) {
       resume = " — " + DEM_LABELS[d.type] + (d.opts.examen ? " · " + d.opts.examen : "");
     }
+    const folded = d.fold && d.type;
+    const warnBadge = folded && demandeWarnings(d).length ? ` <span title="À compléter avant envoi">⚠️</span>` : "";
     return `<div style="border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:var(--bleu-pale);" data-card="${d.id}">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <strong style="flex:1; font-size:13px;">🩺 Demande d'examen${resume}</strong>
+      <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" data-fold-dem="${d.id}" title="Replier / déplier">
+        <span style="flex:none; font-size:10px; color:var(--gris-clair);">${folded ? "▸" : "▾"}</span>
+        <strong style="flex:1; font-size:13px;">🩺 Demande d'examen${resume}${warnBadge}</strong>
         <button class="subtle small" data-del-dem="${d.id}">✕ retirer</button>
       </div>
-      ${demandeCard(d)}
+      <div style="display:${folded ? "none" : "block"};">${demandeCard(d)}</div>
     </div>`;
   }).join("");
 
@@ -1331,6 +1473,13 @@ function renderDemandes() {
   root.querySelectorAll("[data-mailcfg]").forEach((a) => a.addEventListener("click", (e) => {
     e.preventDefault(); e.stopPropagation();
     openMailModal();
+  }));
+  root.querySelectorAll("[data-fold-dem]").forEach((h) => h.addEventListener("click", (e) => {
+    if (e.target.closest("button")) return;
+    const d = demandes.find((x) => x.id === h.dataset.foldDem);
+    if (!d || !d.type) return;
+    d.fold = !d.fold;
+    renderDemandes();
   }));
 
   // restaure les sections dépliées
@@ -1538,7 +1687,7 @@ $("#pc-apply").addEventListener("click", () => {
       const texte = it.content.replaceAll("{MEDECIN}", med ? med.nom : "votre médecin").replaceAll("{FAX}", med?.fax || "………………");
       const strip = (s) => s.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
       if (ordos.some((o) => strip(o.texte + o.textAld) === strip(texte))) { n--; return; } // déjà présent
-      newOrdo({ mode: "simple", texte });
+      newOrdo({ mode: "simple", texte, fold: true });
     } else if (el.t === "demande") {
       const sig = JSON.stringify([el.kind || "endo", el.opts?.examens || [], el.opts?.actes || ""]);
       if (demandes.some((d) => JSON.stringify([d.type, d.opts.examens || [], d.opts.actes || ""]) === sig)) { n--; return; } // déjà présente
@@ -1546,6 +1695,7 @@ $("#pc-apply").addEventListener("click", () => {
       const d = demandes[demandes.length - 1];
       d.type = el.kind || "endo";
       d.opts = { ...initDemandeOpts(d.type), ...JSON.parse(JSON.stringify(el.opts || {})) };
+      d.fold = true;
     }
   });
   for (let ci = 0; ci < PARCOURS_DEFS.length; ci++)
@@ -1562,12 +1712,13 @@ $("#pc-apply").addEventListener("click", () => {
 // pack personnel : instantané complet (documents + ordonnances + demandes)
 function applyPersoPack(p) {
   for (const ref of p.docs || []) selection.add(ref);
-  for (const o of p.ordos || []) newOrdo(o);
+  for (const o of p.ordos || []) newOrdo({ ...o, fold: true });
   for (const def of p.demandes || []) {
     newDemande();
     const d = demandes[demandes.length - 1];
     d.type = def.type || "endo";
     d.opts = { ...initDemandeOpts(d.type), ...JSON.parse(JSON.stringify(def.opts || {})) };
+    d.fold = true;
   }
   renderDemandes();
   renderCatalog();
@@ -1951,6 +2102,7 @@ $("#btn-reset").addEventListener("click", () => {
   ["#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen", "#pt-tel", "#pt-civ", "#pt-mail"].forEach((id) => ($(id).value = ""));
   $("#chk-mail-patient").checked = false;
   $("#mail-patient-fields").style.display = "none";
+  clearPatientSign();
   updateEmailButton();
   $("#chk-generic").checked = false;
   $("#panel-patient").style.opacity = "1";
@@ -2002,6 +2154,7 @@ async function doPrint(chosen) {
     const ctx = {
       medecin: currentMedecin(), patient: currentPatient(),
       dateDoc: $("#chk-generic").checked ? null : $("#doc-date").value || null,
+      patientSign: $("#chk-generic").checked ? null : patientSign,
     };
     $("#print-root").innerHTML = await assembleDocs(chosen, ctx);
     // le PDF « Enregistrer en PDF » prendra le nom du patient
@@ -2415,6 +2568,7 @@ function newPatientKeepDocs() {
   ["#pt-nom", "#pt-prenom", "#pt-ddn", "#pt-examen", "#pt-tel", "#pt-civ", "#pt-mail", "#pt-paste"].forEach((id) => ($(id).value = ""));
   $("#chk-mail-patient").checked = false;
   $("#mail-patient-fields").style.display = "none";
+  clearPatientSign();
   updateEmailButton();
   refresh();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2455,7 +2609,7 @@ function saveSession() {
     sessionStorage.setItem(SESSION_KEY, JSON.stringify({
       sel: [...selection],
       ordos: ordos.map((o) => ({ ...o })),
-      demandes: demandes.map((d) => ({ id: d.id, type: d.type, opts: d.opts })),
+      demandes: demandes.map((d) => ({ id: d.id, type: d.type, opts: d.opts, fold: d.fold })),
       patient: { civ: $("#pt-civ").value, nom: $("#pt-nom").value, prenom: $("#pt-prenom").value, ddn: $("#pt-ddn").value, examen: $("#pt-examen").value, tel: $("#pt-tel").value, mail: $("#pt-mail").value, mailChk: $("#chk-mail-patient").checked },
       date: $("#doc-date").value,
       generic: $("#chk-generic").checked,
@@ -2470,7 +2624,7 @@ function restoreSession() {
   if (!hasContent) return false;
   (s.sel || []).forEach((id) => selection.add(id));
   (s.ordos || []).forEach((o) => { ordos.push({ ...o, id: "ord" + (++ordoSeq) }); });
-  (s.demandes || []).forEach((d) => { demandes.push({ id: "dem" + (++demandeSeq), type: d.type, opts: d.opts }); });
+  (s.demandes || []).forEach((d) => { demandes.push({ id: "dem" + (++demandeSeq), type: d.type, opts: d.opts, fold: d.fold }); });
   const p = s.patient || {};
   $("#pt-civ").value = p.civ || ""; $("#pt-nom").value = p.nom || ""; $("#pt-prenom").value = p.prenom || "";
   $("#pt-ddn").value = p.ddn || ""; $("#pt-examen").value = p.examen || ""; $("#pt-tel").value = p.tel || "";
@@ -2497,6 +2651,27 @@ async function checkVersion() {
 setInterval(checkVersion, 5 * 60 * 1000);
 window.addEventListener("focus", checkVersion);
 setTimeout(checkVersion, 15000);
+
+// ------------------------------------------------------------- PWA / mobile
+// Service worker : cache de la coquille applicative uniquement (voir sw.js).
+// Jamais en file:// (version hors-ligne zip).
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+  navigator.serviceWorker.register("sw.js").catch(() => { /* Access non authentifié : silencieux */ });
+}
+
+// Aperçu mobile : plein écran à la demande, documents mis à l'échelle de l'écran.
+const mqMobile = window.matchMedia("(max-width: 820px)");
+function fitPreviewMobile() {
+  // 210 mm ≈ 794 px — zoom (et non transform) pour garder une hauteur de défilement juste
+  $("#print-root").style.zoom = mqMobile.matches ? String(Math.min(1, (window.innerWidth - 20) / 800)) : "";
+}
+window.addEventListener("resize", fitPreviewMobile);
+fitPreviewMobile();
+$("#btn-preview-mob").addEventListener("click", () => {
+  document.body.classList.add("show-preview");
+  fitPreviewMobile();
+});
+$("#preview-close").addEventListener("click", () => document.body.classList.remove("show-preview"));
 
 renderCatalog();
 renderMedecinSelect();

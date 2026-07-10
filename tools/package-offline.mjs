@@ -23,6 +23,8 @@ mkdirSync(STAGE, { recursive: true });
 cpSync(join(ROOT, "img"), join(STAGE, "img"), { recursive: true });
 cpSync(join(ROOT, "chu-logo.webp"), join(STAGE, "chu-logo.webp"));
 cpSync(join(ROOT, "favicon.png"), join(STAGE, "favicon.png"));
+cpSync(join(ROOT, "manifest.webmanifest"), join(STAGE, "manifest.webmanifest"));
+for (const ic of ["icon-180.png", "icon-192.png", "icon-512.png"]) cpSync(join(ROOT, ic), join(STAGE, ic));
 cpSync(join(ROOT, "css"), join(STAGE, "css"), { recursive: true });
 cpSync(join(ROOT, "vendor"), join(STAGE, "vendor"), { recursive: true });
 

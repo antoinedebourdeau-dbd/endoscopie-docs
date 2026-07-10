@@ -4,7 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0d2b45">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Doc'HGE">
 <title>Doc'HGE — Documents patients · Hépato-Gastroentérologie · CHU de Montpellier</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -56,10 +62,14 @@
       <div id="mail-patient-fields" style="display:none;">
         <label class="field"><span class="lbl">E-mail du patient</span><input type="text" id="pt-mail" placeholder="patient@exemple.fr" autocomplete="off"></label>
       </div>
+      <div style="display:flex; gap:8px; align-items:center; margin-top:4px;">
+        <button class="ghost small" id="btn-sign-patient" title="Le patient signe à l'écran (doigt, stylet ou souris) — la signature apparaît dans le cadre consentement des notes, n'est JAMAIS enregistrée">✍️ Signature du patient</button>
+        <span id="sign-patient-state" class="hint" style="margin:0;"></span>
+      </div>
     </div>
 
     <!-- ÉTAPE 1 : documents -->
-    <div class="panel">
+    <div class="panel" id="panel-docs">
       <h2><span class="step">2</span> Choisir les documents <span class="spacer"></span>
         <button class="subtle small" id="btn-import-doc" title="Importer un document JSON partagé par un collègue">Importer</button>
       </h2>
@@ -85,7 +95,7 @@
     </div>
 
     <!-- ÉTAPE 2 : médecin -->
-    <div class="panel">
+    <div class="panel" id="panel-medecin">
       <h2><span class="step">3</span> Médecin</h2>
       <label class="field"><span class="lbl">Médecin référent</span>
         <select id="sel-medecin"></select>
@@ -106,7 +116,7 @@
     </div>
 
     <!-- liens utilitaires (hors zone collante) -->
-    <div class="hint" style="padding:0 4px 8px;"><a href="https://github.com/antoinedebourdeau-dbd/endoscopie-docs/releases/latest/download/endoscopie-docs-hors-ligne.zip">⬇ Version hors-ligne</a> · <a href="#" id="btn-affiche">🖼 Affiche QR</a></div>
+    <div class="hint side-links" style="padding:0 4px 8px;"><a href="https://github.com/antoinedebourdeau-dbd/endoscopie-docs/releases/latest/download/endoscopie-docs-hors-ligne.zip">⬇ Version hors-ligne</a> · <a href="#" id="btn-affiche">🖼 Affiche QR</a></div>
 
     <!-- IMPRESSION (zone collante, compacte) -->
     <div class="panel" id="actions-panel">
@@ -115,6 +125,7 @@
           <input type="date" id="doc-date" style="padding:6px 8px; font-size:12.5px;">
         </label>
         <button id="btn-print" disabled style="flex:1;" title="Imprimer / Enregistrer en PDF (Ctrl+Entrée) — un flux, chaque document sur sa page">🖨 Imprimer / PDF</button>
+        <button class="ghost mob-only" id="btn-preview-mob" style="flex:none; padding:9px 12px;" title="Aperçu des documents">👁 Aperçu</button>
       </div>
       <div style="display:flex; gap:8px; margin-top:6px;">
         <button class="orange" id="btn-emails" style="display:none; flex:1; padding:7px 10px; font-size:12.5px;" title="Un brouillon par destinataire, PDF téléchargés">📧 E-mails</button>
@@ -125,6 +136,7 @@
   </aside>
 
   <main class="preview">
+    <div class="preview-topbar no-print"><span>👁 Aperçu des documents</span><button class="small" id="preview-close" style="background:#fff; color:var(--bleu-fonce);">✕ Fermer</button></div>
     <div class="preview-empty no-print" id="preview-empty">Cochez un ou plusieurs documents pour afficher l'aperçu.</div>
     <div id="print-root"></div>
   </main>
@@ -154,7 +166,19 @@
         <label class="field"><span class="lbl">RPPS (11 chiffres — ordonnances)</span><input type="text" id="mf-rpps"></label>
         <label class="field"><span class="lbl">BALF du secrétariat (e-mail générique non nominatif)</span><input type="text" id="mf-mail" placeholder="ex. gastro-secretariat-x@chu-montpellier.fr"></label>
       </div>
-      <div class="hint">Ces informations (BALF, secrétariat, RPPS…) sont modifiables à tout moment — les documents générés ensuite les utiliseront automatiquement.</div>
+      <div class="field" style="margin-top:2px;">
+        <span class="lbl">Signature (apposée sur ordonnances, demandes et consentements)</span>
+        <div style="display:flex; gap:10px; align-items:stretch;">
+          <div id="mf-sign-preview" style="flex:1; border:1.5px dashed var(--bord); border-radius:8px; min-height:56px; display:flex; align-items:center; justify-content:center; background:#fff; color:var(--gris-clair); font-size:11.5px;">Aucune signature</div>
+          <div style="display:flex; flex-direction:column; gap:6px; justify-content:center;">
+            <button type="button" class="subtle small" id="mf-sign-draw" title="Tracer à l'écran (tactile, stylet ou souris)">✍️ Dessiner</button>
+            <button type="button" class="subtle small" id="mf-sign-file-btn" title="Photo ou scan de la signature, fond blanc">📷 Importer</button>
+            <button type="button" class="subtle small" id="mf-sign-del" style="display:none; color:var(--rouge);">✕ Retirer</button>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="mf-sign-file" accept="image/*" style="display:none;">
+      <div class="hint">Ces informations (BALF, secrétariat, RPPS, signature…) restent uniquement dans ce navigateur et sont modifiables à tout moment — les documents générés ensuite les utiliseront automatiquement.</div>
       <div class="validation-err" id="mf-err" style="display:none;"></div>
       <div class="btnrow">
         <button type="submit">Enregistrer</button>
@@ -352,7 +376,7 @@
     <h3>👋 Bienvenue</h3>
     <div class="mhint">Doc'HGE — les documents patients d'Hépato-Gastroentérologie du CHU de Montpellier. Trois choses à savoir :</div>
     <div class="pill-info" style="margin-bottom:8px;"><strong>1 · Ajoutez-vous comme médecin</strong> (une seule fois) : nom, secrétariat, RPPS, BALF — vos documents et ordonnances seront automatiquement à votre en-tête.</div>
-    <div class="pill-info" style="margin-bottom:8px;"><strong>2 · Préparez un dossier</strong> : « ⚡ Parcours types » pour tout préparer en un clic, ou choisissez vos documents ; renseignez le patient (optionnel).</div>
+    <div class="pill-info" style="margin-bottom:8px;"><strong>2 · Préparez un dossier</strong> : « 📦 Packs de prise en charge » pour tout préparer en un clic, ou choisissez vos documents ; renseignez le patient (optionnel).</div>
     <div class="pill-info" style="margin-bottom:14px;"><strong>3 · Imprimez ou envoyez</strong> : PDF en un clic, envoi par e-mail au secrétariat et au patient. Aucune donnée patient ne quitte votre poste.</div>
     <div class="mhint" style="font-weight:700; color:var(--bleu-fonce);">Vous êtes ?</div>
     <div class="btnrow">
@@ -361,6 +385,21 @@
       <button class="subtle" id="wl-close">Plus tard</button>
     </div>
     <div class="hint" style="margin-top:8px;">Médecin : créez votre fiche (une fois) — vos documents seront à votre nom par défaut. Secrétariat : accès à tous les médecins de la liste pour générer leurs documents.</div>
+  </div>
+</div>
+
+<!-- ============================== MODALE SIGNATURE TACTILE ============================== -->
+<div class="modal-back no-print" id="modal-signpad">
+  <div class="modal" style="width:560px;">
+    <button class="modal-close" data-close>✕</button>
+    <h3 id="sp-title">✍️ Signature</h3>
+    <div class="mhint" id="sp-hint">Signez dans le cadre ci-dessous (doigt, stylet ou souris).</div>
+    <canvas id="sp-canvas" style="width:100%; height:220px; border:1.5px dashed var(--bord); border-radius:12px; background:#fff; touch-action:none; cursor:crosshair;"></canvas>
+    <div class="btnrow">
+      <button class="subtle" id="sp-clear">Effacer</button>
+      <span style="flex:1;"></span>
+      <button class="orange" id="sp-ok">✔ Valider la signature</button>
+    </div>
   </div>
 </div>
 

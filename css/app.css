@@ -186,6 +186,24 @@ textarea.mono { font: 12px/1.5 ui-monospace, 'SF Mono', Menlo, monospace; min-he
 #actions-panel.docked input[type=date] { padding: 9px 10px !important; font-size: 13.5px !important; }
 
 /* ------------------------------------------------------------- responsive -- */
+.mob-only { display: none; }
+.preview-topbar { display: none; }
+
+/* Grand écran PC : patient / médecin / actions à gauche des documents,
+   catalogue avec son propre défilement — tout reste visible sans scroller. */
+@media (min-width: 1560px) {
+  .sidebar {
+    width: 768px; display: grid; grid-template-columns: 340px 400px;
+    gap: 0 14px; align-content: start; overflow: visible; max-height: none;
+  }
+  #panel-patient { grid-column: 1; grid-row: 1; }
+  #panel-docs { grid-column: 2; grid-row: 1 / span 5; max-height: calc(100vh - 78px); overflow-y: auto; }
+  #panel-medecin { grid-column: 1; grid-row: 2; }
+  .side-links { grid-column: 1; grid-row: 3; }
+  #actions-panel { grid-column: 1; grid-row: 4; }
+  #actions-sentinel { grid-column: 1; grid-row: 5; }
+}
+
 @media (max-width: 1100px) {
   .layout { flex-direction: column; }
   .sidebar { width: 100%; position: static; max-height: none; padding: 12px 12px 0; }
@@ -197,6 +215,47 @@ textarea.mono { font: 12px/1.5 ui-monospace, 'SF Mono', Menlo, monospace; min-he
 @media (max-width: 640px) {
   .modal { padding: 14px; }
   .grid2 { grid-template-columns: 1fr; }
+}
+
+/* ------------------------------------------------------- mobile (PWA) ------ */
+@media (max-width: 820px) {
+  .mob-only { display: inline-flex; align-items: center; justify-content: center; }
+  .topbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 8px; padding: 8px 10px; scrollbar-width: none; }
+  .topbar::-webkit-scrollbar { display: none; }
+  .topbar .titles { flex: 0 0 auto; }
+  .topbar .t2 { display: none; }
+  .topbar button, .topbar select { font-size: 12px; padding: 7px 10px; }
+  /* évite le zoom automatique iOS à la prise de focus */
+  input[type=text], input[type=date], input[type=tel], select, textarea, .rich { font-size: 16px; }
+  .sidebar { padding: 10px 10px 170px; }
+  .panel { padding: 12px; margin-bottom: 10px; }
+
+  /* Aperçu : masqué par défaut (usage = composer puis envoyer),
+     plein écran à la demande, documents mis à l'échelle par js (zoom). */
+  .preview { display: none; }
+  body.show-preview { overflow: hidden; }
+  body.show-preview .preview {
+    display: block; position: fixed; inset: 0; z-index: 80;
+    background: var(--fond); overflow-y: auto; padding: 56px 8px 40px;
+  }
+  body.show-preview .preview-topbar {
+    display: flex; position: fixed; top: 0; left: 0; right: 0; z-index: 85;
+    background: var(--bleu-fonce); color: #fff; align-items: center;
+    justify-content: space-between; padding: 10px 14px; font-weight: 700; font-size: 14px;
+  }
+  section.doc { min-height: 0; }
+
+  /* Actions fixes en bas — les e-mails d'abord (usage mobile principal) */
+  #actions-panel {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 70;
+    border-radius: 14px 14px 0 0; margin: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column-reverse; gap: 6px;
+    box-shadow: 0 -8px 24px rgba(13,43,69,.25);
+  }
+  #actions-panel > div { margin-top: 0 !important; }
+  #actions-sentinel { display: none; }
+  .modal-back { padding: 12px 8px; }
+  .modal { width: 100%; padding: 16px 14px 18px; }
 }
 
 /* =================================================================== APERÇU */
@@ -226,6 +285,7 @@ section.doc { min-height: 297mm; padding: 10mm 12mm; }
 @media print {
   html, body { background: none; }
   .topbar, .sidebar, .no-print { display: none !important; }
+  #print-root { zoom: 1 !important; } /* annule la mise à l'échelle mobile */
   .layout, .preview { display: block; padding: 0; margin: 0; max-width: none; }
   .preview-empty { display: none; }
 
