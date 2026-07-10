@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.17";
+export const APP_VERSION = "3.18";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -530,6 +530,7 @@ let renderSeq = 0;
 async function refresh() {
   const items = selectedItems();
   $("#btn-print").disabled = !items.length;
+  $("#btn-share").disabled = !items.length;
   $("#preview-empty").style.display = items.length ? "none" : "block";
   const selItems = [];
   for (const g of CATALOG) for (const it of g.items) if (selection.has(it.id)) selItems.push(it);
@@ -2771,6 +2772,68 @@ $("#btn-preview-mob").addEventListener("click", () => {
   fitPreviewMobile();
 });
 $("#preview-close").addEventListener("click", () => document.body.classList.remove("show-preview"));
+
+// ---- Partage direct (mobile uniquement) : un PDF composé à la carte →
+// feuille de partage native (Mail, WhatsApp, AirDrop…), PJ incluse.
+// Le PDF est pré-généré à l'ouverture et à chaque changement de sélection :
+// au moment du partage le blob est prêt, le geste utilisateur reste valide (iOS).
+let shareSeq = 0, shareBlob = null, shareFichier = "", shareItems = [];
+
+async function regenShare() {
+  const seq = ++shareSeq;
+  shareBlob = null;
+  const go = $("#share-go");
+  const chosen = shareItems.filter((_, i) => document.querySelector(`[data-share-chk="${i}"]`)?.checked);
+  if (!chosen.length) { go.disabled = true; go.textContent = "Cochez au moins un document"; return; }
+  go.disabled = true; go.textContent = "⏳ Préparation du PDF…";
+  const p = currentPatient();
+  const nomAff = [p?.nom?.toUpperCase(), p?.prenom].filter(Boolean).join(" ");
+  const fichier = `${chosen.length === 1 ? chosen[0].label || "Document" : "Documents"}${nomAff ? " - " + nomAff : ""}.pdf`.replace(/[\/\\:*?"<>|]/g, "");
+  const ctx = {
+    medecin: currentMedecin(), patient: currentPatient(),
+    dateDoc: $("#chk-generic").checked ? null : $("#doc-date").value || null,
+    patientSign: $("#chk-generic").checked ? null : patientSign,
+  };
+  try {
+    const { blob } = await docsToPdf(chosen, ctx, fichier);
+    if (seq !== shareSeq) return; // la sélection a changé entre-temps
+    shareBlob = blob; shareFichier = fichier;
+    go.disabled = false;
+    go.textContent = `📤 Partager (${chosen.length} document${chosen.length > 1 ? "s" : ""})`;
+  } catch (e) {
+    if (seq === shareSeq) { go.textContent = "❌ " + e.message; }
+  }
+}
+
+$("#btn-share").addEventListener("click", () => {
+  shareItems = selectedItems();
+  if (!shareItems.length) return;
+  $("#share-list").innerHTML = shareItems.map((it, i) => `
+    <label class="doc-item" style="padding:5px 6px;">
+      <input type="checkbox" data-share-chk="${i}" checked>
+      <span>${itemLabel(it)}</span>
+    </label>`).join("");
+  $$("#share-list [data-share-chk]").forEach((cb) => cb.addEventListener("change", regenShare));
+  openModal("#modal-share");
+  regenShare();
+});
+
+$("#share-go").addEventListener("click", async () => {
+  if (!shareBlob) return;
+  const file = new File([shareBlob], shareFichier, { type: "application/pdf" });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: shareFichier.replace(/\.pdf$/, "") });
+    } catch (e) {
+      if (e.name === "AbortError") return; // annulé par l'utilisateur
+      downloadBlob(shareBlob, shareFichier); // geste expiré ou refus : le PDF reste accessible
+      toast("📄 Partage impossible — PDF téléchargé à la place.", 6000);
+    }
+  } else {
+    downloadBlob(shareBlob, shareFichier);
+    toast("📄 Partage non disponible sur ce navigateur — PDF téléchargé.", 6000);
+  }
+});
 
 // Menu ☰ mobile : relaie vers les boutons de la barre du haut (masqués en mobile)
 $("#btn-mobmenu").addEventListener("click", () => openModal("#modal-mobmenu"));

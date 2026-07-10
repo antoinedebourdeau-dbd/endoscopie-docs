@@ -292,6 +292,7 @@ textarea.mono { font: 12px/1.5 ui-monospace, 'SF Mono', Menlo, monospace; min-he
   }
   #actions-panel > div { margin-top: 0 !important; }
   #actions-panel button { font-size: 15px !important; padding: 13px 14px !important; min-height: 48px; }
+  #btn-all { display: none !important; } /* impression+mails enchaînés : flux PC */
   #actions-panel input[type=date] { padding: 10px 8px; font-size: 14px; }
   #actions-panel label.field { width: 128px !important; }
   #actions-sentinel { display: none; }

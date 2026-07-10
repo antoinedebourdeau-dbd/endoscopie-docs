@@ -129,6 +129,7 @@
         <button class="ghost mob-only" id="btn-preview-mob" style="flex:none; padding:9px 12px;" title="Aperçu des documents">👁 Aperçu</button>
       </div>
       <div style="display:flex; gap:8px; margin-top:6px;">
+        <button class="orange mob-only" id="btn-share" disabled style="flex:1.4; padding:7px 10px; font-size:12.5px;" title="Un PDF composé à la carte, partagé vers Mail, WhatsApp, AirDrop…">📤 Partager</button>
         <button class="orange" id="btn-emails" style="display:none; flex:1; padding:7px 10px; font-size:12.5px;" title="Un brouillon par destinataire, PDF téléchargés">📧 E-mails</button>
         <button id="btn-all" style="display:none; flex:1; padding:7px 10px; font-size:12.5px; background:var(--bleu-fonce);" title="Impression puis e-mails en un clic">⚡ Tout générer</button>
       </div>
@@ -381,6 +382,20 @@
       <button class="subtle" id="wl-close">Plus tard</button>
     </div>
     <div class="hint" style="margin-top:8px;">Médecin : créez votre fiche (une fois) — vos documents seront à votre nom par défaut. Secrétariat : accès à tous les médecins de la liste pour générer leurs documents.</div>
+  </div>
+</div>
+
+<!-- ============================== MODALE PARTAGE ============================== -->
+<div class="modal-back no-print" id="modal-share">
+  <div class="modal">
+    <button class="modal-close" data-close>✕</button>
+    <h3>📤 Partager les documents</h3>
+    <div class="mhint">Cochez ce qui part dans le PDF, puis partagez : la feuille de partage s'ouvre avec la pièce jointe incluse — Mail, WhatsApp, AirDrop…</div>
+    <div id="share-list"></div>
+    <div class="btnrow" style="margin-top:12px;">
+      <button class="big orange" id="share-go" disabled>⏳ Préparation du PDF…</button>
+    </div>
+    <div class="hint">Pour les envois au secrétariat avec texte pré-rédigé et destinataire automatique, « 📧 E-mails » reste la voie rapide.</div>
   </div>
 </div>
 
