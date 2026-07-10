@@ -577,8 +577,8 @@ export function renderDemandeEndoscopie(o, ctx) {
     ${fbox(boxTitle("Risques patients") + `<div style="padding:3px 10px 6px; ${F} font-size:11px;">${risques}</div>`, "flex:1.3;")}
   </div>
   <div style="border:1.5px solid #0072BC; border-radius:9px; margin-top:8px; padding:6px 10px; ${F} font-size:11px;">
-    <div style="display:flex; gap:10px;"><span style="flex:1.2;">${fline("Anticoagulation en cours ? Laquelle :", esc(o.antico || ""))}</span><span style="flex:1;">${fline("Stoppée ? Quand :", esc(o.anticoStop || ""))}</span></div>
-    <div style="display:flex; gap:10px;"><span style="flex:1.2;">${fline("Anti-agrégation en cours ? Laquelle :", esc(o.antiagreg || ""))}</span><span style="flex:1;">${fline("Stoppée ? Quand :", esc(o.antiagregStop || ""))}</span></div>
+    <div style="display:flex; gap:10px; align-items:baseline;"><span style="flex:none;"><strong>Anticoagulation en cours :</strong> ${chk(!o.anticoEn)} Non&nbsp; ${chk(!!o.anticoEn)} Oui</span><span style="flex:1.1;">${fline("laquelle :", esc(o.antico || ""))}</span><span style="flex:1;">${fline("stoppée ? quand :", esc(o.anticoStop || ""))}</span></div>
+    <div style="display:flex; gap:10px; align-items:baseline; margin-top:2px;"><span style="flex:none;"><strong>Anti-agrégation en cours :</strong> ${chk(!o.antiagregEn)} Non&nbsp; ${chk(!!o.antiagregEn)} Oui</span><span style="flex:1.1;">${fline("laquelle :", esc(o.antiagreg || ""))}</span><span style="flex:1;">${fline("stoppée ? quand :", esc(o.antiagregStop || ""))}</span></div>
     <div style="display:flex; gap:10px;"><span style="flex:1;">${fline("TP :", esc(o.tp || ""))}</span><span style="flex:1;">${fline("Plaquettes :", esc(o.plaquettes || ""))}</span></div>
   </div>`;
 

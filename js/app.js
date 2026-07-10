@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.9";
+export const APP_VERSION = "3.10";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -1003,7 +1003,7 @@ function initDemandeOpts(type) {
     delai: "semi15", delaiAutre: "", hospit: "hdj", hdjService: "Gastro", hospJ: "J0",
     ag: "oui", infosPatient: "oui",
     crit: {}, iso: "", isoAutre: "", cjd: "non",
-    antico: "", anticoStop: "", antiagreg: "", antiagregStop: "", tp: "", plaquettes: "",
+    anticoEn: false, antico: "", anticoStop: "", antiagregEn: false, antiagreg: "", antiagregStop: "", tp: "", plaquettes: "",
     sendTo: mailCfg().endo,
   };
   // Imagerie — site Saint Eloi par défaut, contre-indications « non » par défaut
@@ -1245,10 +1245,12 @@ function demandeCard(d) {
       ${o.iso === "autre" ? `<label class="field"><span class="lbl">Précision isolement</span>${inp("isoAutre", o.isoAutre)}</label>` :
         `<label class="field"><span class="lbl">Risque Creutzfeldt-Jakob</span>${sel("cjd", [["non", "NON"], ["oui", "OUI"]], o.cjd)}</label>`}
       ${o.iso === "autre" ? `<label class="field"><span class="lbl">Risque Creutzfeldt-Jakob</span>${sel("cjd", [["non", "NON"], ["oui", "OUI"]], o.cjd)}</label>` : "<span></span>"}
-      <label class="field"><span class="lbl">Anticoagulant (lequel)</span>${inp("antico", o.antico)}</label>
-      <label class="field"><span class="lbl">Stoppé quand</span>${inp("anticoStop", o.anticoStop)}</label>
-      <label class="field"><span class="lbl">Anti-agrégant (lequel)</span>${inp("antiagreg", o.antiagreg)}</label>
-      <label class="field"><span class="lbl">Stoppé quand</span>${inp("antiagregStop", o.antiagregStop)}</label>
+      <label class="doc-item" style="grid-column:1 / -1; padding:2px 0;"><input type="checkbox" data-d="${d.id}" data-kb="anticoEn" ${o.anticoEn ? "checked" : ""}><span><strong>Anticoagulation en cours</strong></span></label>
+      ${o.anticoEn ? `<label class="field"><span class="lbl">Lequel</span>${inp("antico", o.antico, "ex. apixaban")}</label>
+      <label class="field"><span class="lbl">Stoppé ? Quand</span>${inp("anticoStop", o.anticoStop, "ex. J-2, ou « non stoppé »")}</label>` : ""}
+      <label class="doc-item" style="grid-column:1 / -1; padding:2px 0;"><input type="checkbox" data-d="${d.id}" data-kb="antiagregEn" ${o.antiagregEn ? "checked" : ""}><span><strong>Anti-agrégation en cours</strong></span></label>
+      ${o.antiagregEn ? `<label class="field"><span class="lbl">Lequel</span>${inp("antiagreg", o.antiagreg, "ex. kardégic")}</label>
+      <label class="field"><span class="lbl">Stoppé ? Quand</span>${inp("antiagregStop", o.antiagregStop)}</label>` : ""}
       <label class="field"><span class="lbl">TP</span>${inp("tp", o.tp)}</label>
       <label class="field"><span class="lbl">Plaquettes</span>${inp("plaquettes", o.plaquettes)}</label>
     </div>
@@ -1359,6 +1361,7 @@ $("#demandes").addEventListener("input", (e) => {
   const t = e.target, d = demandes.find((x) => x.id === t.dataset.d);
   if (!d) return;
   if (t.dataset.k) d.opts[t.dataset.k] = t.value;
+  if (t.dataset.kb) d.opts[t.dataset.kb] = t.checked;
   if (t.dataset.crit) {
     d.opts.crit[t.dataset.crit] = t.checked;
     if (d.type === "endo" && Object.values(d.opts.crit).some(Boolean)) d.opts.lieu = "bloc";
@@ -1384,7 +1387,7 @@ $("#demandes").addEventListener("input", (e) => {
 $("#demandes").addEventListener("change", (e) => {
   const t = e.target, d = demandes.find((x) => x.id === t.dataset.d);
   if (!d) return;
-  if (t.dataset.ex || t.dataset.mat || t.dataset.multi || t.dataset.crit ||
+  if (t.dataset.ex || t.dataset.mat || t.dataset.multi || t.dataset.crit || t.dataset.kb ||
       ["delai", "hospit", "iso", "risqueInf", "ir", "ag", "diabete", "tepDeja"].includes(t.dataset.k || "")) renderDemandes();
 });
 
@@ -1606,6 +1609,8 @@ function demandeWarnings(d) {
     if (!o.indications.trim()) w.push("indications non renseignées");
     if (o.ag === "oui" && o.hospit === "externe") w.push("AG cochée avec hospitalisation « Externe » (réservée aux examens sans AG)");
     if (o.infosPatient === "non") w.push("informations non délivrées au patient (le consentement doit être joint)");
+    if (o.anticoEn && !o.antico.trim()) w.push("anticoagulation cochée sans préciser laquelle");
+    if (o.antiagregEn && !o.antiagreg.trim()) w.push("anti-agrégation cochée sans préciser laquelle");
     return w;
   }
   if (d.type === "tep") {
@@ -2423,6 +2428,12 @@ $("#btn-next-patient").addEventListener("click", newPatientKeepDocs);
 const now = new Date();
 $("#doc-date").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 $("#doc-date").addEventListener("input", refreshSoon);
+
+// Bandeau d'actions : compact quand il flotte, taille normale une fois
+// arrivé en bas du menu (la sentinelle placée après lui devient visible).
+new IntersectionObserver((entries) => {
+  $("#actions-panel").classList.toggle("docked", entries[0].isIntersecting);
+}, { threshold: 0 }).observe($("#actions-sentinel"));
 
 // Raccourcis : Ctrl/Cmd+Entrée = imprimer · Échap = fermer les fenêtres
 document.addEventListener("keydown", (e) => {

@@ -178,7 +178,12 @@ textarea.mono { font: 12px/1.5 ui-monospace, 'SF Mono', Menlo, monospace; min-he
   border: 1px solid var(--bord);
   margin-bottom: 0;
   padding: 8px 10px;
+  transition: padding .15s ease;
 }
+/* arrivé en bas du menu : le bandeau reprend sa taille normale */
+#actions-panel.docked { padding: 14px 16px; box-shadow: 0 1px 4px rgba(13,43,69,.05); }
+#actions-panel.docked button { font-size: 15px !important; padding: 12px 16px !important; }
+#actions-panel.docked input[type=date] { padding: 9px 10px !important; font-size: 13.5px !important; }
 
 /* ------------------------------------------------------------- responsive -- */
 @media (max-width: 1100px) {
