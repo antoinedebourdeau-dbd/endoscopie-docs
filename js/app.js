@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.16";
+export const APP_VERSION = "3.17";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -207,6 +207,7 @@ let patientSign = null;
 function clearPatientSign() {
   patientSign = null;
   updatePatientSignUI();
+  updateEmailButton(); // plus de consentement signé → plus d'envoi secrétariat
 }
 function updatePatientSignUI() {
   $("#sign-patient-state").innerHTML = patientSign
@@ -287,7 +288,20 @@ $("#sp-ok").addEventListener("click", () => {
   out.getContext("2d").drawImage(cv, minX, minY, out.width, out.height, 0, 0, out.width, out.height);
   const data = out.toDataURL("image/png");
   if (signPadTarget === "med") { mfSign = data; renderMfSign(); }
-  else { patientSign = data; updatePatientSignUI(); refreshSoon(); }
+  else {
+    patientSign = data; updatePatientSignUI(); refreshSoon();
+    // règle métier : consentement signé → envoi systématique au secrétariat
+    // (+ patient si e-mail renseigné) via le bouton E-mails
+    setTimeout(() => {
+      const n = signedConsentItems().length;
+      if (n) {
+        const mailPatient = $("#pt-mail").value.includes("@");
+        if (mailPatient) { $("#chk-mail-patient").checked = true; $("#mail-patient-fields").style.display = "block"; }
+        updateEmailButton();
+        toast(`✍️ Consentement signé — sera envoyé au secrétariat${mailPatient ? " et au patient" : ""} via « 📧 E-mails ».`, 8000);
+      }
+    }, 50);
+  }
   // ne ferme que le pad : la modale médecins reste ouverte si on vient d'elle
   $("#modal-signpad").classList.remove("open");
 });
@@ -964,15 +978,45 @@ async function downloadEml(to, sujet, corps, pdfBlob, fichierPdf) {
   setTimeout(() => URL.revokeObjectURL(a.href), 30000);
 }
 
-/** Prépare le job d'envoi d'une demande (PDF généré, mail rédigé). */
-async function buildDemandeJob(d) {
+/** Informations / consentements de gestes SIGNÉS par le patient.
+ * Règle métier : signé → envoi systématique au secrétariat (joint dans le
+ * même PDF que la demande d'endoscopie s'il y en a une, sinon envoi autonome
+ * — geste déjà programmé) + envoi au patient si son e-mail est renseigné.
+ * Non signé → jamais envoyé au secrétariat. */
+function signedConsentItems() {
+  if (!patientSign) return [];
+  return selectedItems().filter((it) => it.type === "note" && DOCS[it.slug] && !DOCS[it.slug].noConsent);
+}
+
+/** Prépare le job d'envoi d'une demande (PDF généré, mail rédigé).
+ * extraItems : notes signées jointes dans le même PDF. */
+async function buildDemandeJob(d, extraItems = []) {
   const to = (d.opts.sendTo || mailCfg().endo).trim();
-  const { sujet, corps, fichier } = mailTexts(d);
+  let { sujet, corps, fichier } = mailTexts(d);
   const item = d.type === "endo"
     ? { type: "demande-endo", opts: { ...d.opts, telPatient: $("#pt-tel").value.trim() } }
     : { type: "demande-imagerie", kind: d.type, opts: { ...d.opts, telPatient: $("#pt-tel").value.trim(), dialyse: d.opts.dialyse === "1" || d.opts.dialyse === true } };
-  const { blob } = await docsToPdf([item], demandeCtx(), fichier);
-  return { label: sujet, to, sujet, corps, fichier, blob };
+  let label = sujet;
+  if (extraItems.length) {
+    corps += `\n\nJoint dans le même PDF : ${extraItems.map((it) => it.label).join(" ; ")} — information / consentement signé(e) par le patient en consultation.`;
+    label += " + consentement signé";
+  }
+  const { blob } = await docsToPdf([item, ...extraItems], demandeCtx(), fichier);
+  return { label, to, sujet, corps, fichier, blob };
+}
+
+/** Job autonome : consentement(s) signé(s) sans demande jointe (geste déjà programmé). */
+async function buildSignedNotesJob(items, to) {
+  const p = currentPatient();
+  const nomAff = [p?.nom?.toUpperCase(), p?.prenom].filter(Boolean).join(" ") || "patient";
+  const fichier = `Consentement signe - ${nomAff}.pdf`.replace(/[\/\\:*?"<>|]/g, "");
+  const sujet = `Information / consentement signé — ${nomAff}`;
+  const corps = fillTpl(
+    "Bonjour,\n\nVeuillez trouver en pièce jointe l'information / consentement signé(e) en consultation par {civilite} {prenom} {nom} {ne_le} {ddn} :\n{liste_documents}\n\nGeste déjà programmé ou demande transmise par ailleurs.\n\nCordialement,\n{medecin}\nSecrétariat : {tel_secretariat}",
+    mailVars({ liste_documents: items.map((it) => "  - " + it.label).join("\n") })
+  );
+  const { blob } = await docsToPdf(items, demandeCtx(), fichier);
+  return { label: "Consentement signé → secrétariat", to, sujet, corps, fichier, blob };
 }
 
 /** Prépare le job d'envoi au patient (tous les documents cochés, hors demandes). */
@@ -995,12 +1039,21 @@ async function buildPatientJob() {
 let sendJobs = [];
 async function generateAllEmails() {
   const todo = demandes.filter((x) => x.type && x.opts.sendMail);
-  const totalJobs = todo.length + ($("#chk-mail-patient").checked ? 1 : 0);
+  const signed = signedConsentItems();
+  const signedEndo = signed.filter((it) => DOCS[it.slug].service !== "explo");
+  const signedExplo = signed.filter((it) => DOCS[it.slug].service === "explo");
+  const firstEndo = todo.findIndex((d) => d.type === "endo");
+  // consentement signé + e-mail patient renseigné → envoi au patient même sans case cochée
+  const withPatient = $("#chk-mail-patient").checked || (signed.length > 0 && $("#pt-mail").value.includes("@"));
+  const totalJobs = todo.length + (withPatient ? 1 : 0)
+    + (signedEndo.length && firstEndo < 0 ? 1 : 0) + (signedExplo.length ? 1 : 0);
   let done = 0;
   const prog = () => toast(`⏳ Génération des PDF… ${++done} / ${totalJobs}`, 60000);
   const jobs = [];
-  for (const d of todo) { jobs.push(await buildDemandeJob(d)); prog(); }
-  if ($("#chk-mail-patient").checked) { jobs.push(await buildPatientJob()); prog(); }
+  for (let i = 0; i < todo.length; i++) { jobs.push(await buildDemandeJob(todo[i], i === firstEndo ? signedEndo : [])); prog(); }
+  if (signedEndo.length && firstEndo < 0) { jobs.push(await buildSignedNotesJob(signedEndo, mailCfg().endo)); prog(); }
+  if (signedExplo.length) { jobs.push(await buildSignedNotesJob(signedExplo, mailCfg().explo)); prog(); }
+  if (withPatient) { jobs.push(await buildPatientJob()); prog(); }
   if (!jobs.length) throw new Error("Aucun envoi coché.");
   sendJobs = jobs;
   $("#toast").style.display = "none";
@@ -1139,7 +1192,8 @@ function renderSendModal() {
 }
 
 function updateEmailButton() {
-  const any = demandes.some((d) => d.type && d.opts.sendMail) || $("#chk-mail-patient").checked;
+  const any = demandes.some((d) => d.type && d.opts.sendMail) || $("#chk-mail-patient").checked
+    || signedConsentItems().length > 0;
   $("#btn-emails").style.display = any ? "block" : "none";
   $("#btn-all").style.display = any ? "block" : "none";
 }
