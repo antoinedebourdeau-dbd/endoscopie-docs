@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.23";
+export const APP_VERSION = "3.24";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -816,26 +816,54 @@ async function docsToPdf(items, ctx, filename) {
   host.innerHTML = await assembleDocs(items, ctx);
   document.body.appendChild(host);
   try {
+    // les images (logo, illustrations des fiches, signatures) doivent être
+    // chargées AVANT la capture, sinon elles sortent vides ou déformées
+    await Promise.all([...host.querySelectorAll("img")].map((im) =>
+      im.complete ? null : new Promise((ok) => { im.onload = im.onerror = ok; })));
+
     const pdf = new jspdf.jsPDF({ unit: "mm", format: "a4", compress: true });
     const pageW = 210, pageH = 297;
+    const MT = 9, MB = 9; // marges haut / bas de CHAQUE page (comme l'impression)
     let first = true;
     const blocks = host.querySelectorAll("section.doc, .fichepage");
     for (const el of blocks) {
-      if (el.classList.contains("fichepage")) el.style.cssText += "box-shadow:none; margin:0; border-radius:0;";
-      else el.style.cssText += "box-shadow:none; margin:0; min-height:0; padding:10mm 12mm; border-radius:0;";
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      const fiche = el.classList.contains("fichepage");
+      if (fiche) el.style.cssText += "box-shadow:none; margin:0; border-radius:0; max-width:none;";
+      else el.style.cssText += "box-shadow:none; margin:0; min-height:0; padding:0 12mm; border-radius:0; max-width:none;";
+      // iOS Safari plafonne la surface d'un canvas (~16,7 M pixels) : au-delà
+      // la capture sort vide ou tronquée. Échelle adaptée aux documents longs.
+      const MAXPX = 14e6;
+      const scale = Math.max(0.9, Math.min(2, Math.sqrt(MAXPX / (el.offsetWidth * Math.max(el.scrollHeight, 1)))));
+      const canvas = await html2canvas(el, { scale, useCORS: true, backgroundColor: "#ffffff" });
+
+      if (fiche) {
+        // fiche illustrée : gabarit A4 exact, pleine page sans recadrage
+        if (!first) pdf.addPage();
+        first = false;
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, pageH);
+        continue;
+      }
+
       const cctx = canvas.getContext("2d");
-      const pageHpx = Math.floor((canvas.width * pageH) / pageW);
+      const usableH = pageH - MT - MB;
+      const pageHpx = Math.floor((canvas.width * usableH) / pageW);
+      // sauts de page explicites des guides (.page-break) : respectés comme à l'impression
+      const elTop = el.getBoundingClientRect().top;
+      const breaks = [...el.querySelectorAll(".page-break")]
+        .map((n) => Math.floor((n.getBoundingClientRect().top - elTop) * scale))
+        .filter((v) => v > 8);
       let y = 0;
       while (y < canvas.height - 4) {
         let cut = Math.min(y + pageHpx, canvas.height);
-        if (cut < canvas.height) cut = Math.max(y + Math.floor(pageHpx / 2), safeCutRow(canvas, cctx, cut, Math.floor(pageHpx * 0.18)));
+        const forced = breaks.find((v) => v > y + 8 && v < y + pageHpx);
+        if (forced) cut = forced;
+        else if (cut < canvas.height) cut = Math.max(y + Math.floor(pageHpx / 2), safeCutRow(canvas, cctx, cut, Math.floor(pageHpx * 0.18)));
         const slice = document.createElement("canvas");
         slice.width = canvas.width; slice.height = cut - y;
         slice.getContext("2d").drawImage(canvas, 0, y, canvas.width, cut - y, 0, 0, canvas.width, cut - y);
         if (!first) pdf.addPage();
         first = false;
-        pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, (slice.height * pageW) / slice.width);
+        pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", 0, MT, pageW, (slice.height * pageW) / slice.width);
         y = cut;
       }
     }
@@ -2871,8 +2899,12 @@ if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
 // Aperçu mobile : plein écran à la demande, documents mis à l'échelle de l'écran.
 const mqMobile = window.matchMedia("(max-width: 820px)");
 function fitPreviewMobile() {
-  // 210 mm ≈ 794 px — zoom (et non transform) pour garder une hauteur de défilement juste
-  $("#print-root").style.zoom = mqMobile.matches ? String(Math.min(1, (window.innerWidth - 20) / 800)) : "";
+  // 210 mm ≈ 794 px — zoom UNIFORME (largeur ET hauteur) : le rétrécissement
+  // max-width déformait les fiches illustrées à gabarit A4 fixe.
+  const pv = document.querySelector(".preview");
+  const avail = (mqMobile.matches ? window.innerWidth : pv?.clientWidth || window.innerWidth) - (mqMobile.matches ? 20 : 48);
+  if (avail < 60) return; // aperçu masqué : recalculé à l'ouverture
+  $("#print-root").style.zoom = String(Math.min(1, avail / 798));
 }
 window.addEventListener("resize", fitPreviewMobile);
 fitPreviewMobile();

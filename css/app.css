@@ -336,7 +336,7 @@ textarea.mono { font: 12px/1.5 ui-monospace, 'SF Mono', Menlo, monospace; min-he
 
 /* Feuilles à l'écran */
 section.doc, section.fiche > .fichepage {
-  background: #fff; width: 210mm; max-width: 100%; margin: 0 auto 22px;
+  background: #fff; width: 210mm; margin: 0 auto 22px;
   box-shadow: 0 2px 14px rgba(13, 43, 69, .14); border-radius: 2px;
 }
 section.doc { min-height: 297mm; padding: 10mm 12mm; }
