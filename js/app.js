@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.13";
+export const APP_VERSION = "3.14";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -1016,7 +1016,22 @@ function openMailDraft(j) {
 }
 
 const SENDMETHOD_KEY = "endoc.sendmethod";
-const getSendMethod = () => localStorage.getItem(SENDMETHOD_KEY) || "mailto";
+
+// Partage natif de fichiers (iPhone / iPad / Android : feuille de partage
+// avec le PDF déjà joint — seule méthode fiable sur iOS, où mailto en série
+// et .eml ne fonctionnent pas).
+const canShareFiles = (() => {
+  try {
+    return !!(navigator.canShare && navigator.canShare({ files: [new File(["x"], "x.pdf", { type: "application/pdf" })] }));
+  } catch (_) { return false; }
+})();
+
+const getSendMethod = () => {
+  const m = localStorage.getItem(SENDMETHOD_KEY);
+  if (m === "share" && !canShareFiles) return "mailto"; // préférence importée d'un autre appareil
+  if (m) return m;
+  return canShareFiles && window.matchMedia("(max-width: 820px)").matches ? "share" : "mailto";
+};
 
 function downloadBlob(blob, fichier) {
   const el = document.createElement("a");
@@ -1025,7 +1040,23 @@ function downloadBlob(blob, fichier) {
 }
 
 async function sendOneJob(j, method, statusEl) {
-  if (method === "eml") {
+  if (method === "share") {
+    // l'adresse ne peut pas être pré-remplie par la feuille de partage :
+    // on la copie dans le presse-papiers et on la met en tête du texte
+    try { await navigator.clipboard.writeText(j.to); } catch (_) { /* refus : l'adresse reste visible */ }
+    try {
+      await navigator.share({
+        files: [new File([j.blob], j.fichier, { type: "application/pdf" })],
+        title: j.sujet,
+        text: `À : ${j.to}\n\n${j.corps}`,
+      });
+    } catch (e) {
+      if (e.name === "AbortError") return; // partage annulé par l'utilisateur
+      throw e;
+    }
+    if (statusEl) statusEl.textContent = "· partagé ✓";
+    toast(`📋 Adresse copiée : <strong>${j.to}</strong> — collez-la dans « À : » du mail.`, 8000);
+  } else if (method === "eml") {
     await downloadEml(j.to, j.sujet, j.corps, j.blob, j.fichier);
     if (statusEl) statusEl.textContent = "· brouillon .eml téléchargé ✓";
   } else {
@@ -1038,28 +1069,42 @@ async function sendOneJob(j, method, statusEl) {
 
 function renderSendModal() {
   const method = getSendMethod();
+  $("#send-steps").innerHTML = method === "share"
+    ? `<strong>1.</strong> Touchez <strong>📤 Partager</strong> sur chaque envoi → la feuille de partage s'ouvre, PDF déjà joint.<br>
+       <strong>2.</strong> Choisissez <strong>Mail</strong> (ou votre messagerie).<br>
+       <strong>3.</strong> Collez l'adresse du destinataire dans « À : » (elle est copiée automatiquement), puis <strong>Envoyer</strong>.`
+    : method === "eml"
+      ? `<strong>1.</strong> Un fichier .eml se télécharge pour chaque envoi, <strong>PDF déjà joint</strong>.<br>
+         <strong>2.</strong> Double-cliquez chaque fichier → le brouillon s'ouvre, adressé et rédigé.<br>
+         <strong>3.</strong> Vérifiez, puis <strong>Envoyer</strong>.`
+      : `<strong>1.</strong> Cliquez « Ouvrir le mail » → un brouillon Outlook s'ouvre, déjà adressé et rédigé.<br>
+         <strong>2.</strong> <strong>Glissez le PDF téléchargé</strong> dans le mail (barre de téléchargements en bas/haut du navigateur, ou dossier Téléchargements).<br>
+         <strong>3.</strong> Vérifiez, puis <strong>Envoyer</strong>.`;
+  const radio = (val, titre, sub) => `
+    <label class="doc-item" style="border:1.5px solid ${method === val ? "var(--bleu)" : "var(--bord)"}; border-radius:10px; padding:8px 10px; margin-top:6px; ${method === val ? "background:var(--bleu-pale);" : ""}">
+      <input type="radio" name="sendmethod" value="${val}" ${method === val ? "checked" : ""}>
+      <span><strong>${titre}</strong><br><span class="sub">${sub}</span></span>
+    </label>`;
   $("#send-list").innerHTML = sendJobs.map((j, i) => `
     <div class="med-row" style="align-items:flex-start;">
-      <input type="checkbox" data-send-chk="${i}" checked style="margin-top:6px; accent-color:var(--bleu); flex:none;">
+      <input type="checkbox" data-send-chk="${i}" checked style="margin-top:6px; accent-color:var(--bleu); flex:none; ${method === "share" ? "display:none;" : ""}">
       <div class="info">
         <div class="nom">${j.label}</div>
         <div class="det">À : <strong>${j.to}</strong><br>PJ : ${j.fichier} <span data-status="${i}" style="color:#146c3a; font-weight:700;"></span></div>
       </div>
-      <button class="subtle small" data-open-mail="${i}">Envoyer seul</button>
+      <button class="${method === "share" ? "orange" : "subtle"} small" data-open-mail="${i}">${method === "share" ? "📤 Partager" : "Envoyer seul"}</button>
     </div>`).join("") +
-    `<div class="mhint" style="margin:12px 0 4px;"><strong>Méthode d'envoi</strong></div>
-    <label class="doc-item" style="border:1.5px solid ${method === "mailto" ? "var(--bleu)" : "var(--bord)"}; border-radius:10px; padding:8px 10px; ${method === "mailto" ? "background:var(--bleu-pale);" : ""}">
-      <input type="radio" name="sendmethod" value="mailto" ${method === "mailto" ? "checked" : ""}>
-      <span><strong>📧 Mail pré-rempli + PDF à joindre à la main</strong><br>
-      <span class="sub">Le brouillon s'ouvre dans votre messagerie, le PDF se télécharge : glissez-le dans le mail puis envoyez. Compatible partout.</span></span>
-    </label>
-    <label class="doc-item" style="border:1.5px solid ${method === "eml" ? "var(--bleu)" : "var(--bord)"}; border-radius:10px; padding:8px 10px; margin-top:6px; ${method === "eml" ? "background:var(--bleu-pale);" : ""}">
-      <input type="radio" name="sendmethod" value="eml" ${method === "eml" ? "checked" : ""}>
-      <span><strong>📎 Brouillon .eml avec PJ déjà incluse</strong><br>
-      <span class="sub">Un fichier .eml se télécharge, PDF déjà joint : double-cliquez-le → il s'ouvre prêt à envoyer. Validé sur Mac ✓ — à tester sur Outlook PC.</span></span>
-    </label>
-    <div class="btnrow" style="margin-top:10px;">
-      <button class="big orange" id="send-all-mails">🚀 Générer les envois sélectionnés</button>
+    `<div class="mhint" style="margin:12px 0 4px;"><strong>Méthode d'envoi</strong></div>` +
+    (canShareFiles ? radio("share", "📲 Partage (iPhone / iPad / Android) — PJ incluse",
+      "La feuille de partage s'ouvre avec le PDF déjà joint : choisissez Mail. L'adresse du destinataire est copiée — collez-la dans « À : ». Un envoi à la fois (bouton 📤 de chaque ligne).") : "") +
+    radio("mailto", "📧 Mail pré-rempli + PDF à joindre à la main",
+      "Le brouillon s'ouvre dans votre messagerie, le PDF se télécharge : glissez-le dans le mail puis envoyez. Compatible partout (PC / Mac).") +
+    radio("eml", "📎 Brouillon .eml avec PJ déjà incluse",
+      "Un fichier .eml se télécharge, PDF déjà joint : double-cliquez-le → il s'ouvre prêt à envoyer. Validé sur Mac ✓ — à tester sur Outlook PC.") +
+    `<div class="btnrow" style="margin-top:10px;">
+      ${method === "share"
+        ? `<div class="pill-info" style="margin:0; flex:1;">📤 Partagez chaque envoi avec son bouton ci-dessus — iOS demande un geste par partage.</div>`
+        : `<button class="big orange" id="send-all-mails">🚀 Générer les envois sélectionnés</button>`}
     </div>`;
 
   $$('#modal-send input[name="sendmethod"]').forEach((r) => r.addEventListener("change", () => {
@@ -1074,7 +1119,7 @@ function renderSendModal() {
         .catch((e) => toast("❌ " + e.message, 6000));
     }));
 
-  $("#send-all-mails").addEventListener("click", async () => {
+  $("#send-all-mails")?.addEventListener("click", async () => {
     const method = getSendMethod();
     const chosen = sendJobs.map((j, i) => ({ j, i })).filter(({ i }) => document.querySelector(`[data-send-chk="${i}"]`)?.checked);
     if (!chosen.length) { toast("Aucun envoi coché.", 4000); return; }
