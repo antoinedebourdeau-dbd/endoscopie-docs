@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.19";
+export const APP_VERSION = "3.20";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -218,7 +218,7 @@ function updatePatientSignUI() {
     clearPatientSign(); refreshSoon();
   });
 }
-$("#btn-sign-patient").addEventListener("click", () => openSignPad("patient"));
+$("#btn-sign-patient")?.addEventListener("click", () => openSignPad("patient"));
 
 // --- pad tactile partagé (médecin / patient)
 let signPadTarget = null;
@@ -241,7 +241,7 @@ function openSignPad(target) {
   spDrawn = false;
 }
 
-{
+if ($("#sp-canvas")) {
   const cv = $("#sp-canvas");
   let tracing = false;
   const pos = (e) => {
@@ -262,12 +262,12 @@ function openSignPad(target) {
   });
   ["pointerup", "pointercancel"].forEach((ev) => cv.addEventListener(ev, () => { tracing = false; }));
 }
-$("#sp-clear").addEventListener("click", () => {
+$("#sp-clear")?.addEventListener("click", () => {
   const cv = $("#sp-canvas");
   cv.getContext("2d").clearRect(0, 0, cv.width, cv.height);
   spDrawn = false;
 });
-$("#sp-ok").addEventListener("click", () => {
+$("#sp-ok")?.addEventListener("click", () => {
   if (!spDrawn) { toast("Le cadre est vide — signez d'abord.", 3500); return; }
   const cv = $("#sp-canvas");
   // recadre sur le tracé (marge 8 px)
@@ -313,10 +313,10 @@ function renderMfSign() {
   box.innerHTML = mfSign ? `<img src="${mfSign}" alt="signature" style="max-height:52px; max-width:100%; object-fit:contain;">` : "Aucune signature";
   $("#mf-sign-del").style.display = mfSign ? "block" : "none";
 }
-$("#mf-sign-draw").addEventListener("click", () => openSignPad("med"));
-$("#mf-sign-file-btn").addEventListener("click", () => $("#mf-sign-file").click());
-$("#mf-sign-del").addEventListener("click", () => { mfSign = null; renderMfSign(); });
-$("#mf-sign-file").addEventListener("change", () => {
+$("#mf-sign-draw")?.addEventListener("click", () => openSignPad("med"));
+$("#mf-sign-file-btn")?.addEventListener("click", () => $("#mf-sign-file").click());
+$("#mf-sign-del")?.addEventListener("click", () => { mfSign = null; renderMfSign(); });
+$("#mf-sign-file")?.addEventListener("change", () => {
   const f = $("#mf-sign-file").files[0];
   $("#mf-sign-file").value = "";
   if (!f) return;
@@ -530,7 +530,7 @@ let renderSeq = 0;
 async function refresh() {
   const items = selectedItems();
   $("#btn-print").disabled = !items.length;
-  $("#btn-share").disabled = !items.length;
+  if ($("#btn-share")) $("#btn-share").disabled = !items.length;
   $("#preview-empty").style.display = items.length ? "none" : "block";
   const selItems = [];
   for (const g of CATALOG) for (const it of g.items) if (selection.has(it.id)) selItems.push(it);
@@ -539,6 +539,7 @@ async function refresh() {
     ...demandes.filter((d) => d.type).map((d) => ({ kind: "dem", id: d.id, label: "🩺 " + (DEM_LABELS[d.type] || "Demande") })),
   ];
   $("#sel-count").style.display = selItems.length || extraChips.length ? "block" : "none";
+  if ($("#panel-dossier")) $("#panel-dossier").style.display = selItems.length || extraChips.length ? "block" : "none";
   if (selItems.length || extraChips.length) {
     const total = selItems.length + extraChips.length;
     const chip = (label, attr) => `<span style="display:inline-flex; align-items:center; gap:5px; background:var(--bleu-pale); border:1px solid #cfe1f0; border-radius:20px; padding:2px 4px 2px 9px; font-size:11px; color:var(--bleu-fonce); max-width:100%;">
@@ -1123,7 +1124,9 @@ async function sendOneJob(j, method, statusEl) {
 
 function renderSendModal() {
   const method = getSendMethod();
-  $("#send-steps").innerHTML = method === "share"
+  // garde anti-cache : si le HTML servi est plus ancien que ce script,
+  // l'élément peut manquer — on n'empêche pas l'envoi pour autant
+  if ($("#send-steps")) $("#send-steps").innerHTML = method === "share"
     ? `<strong>1.</strong> Touchez <strong>📤 Partager</strong> sur chaque envoi → la feuille de partage s'ouvre, PDF déjà joint.<br>
        <strong>2.</strong> Choisissez <strong>Mail</strong> (ou votre messagerie).<br>
        <strong>3.</strong> Collez l'adresse du destinataire dans « À : » (elle est copiée automatiquement), puis <strong>Envoyer</strong>.`
@@ -1195,7 +1198,14 @@ function renderSendModal() {
 function updateEmailButton() {
   const any = demandes.some((d) => d.type && d.opts.sendMail) || $("#chk-mail-patient").checked
     || signedConsentItems().length > 0;
-  $("#btn-emails").style.display = any ? "block" : "none";
+  // toujours visible : grisé tant qu'aucun envoi n'est configuré (sinon il
+  // semble avoir « disparu » de l'interface)
+  const be = $("#btn-emails");
+  be.style.display = "block";
+  be.disabled = !any;
+  be.title = any
+    ? "Un brouillon par destinataire, PDF joints ou téléchargés"
+    : "Pour activer : cochez « Envoyer la demande par mail » sur une demande, « Envoyer les documents au patient par mail », ou faites signer un consentement";
   $("#btn-all").style.display = any ? "block" : "none";
 }
 $("#btn-emails").addEventListener("click", () => {
@@ -1885,7 +1895,7 @@ function confirmDemandeWarnings() {
 
 // ---------------------------------------------------------------- affiche QR
 const SITE_URL = "https://dochge.pages.dev/";
-$("#btn-affiche").addEventListener("click", async (e) => {
+$("#btn-qr")?.addEventListener("click", async (e) => {
   e.preventDefault();
   await loadScript("vendor/qrcode.min.js");
   const qr = qrcode(0, "M");
@@ -2767,11 +2777,11 @@ function fitPreviewMobile() {
 }
 window.addEventListener("resize", fitPreviewMobile);
 fitPreviewMobile();
-$("#btn-preview-mob").addEventListener("click", () => {
+$("#btn-preview-mob")?.addEventListener("click", () => {
   document.body.classList.add("show-preview");
   fitPreviewMobile();
 });
-$("#preview-close").addEventListener("click", () => document.body.classList.remove("show-preview"));
+$("#preview-close")?.addEventListener("click", () => document.body.classList.remove("show-preview"));
 
 // ---- Partage direct (mobile uniquement) : un PDF composé à la carte →
 // feuille de partage native (Mail, WhatsApp, AirDrop…), PJ incluse.
@@ -2805,7 +2815,7 @@ async function regenShare() {
   }
 }
 
-$("#btn-share").addEventListener("click", () => {
+$("#btn-share")?.addEventListener("click", () => {
   shareItems = selectedItems();
   if (!shareItems.length) return;
   $("#share-list").innerHTML = shareItems.map((it, i) => `
@@ -2818,7 +2828,7 @@ $("#btn-share").addEventListener("click", () => {
   regenShare();
 });
 
-$("#share-go").addEventListener("click", async () => {
+$("#share-go")?.addEventListener("click", async () => {
   if (!shareBlob) return;
   const file = new File([shareBlob], shareFichier, { type: "application/pdf" });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -2836,7 +2846,7 @@ $("#share-go").addEventListener("click", async () => {
 });
 
 // Menu ☰ mobile : relaie vers les boutons de la barre du haut (masqués en mobile)
-$("#btn-mobmenu").addEventListener("click", () => openModal("#modal-mobmenu"));
+$("#btn-mobmenu")?.addEventListener("click", () => openModal("#modal-mobmenu"));
 $$("#modal-mobmenu [data-mm]").forEach((b) => b.addEventListener("click", () => {
   closeModals();
   $(b.dataset.mm)?.click();
@@ -2845,4 +2855,5 @@ $$("#modal-mobmenu [data-mm]").forEach((b) => b.addEventListener("click", () => 
 renderCatalog();
 renderMedecinSelect();
 restoreSession();
+updateEmailButton();
 refresh();

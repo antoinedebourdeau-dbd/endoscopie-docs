@@ -194,8 +194,23 @@ textarea.mono { font: 12px/1.5 ui-monospace, 'SF Mono', Menlo, monospace; min-he
 .mob-only { display: none; }
 .preview-topbar { display: none; }
 
-/* Grand écran PC : patient / médecin / actions à gauche des documents,
-   catalogue avec son propre défilement — tout reste visible sans scroller. */
+/* Médecin référent : panneau compact */
+#panel-medecin { padding: 10px 12px; }
+#panel-medecin .field { margin-bottom: 6px; }
+#panel-medecin h2 { margin-bottom: 7px; }
+
+/* Bouton flottant : version hors-ligne (bas droite) */
+.fab-dl {
+  position: fixed; right: 18px; bottom: 18px; z-index: 45;
+  width: 44px; height: 44px; border-radius: 12px;
+  background: #fff; border: 1.5px solid var(--bord); color: var(--bleu);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(13,43,69,.12);
+}
+.fab-dl:hover { border-color: var(--bleu); background: var(--bleu-pale); }
+
+/* Grand écran PC : patient / médecin / dossier / actions à gauche des
+   documents, catalogue avec son propre défilement — tout visible sans scroller. */
 @media (min-width: 1560px) {
   .sidebar {
     width: 768px; display: grid; grid-template-columns: 340px 400px;
@@ -204,7 +219,7 @@ textarea.mono { font: 12px/1.5 ui-monospace, 'SF Mono', Menlo, monospace; min-he
   #panel-patient { grid-column: 1; grid-row: 1; }
   #panel-docs { grid-column: 2; grid-row: 1 / span 5; max-height: calc(100vh - 78px); overflow-y: auto; }
   #panel-medecin { grid-column: 1; grid-row: 2; }
-  .side-links { grid-column: 1; grid-row: 3; }
+  #panel-dossier { grid-column: 1; grid-row: 3; max-height: 26vh; overflow-y: auto; }
   #actions-panel { grid-column: 1; grid-row: 4; }
   #actions-sentinel { grid-column: 1; grid-row: 5; }
 }
@@ -267,6 +282,7 @@ textarea.mono { font: 12px/1.5 ui-monospace, 'SF Mono', Menlo, monospace; min-he
 
   /* Toast lisible au doigt */
   #toast { font-size: 14.5px !important; padding: 14px 18px !important; max-width: 92vw !important; }
+  .fab-dl { display: none; } /* zip hors-ligne : usage poste fixe */
 
   /* Aperçu : masqué par défaut (usage = composer puis envoyer),
      plein écran à la demande, documents mis à l'échelle par js (zoom). */
