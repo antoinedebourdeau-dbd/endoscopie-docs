@@ -796,6 +796,35 @@ export const DOCS = {
     },
   },
 
+  breath_test: {
+    geste: "Note d'information",
+    title: "Test respiratoire digestif (breath test)",
+    service: "explo",
+    noConsent: true,
+    lead: "Le test respiratoire mesure l'hydrogène et le méthane dans l'air expiré après l'ingestion d'un sucre (glucose, lactulose, lactose ou fructose selon l'indication). Il recherche une pullulation bactérienne de l'intestin grêle (SIBO) ou une intolérance à un sucre (lactose, fructose). Examen indolore, sans piqûre, réalisé en ambulatoire — la fiabilité du résultat dépend directement du respect des consignes de préparation ci-dessous.",
+    sections: [
+      { h: "Comment se passe l'examen ?", tone: "steps", body: [
+        "n:Vous soufflez dans un embout pour une première mesure de référence.",
+        "n:Vous buvez la solution sucrée correspondant au test prescrit.",
+        "n:Vous soufflez ensuite toutes les 15 à 30 minutes, pendant 2 à 3 heures selon le test.",
+        "p:Pendant toute la durée de l'examen : restez au repos, sans manger, sans boire, sans fumer ni mâcher de chewing-gum.",
+      ]},
+      { h: "Préparation — dans les semaines qui précèdent", tone: "warn", body: [
+        "p:<strong>4 semaines avant :</strong> pas d'antibiotique. Pas de coloscopie, de préparation colique ni de lavement. Si un antibiotique a été nécessaire, prévenez le secrétariat : l'examen sera reporté.",
+        "p:<strong>1 semaine avant :</strong> arrêt des laxatifs, des anti-diarrhéiques et des médicaments stimulant le transit (prokinétiques), sauf avis contraire de votre médecin.",
+        "p:Les autres traitements habituels, y compris les IPP (pantoprazole, ésoméprazole…), sont poursuivis sauf indication contraire.",
+      ]},
+      { h: "La veille et le jour de l'examen", tone: "danger", body: [
+        "p:<strong>La veille :</strong> repas simples, pauvres en fibres fermentescibles — autorisés : riz blanc, pâtes blanches, viande, poisson, œufs, bouillon clair, eau. À éviter : fruits, légumes, légumineuses, produits laitiers, céréales complètes, oignon, ail, sodas et jus de fruits.",
+        "p:<strong>Jeûne strict de 12 heures</strong> avant le rendez-vous : rien à manger ni à boire, sauf de l'eau plate (autorisée jusqu'à 1 heure avant).",
+        "p:<strong>Le matin :</strong> brossage des dents soigneux ; pas de tabac ni de cigarette électronique, pas de chewing-gum ni de bonbon, pas d'effort physique important. Médicaments habituels possibles avec un peu d'eau plate.",
+      ]},
+      { h: "À signaler avant l'examen", tone: "info", body: [
+        "p:Prévenez l'équipe si vous êtes <strong>diabétique</strong> (test au glucose), si vous avez pris un <strong>antibiotique dans le mois</strong>, en cas de <strong>chirurgie digestive</strong> ancienne ou récente, ou si le jeûne pose une difficulté particulière. Le test ne comporte aucune injection et peut être réalisé pendant la grossesse.",
+      ]},
+    ],
+  },
+
   manometrie: {
     geste: "Note d'information",
     title: "Manométrie œsophagienne haute résolution",

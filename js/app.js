@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.22";
+export const APP_VERSION = "3.23";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -1929,9 +1929,10 @@ $("#btn-qr")?.addEventListener("click", async (e) => {
 // ------------------------------------------------------------------- régimes
 // ------------------------------------------- notes info & consentement (modale)
 const NOTE_CATS = [
-  ["🔍 Diagnostic", ["coloscopie", "gastroscopie", "capsule_grele", "manometrie", "phmetrie"]],
+  ["🔍 Diagnostic", ["coloscopie", "gastroscopie", "capsule_grele"]],
   ["✂️ Résection & ablation", ["colo_muco", "mucoduo", "dsm_colique", "dsm_oeso_gastrique", "armb", "radiofrequence"]],
   ["🟡 Bilio-pancréatique", ["cpre", "ampullectomie", "drainage_biliaire", "drainage_pancreas", "ponction_echo"]],
+  ["📊 Explorations fonctionnelles", ["manometrie", "phmetrie", "breath_test"]],
   ["🧩 Autres gestes", []], // le reste (POEM, dilatations, ligature, GEP, Zenker, fiches illustrées…)
 ];
 function renderNotesModal(query = "") {
