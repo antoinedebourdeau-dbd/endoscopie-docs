@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.21";
+export const APP_VERSION = "3.22";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -441,6 +441,7 @@ function renderOrdos() {
   }));
   root.querySelectorAll("[data-ordo-type-btn]").forEach((b) => b.addEventListener("click", () => {
     activeOrdoId = b.dataset.ordoTypeBtn;
+    otSel.clear(); updateOtAddBtn();
     renderOrdoTypes();
     openModal("#modal-ordotypes");
   }));
@@ -1664,7 +1665,8 @@ function openCategory(gid) {
     document.querySelector(`#catalogue .cat-group[data-g="${gid}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 $("#btn-cat-prepa").addEventListener("click", () => openCategory("g-ordo"));
-$("#btn-cat-notes").addEventListener("click", () => openCategory("g-notes"));
+$("#btn-cat-notes").addEventListener("click", () => { renderNotesModal(); openModal("#modal-notes"); });
+$("#nt-search")?.addEventListener("input", () => renderNotesModal($("#nt-search").value));
 
 // ------------------------------------------------------------ parcours types
 const PARCOURS_KEY = "endoc.parcours.v1";
@@ -1925,9 +1927,50 @@ $("#btn-qr")?.addEventListener("click", async (e) => {
 });
 
 // ------------------------------------------------------------------- régimes
+// ------------------------------------------- notes info & consentement (modale)
+const NOTE_CATS = [
+  ["🔍 Diagnostic", ["coloscopie", "gastroscopie", "capsule_grele", "manometrie", "phmetrie"]],
+  ["✂️ Résection & ablation", ["colo_muco", "mucoduo", "dsm_colique", "dsm_oeso_gastrique", "armb", "radiofrequence"]],
+  ["🟡 Bilio-pancréatique", ["cpre", "ampullectomie", "drainage_biliaire", "drainage_pancreas", "ponction_echo"]],
+  ["🧩 Autres gestes", []], // le reste (POEM, dilatations, ligature, GEP, Zenker, fiches illustrées…)
+];
+function renderNotesModal(query = "") {
+  const words = norm(query.trim()).split(/\s+/).filter(Boolean);
+  const q = words.length > 0;
+  const all = CATALOG.find((g) => g.id === "g-notes")?.items || [];
+  const catOf = (it) => {
+    const key = it.slug || it.key;
+    for (const [cat, keys] of NOTE_CATS) if (keys.includes(key)) return cat;
+    return NOTE_CATS[NOTE_CATS.length - 1][0];
+  };
+  const keepOpen = [...$("#nt-list").querySelectorAll("details")].map((d) => d.open);
+  $("#nt-list").innerHTML = NOTE_CATS.map(([cat]) => {
+    const items = all.filter((it) => catOf(it) === cat && (!q || words.every((w) => norm(it.label + " " + (it.sub || "")).includes(w))));
+    if (!items.length) return "";
+    return `<details ${q ? "open" : ""} style="margin-bottom:6px;">
+      <summary style="cursor:pointer; font-weight:700; font-size:13px; color:var(--bleu-fonce); padding:4px 2px;">${cat} <span style="color:var(--gris-clair); font-weight:600; font-size:11px;">${items.length}</span></summary>
+      ${items.map((it) => {
+        const on = selection.has(it.id);
+        return `<button class="subtle small" data-nt="${it.id}" style="display:flex; width:100%; text-align:left; margin-top:3px; gap:8px; align-items:center; ${on ? "background:var(--bleu-pale); border:1px solid var(--bleu);" : ""}">
+          <input type="checkbox" ${on ? "checked" : ""} style="pointer-events:none; flex:none; accent-color:var(--bleu); transform:scale(1.15); margin:0;">
+          <span style="flex:1;">${it.label}${it.type === "fiche" ? " 🖼" : ""}</span>
+        </button>`;
+      }).join("")}
+    </details>`;
+  }).join("") || `<div class="hint">Aucun résultat.</div>`;
+  [...$("#nt-list").querySelectorAll("details")].forEach((d, i) => { if (keepOpen[i]) d.open = true; });
+  $$("#nt-list [data-nt]").forEach((b) => b.addEventListener("click", () => {
+    const id = b.dataset.nt;
+    selection.has(id) ? selection.delete(id) : selection.add(id);
+    renderCatalog(); refresh(); updateEmailButton();
+    renderNotesModal($("#nt-search").value);
+  }));
+}
+
 function renderRegimesModal(query = "") {
   const words = norm(query.trim()).split(/\s+/).filter(Boolean);
   const q = words.length > 0;
+  const keepOpen = [...$("#rg-list").querySelectorAll("details")].map((d) => d.open);
   $("#rg-list").innerHTML = REGIMES.map((c) => {
     const items = c.items.filter((f) => {
       if (!q) return true;
@@ -1941,6 +1984,7 @@ function renderRegimesModal(query = "") {
         const N = REGIME_NIVEAUX[f.niveau];
         const on = selection.has("regime:" + f.id);
         return `<button class="subtle small" data-rg="${f.id}" style="display:flex; width:100%; text-align:left; margin-top:3px; gap:8px; align-items:center; ${on ? "background:var(--bleu-pale); border:1px solid var(--bleu);" : ""}">
+          <input type="checkbox" ${on ? "checked" : ""} style="pointer-events:none; flex:none; accent-color:var(--bleu); transform:scale(1.15); margin:0;">
           <span style="flex:none;">${N.badge}</span>
           <span style="flex:1;">${f.name}</span>
           <span style="flex:none; font-weight:800; color:${on ? "var(--bleu)" : "var(--gris-clair)"};">${on ? "✓ ajoutée" : "+"}</span>
@@ -1949,6 +1993,7 @@ function renderRegimesModal(query = "") {
     </details>`;
   }).join("") || `<div class="hint">Aucun résultat.</div>`;
 
+  [...$("#rg-list").querySelectorAll("details")].forEach((d, i) => { if (keepOpen[i]) d.open = true; });
   $$("#rg-list [data-rg]").forEach((b) => b.addEventListener("click", () => {
     const id = "regime:" + b.dataset.rg;
     selection.has(id) ? selection.delete(id) : selection.add(id);
@@ -1964,6 +2009,7 @@ $("#rg-search").addEventListener("input", () => renderRegimesModal($("#rg-search
 function renderEtpModal(query = "") {
   const words = norm(query.trim()).split(/\s+/).filter(Boolean);
   const q = words.length > 0;
+  const keepOpen = [...$("#etp-list").querySelectorAll("details")].map((d) => d.open);
   $("#etp-list").innerHTML = ETP.map((ax) => {
     const items = ax.items.filter((f) => {
       if (!q) return true;
@@ -1976,6 +2022,7 @@ function renderEtpModal(query = "") {
       ${items.map((f) => {
         const on = selection.has("etp:" + f.id);
         return `<button class="subtle small" data-etp="${f.id}" style="display:flex; width:100%; text-align:left; margin-top:3px; gap:8px; align-items:center; ${on ? "background:var(--bleu-pale); border:1px solid var(--bleu);" : ""}">
+          <input type="checkbox" ${on ? "checked" : ""} style="pointer-events:none; flex:none; accent-color:var(--bleu); transform:scale(1.15); margin:0;">
           <span style="flex:none;">${f.type === "livret" ? "📘" : "📄"}</span>
           <span style="flex:1;">${f.name}${f.star ? ` <span style="color:#E1A500;">${"★".repeat(f.star)}</span>` : ""}</span>
           <span style="flex:none; font-weight:800; color:${on ? "var(--bleu)" : "var(--gris-clair)"};">${on ? "✓ ajoutée" : "+"}</span>
@@ -1984,6 +2031,7 @@ function renderEtpModal(query = "") {
     </details>`;
   }).join("") || `<div class="hint">Aucun résultat.</div>`;
 
+  [...$("#etp-list").querySelectorAll("details")].forEach((d, i) => { if (keepOpen[i]) d.open = true; });
   $$("#etp-list [data-etp]").forEach((b) => b.addEventListener("click", () => {
     const id = "etp:" + b.dataset.etp;
     selection.has(id) ? selection.delete(id) : selection.add(id);
@@ -2388,8 +2436,12 @@ function renderOrdoTypes(query = "") {
         <span style="color:var(--gris-clair); font-weight:600; font-size:11px;">${builtin.length + perso.length}</span>
         ${isUserCat ? `<span style="float:right;"><a href="#" data-cat-ren="${c.cat}" title="Renommer la catégorie">✎</a>&nbsp;&nbsp;<a href="#" data-cat-del="${c.cat}" title="Supprimer la catégorie" style="color:var(--rouge);">✕</a></span>` : ""}
       </summary>
-      ${builtin.map((it) => `<button class="subtle small" data-ot-cat="${c.cat}" data-ot-name="${it.name.replace(/"/g, "&quot;")}" style="display:block; width:100%; text-align:left; margin-top:3px;">${it.name}</button>`).join("")}
-      ${perso.map((it) => `<div style="display:flex; gap:4px; margin-top:3px;">
+      ${builtin.map((it) => `<div style="display:flex; gap:6px; align-items:center; margin-top:3px;">
+        <input type="checkbox" data-ot-chk="b:${it.name.replace(/"/g, "&quot;")}" ${otSel.has("b:" + it.name) ? "checked" : ""} style="flex:none; accent-color:var(--bleu); transform:scale(1.15);" title="Cocher pour un ajout groupé">
+        <button class="subtle small" data-ot-cat="${c.cat}" data-ot-name="${it.name.replace(/"/g, "&quot;")}" style="flex:1; text-align:left;">${it.name}</button>
+      </div>`).join("")}
+      ${perso.map((it) => `<div style="display:flex; gap:4px; margin-top:3px; align-items:center;">
+        <input type="checkbox" data-ot-chk="u:${it.id}" ${otSel.has("u:" + it.id) ? "checked" : ""} style="flex:none; accent-color:var(--bleu); transform:scale(1.15);" title="Cocher pour un ajout groupé">
         <button class="subtle small" data-ut-id="${it.id}" style="flex:1; text-align:left;">${it.name} <span class="badge-local">perso</span></button>
         <button class="subtle small" data-ut-ren="${it.id}" title="Renommer / changer de catégorie">✎</button>
         <button class="subtle small" data-ut-del="${it.id}" title="Supprimer" style="color:var(--rouge);">✕</button>
@@ -2397,6 +2449,10 @@ function renderOrdoTypes(query = "") {
     </details>`;
   }).join("") || `<div class="hint">Aucun résultat.</div>`;
 
+  $$("#ot-list [data-ot-chk]").forEach((cb) => cb.addEventListener("change", () => {
+    cb.checked ? otSel.add(cb.dataset.otChk) : otSel.delete(cb.dataset.otChk);
+    updateOtAddBtn();
+  }));
   $$("#ot-list [data-ot-name]").forEach((b) => b.addEventListener("click", () => {
     const item = ORDO_TYPES.find((c) => c.cat === b.dataset.otCat).items.find((i) => i.name === b.dataset.otName);
     applyOrdoType(item);
@@ -2504,6 +2560,47 @@ $("#st-save").addEventListener("click", () => {
   saveUserTypes(arr);
   closeModals();
   toast(`💾 « ${name} » enregistrée dans ${cat} (sur ce poste).`, 6000);
+});
+
+// Multi-sélection d'ordonnances types : les cases survivent à la recherche
+// (état otSel), l'ajout groupé crée une carte par ordonnance cochée.
+const otSel = new Set();
+function updateOtAddBtn() {
+  const b = $("#ot-add-sel");
+  if (!b) return;
+  b.style.display = otSel.size ? "block" : "none";
+  b.textContent = `➕ Ajouter les ${otSel.size} ordonnance${otSel.size > 1 ? "s" : ""} cochée${otSel.size > 1 ? "s" : ""}`;
+}
+$("#ot-add-sel")?.addEventListener("click", () => {
+  const med = currentMedecin();
+  const prefills = [];
+  for (const key of otSel) {
+    if (key.startsWith("b:")) {
+      const it = findOrdoType(key.slice(2));
+      if (it) prefills.push({
+        mode: "simple",
+        texte: it.content.replaceAll("{MEDECIN}", med ? med.nom : "votre médecin").replaceAll("{FAX}", med?.fax || "………………"),
+      });
+    } else {
+      const t = listUserTypes().find((x) => x.id === key.slice(2));
+      if (t) prefills.push({ mode: t.mode || "simple", texte: t.texte || "", textAld: t.textAld || "", textNonAld: t.textNonAld || "", duree: t.duree || "" });
+    }
+  }
+  if (!prefills.length) return;
+  // la carte d'origine (vide) reçoit la première ordonnance, le reste crée des cartes
+  const o = targetOrdo();
+  const first = prefills.shift();
+  if (o && !((o.mode === "ald" ? o.textAld : o.texte).replace(/<[^>]*>/g, "").trim())) {
+    Object.assign(o, first, { fresh: false });
+  } else {
+    newOrdo({ ...first, fold: true });
+  }
+  prefills.forEach((p) => newOrdo({ ...p, fold: true }));
+  otSel.clear();
+  closeModals();
+  renderOrdos();
+  refreshSoon();
+  toast(`💊 ${prefills.length + 1} ordonnance(s) ajoutée(s) — dépliez une carte pour la modifier.`, 6000);
 });
 
 function applyOrdoType(item) {

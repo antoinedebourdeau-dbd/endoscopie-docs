@@ -263,7 +263,21 @@
     <h3>📋 Ordonnances types</h3>
     <div class="mhint">Classées par domaine — cliquez pour charger dans l'éditeur (le contenu reste entièrement modifiable). Le nom du médecin et le fax du secrétariat sont insérés automatiquement.</div>
     <label class="field"><input type="text" id="ot-search" placeholder="🔍 Rechercher (ex. IPP, imurel, ferinject, fissure…)" autocomplete="off"></label>
-    <div id="ot-list" style="max-height:55vh; overflow-y:auto;"></div>
+    <div id="ot-list" style="max-height:52vh; overflow-y:auto;"></div>
+    <div class="btnrow">
+      <button class="orange" id="ot-add-sel" style="display:none;">➕ Ajouter les ordonnances cochées</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== MODALE NOTES INFO & CONSENTEMENT ============================== -->
+<div class="modal-back no-print" id="modal-notes">
+  <div class="modal">
+    <button class="modal-close" data-close>✕</button>
+    <h3>📄 Notes d'information &amp; consentement</h3>
+    <div class="mhint">Cochez une ou plusieurs notes : elles s'ajoutent aux documents à imprimer / envoyer, personnalisées au patient et au médecin.</div>
+    <label class="field"><input type="text" id="nt-search" placeholder="🔍 Rechercher (ex. coloscopie, CPRE, dilatation…)" autocomplete="off"></label>
+    <div id="nt-list" style="max-height:55vh; overflow-y:auto;"></div>
   </div>
 </div>
 
