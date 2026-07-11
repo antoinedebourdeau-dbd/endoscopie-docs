@@ -9,7 +9,7 @@ par leur emoji ; le renderer applique le style correspondant.
 import re, json, html, unicodedata
 
 SRC = "/Users/antoinedebourdeau/Downloads/ETP_HGE_detaille_v2_ClaudeCode.md"
-OUT = "/Users/antoinedebourdeau/Projects/endoscopie-docs/js/tpl-etp.js"
+OUT = "/Users/antoinedebourdeau/Projects/dochge/js/tpl-etp.js"
 
 AXE_ICONS = {1: "🟣", 2: "🫀", 3: "🌀", 4: "🔬", 5: "🎗", 6: "🧬", 7: "🥤", 8: "💊", 9: "🍑", 10: "🧘"}
 FMAP = {

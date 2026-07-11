@@ -10,7 +10,7 @@ composant correspondant à chaque type k (même charte que les fiches v2).
 import re, json, glob, html, unicodedata
 
 SRC = sorted(glob.glob("/Users/antoinedebourdeau/Downloads/regimes-v3/Regimes_HGE_v3_*.md"))
-OUT = "/Users/antoinedebourdeau/Projects/endoscopie-docs/js/tpl-regimes.js"
+OUT = "/Users/antoinedebourdeau/Projects/dochge/js/tpl-regimes.js"
 
 # ids historiques (stables : packs, recherche) — par code de fiche v3
 IDMAP = {
