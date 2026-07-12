@@ -111,6 +111,18 @@ button.small { padding: 5px 10px; font-size: 12px; border-radius: 7px; }
 .catbtn { display: flex; align-items: center; justify-content: center; gap: 7px; }
 .catbtn .ico { flex: none; }
 
+/* Miniatures des documents en cours (colonne gauche) — clic = éditeur central */
+.mini-card {
+  display: flex; align-items: center; gap: 8px;
+  border: 1.5px solid var(--bleu); background: var(--bleu-pale); border-radius: 10px;
+  padding: 9px 10px; margin-bottom: 8px; cursor: pointer;
+  font-size: 13px; font-weight: 700; color: var(--bleu-fonce);
+}
+.mini-card:hover { background: #dcecf8; }
+.mini-card .mini-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-card .mini-edit { flex: none; color: var(--bleu); font-weight: 800; }
+.mini-card button { flex: none; }
+
 /* Éditeur riche (ordonnance libre) */
 .richbar { display: flex; gap: 4px; margin-bottom: 6px; flex-wrap: wrap; }
 .richbar button {

@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.24";
+export const APP_VERSION = "3.25";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -375,91 +375,139 @@ function ordoResume(o) {
   return t ? " — " + t.slice(0, 42) + (t.length > 42 ? "…" : "") : "";
 }
 
-function renderOrdos() {
-  const root = $("#ordos");
-  root.innerHTML = ordos.map((o, idx) => `
-  <div style="border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:var(--bleu-pale);" data-ordo-card="${o.id}">
-    <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" data-fold-ordo="${o.id}" title="Replier / déplier">
-      <span style="flex:none; font-size:10px; color:var(--gris-clair);">${o.fold && !o.fresh ? "▸" : "▾"}</span>
-      <strong style="flex:1; font-size:13px;">💊 Ordonnance${ordos.length > 1 ? " " + (idx + 1) : ""}${o.mode === "ald" ? " (ALD)" : ""}${ordoResume(o)}</strong>
-      <button class="subtle small" data-del-ordo="${o.id}">✕ retirer</button>
-    </div>
-    <div style="display:${o.fold && !o.fresh ? "none" : "block"};">
-    ${o.fresh ? `
-    <div style="margin-top:8px;">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <button data-ordo-type-btn="${o.id}" style="padding:16px 10px; border-radius:12px; line-height:1.5;">📋<br><strong>Ordonnance type</strong><br><span style="font-weight:400; font-size:11px;">modèles classés, modifiables</span></button>
-        <button data-ordo-vierge="${o.id}" class="ghost" style="padding:16px 10px; border-radius:12px; line-height:1.5; background:#fff;">🗒<br><strong>Ordonnance vierge</strong></button>
-      </div>
-      <div class="hint">Vous choisirez ensuite ordonnance simple ou ALD (bizone).</div>
-    </div>` : `
-    <div style="margin-top:8px;">
-      <div class="btnrow" style="margin:0 0 8px;">
-        <button type="button" class="small" data-ordo-type-btn="${o.id}" title="Charger une ordonnance type">📋 Types</button>
-        <button type="button" class="subtle small" data-save-type="${o.id}" title="Enregistrer cette ordonnance comme type">💾 Enregistrer comme type</button>
-      </div>
-      <label class="field"><span class="lbl">Type d'ordonnance</span>
-        <select data-oid="${o.id}" data-ok="mode">
-          <option value="simple" ${o.mode !== "ald" ? "selected" : ""}>Ordonnance simple (une zone)</option>
-          <option value="ald" ${o.mode === "ald" ? "selected" : ""}>Ordonnance ALD — bizone (100 % / hors ALD)</option>
-        </select>
-      </label>
-      ${RICHBAR}
-      <div style="display:${o.mode === "ald" ? "none" : "block"};">
-        <label class="field" style="margin-bottom:2px;"><span class="lbl">Prescription</span></label>
-        <div class="rich" contenteditable="true" data-oid="${o.id}" data-zone="texte" data-placeholder="PANTOPRAZOLE 40 mg : 1 comprimé le matin…"></div>
-      </div>
-      <div style="display:${o.mode === "ald" ? "block" : "none"};">
-        <label class="field" style="margin-bottom:2px;"><span class="lbl">Zone ALD — prescriptions en rapport (100 %)</span></label>
-        <div class="rich" contenteditable="true" data-oid="${o.id}" data-zone="textAld"></div>
-        <label class="field" style="margin:8px 0 2px;"><span class="lbl">Zone hors ALD — sans rapport (optionnel)</span></label>
-        <div class="rich" contenteditable="true" data-oid="${o.id}" data-zone="textNonAld" style="min-height:60px;"></div>
-      </div>
-      <label class="field"><span class="lbl">Durée du traitement (texte libre, optionnel)</span>
-        <input type="text" data-oid="${o.id}" data-ok="duree" value="${(o.duree || "").replace(/"/g, "&quot;")}" placeholder="ex. 3 mois — QSP 6 mois">
-      </label>
-    </div>`}
-    </div>
-  </div>`).join("");
+// ------------------------------------------------------- éditeur central
+// Les cartes de la colonne sont des MINIATURES ; le remplissage se fait
+// dans la fenêtre centrale #modal-editor (un document à la fois).
+let editing = null; // { kind: "ordo" | "dem", id }
 
-  // injecte le contenu riche (innerHTML ne peut pas être mis dans le template sans double-échappement)
-  root.querySelectorAll(".rich[data-oid]").forEach((ed) => {
-    const o = ordos.find((x) => x.id === ed.dataset.oid);
-    if (o) ed.innerHTML = o[ed.dataset.zone] || "";
-  });
+function openEditor(kind, id) {
+  editing = { kind, id };
+  openModal("#modal-editor");
+  renderEditor();
+}
 
-  // interactions structurelles
-  root.querySelectorAll("[data-del-ordo]").forEach((b) => b.addEventListener("click", () => {
-    ordos.splice(ordos.findIndex((x) => x.id === b.dataset.delOrdo), 1);
-    renderOrdos(); refreshSoon();
-  }));
-  root.querySelectorAll("[data-ordo-vierge]").forEach((b) => b.addEventListener("click", () => {
+function ordoFormHtml(o) {
+  return o.fresh ? `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <button data-ordo-type-btn="${o.id}" style="padding:16px 10px; border-radius:12px; line-height:1.5;">📋<br><strong>Ordonnance type</strong><br><span style="font-weight:400; font-size:11px;">modèles classés, modifiables</span></button>
+      <button data-ordo-vierge="${o.id}" class="ghost" style="padding:16px 10px; border-radius:12px; line-height:1.5; background:#fff;">🗒<br><strong>Ordonnance vierge</strong></button>
+    </div>
+    <div class="hint">Vous choisirez ensuite ordonnance simple ou ALD (bizone).</div>` : `
+    <div class="btnrow" style="margin:0 0 8px;">
+      <button type="button" class="small" data-ordo-type-btn="${o.id}" title="Charger une ordonnance type">📋 Types</button>
+      <button type="button" class="subtle small" data-save-type="${o.id}" title="Enregistrer cette ordonnance comme type">💾 Enregistrer comme type</button>
+    </div>
+    <label class="field"><span class="lbl">Type d'ordonnance</span>
+      <select data-oid="${o.id}" data-ok="mode">
+        <option value="simple" ${o.mode !== "ald" ? "selected" : ""}>Ordonnance simple (une zone)</option>
+        <option value="ald" ${o.mode === "ald" ? "selected" : ""}>Ordonnance ALD — bizone (100 % / hors ALD)</option>
+      </select>
+    </label>
+    ${RICHBAR}
+    <div style="display:${o.mode === "ald" ? "none" : "block"};">
+      <label class="field" style="margin-bottom:2px;"><span class="lbl">Prescription</span></label>
+      <div class="rich" contenteditable="true" data-oid="${o.id}" data-zone="texte" data-placeholder="PANTOPRAZOLE 40 mg : 1 comprimé le matin…"></div>
+    </div>
+    <div style="display:${o.mode === "ald" ? "block" : "none"};">
+      <label class="field" style="margin-bottom:2px;"><span class="lbl">Zone ALD — prescriptions en rapport (100 %)</span></label>
+      <div class="rich" contenteditable="true" data-oid="${o.id}" data-zone="textAld"></div>
+      <label class="field" style="margin:8px 0 2px;"><span class="lbl">Zone hors ALD — sans rapport (optionnel)</span></label>
+      <div class="rich" contenteditable="true" data-oid="${o.id}" data-zone="textNonAld" style="min-height:60px;"></div>
+    </div>
+    <label class="field"><span class="lbl">Durée du traitement (texte libre, optionnel)</span>
+      <input type="text" data-oid="${o.id}" data-ok="duree" value="${(o.duree || "").replace(/"/g, "&quot;")}" placeholder="ex. 3 mois — QSP 6 mois">
+    </label>`;
+}
+
+function renderEditor() {
+  if (!editing || !$("#modal-editor").classList.contains("open")) return;
+  const body = $("#ed-body");
+  const openMap = [...body.querySelectorAll("details")].map((dt) => dt.open);
+  if (editing.kind === "ordo") {
+    const o = ordos.find((x) => x.id === editing.id);
+    if (!o) { editing = null; $("#modal-editor").classList.remove("open"); return; }
+    activeOrdoId = o.id;
+    $("#ed-title").textContent = `💊 Ordonnance${o.mode === "ald" ? " ALD (bizone)" : ""}`;
+    body.innerHTML = ordoFormHtml(o);
+    body.querySelectorAll(".rich[data-oid]").forEach((ed) => { ed.innerHTML = o[ed.dataset.zone] || ""; });
+  } else {
+    const d = demandes.find((x) => x.id === editing.id);
+    if (!d) { editing = null; $("#modal-editor").classList.remove("open"); return; }
+    $("#ed-title").textContent = `🩺 Demande d'examen${d.type ? " — " + DEM_LABELS[d.type] : ""}`;
+    body.innerHTML = demandeCard(d);
+    [...body.querySelectorAll("details")].forEach((dt, i) => { if (openMap[i]) dt.open = true; });
+  }
+
+  // interactions structurelles internes au formulaire
+  body.querySelectorAll("[data-ordo-vierge]").forEach((b) => b.addEventListener("click", () => {
     const o = ordos.find((x) => x.id === b.dataset.ordoVierge);
     o.fresh = false;
     renderOrdos(); refreshSoon();
-    root.querySelector(`.rich[data-oid="${o.id}"]`)?.focus();
+    $("#ed-body").querySelector(`.rich[data-oid="${o.id}"]`)?.focus();
   }));
-  root.querySelectorAll("[data-ordo-type-btn]").forEach((b) => b.addEventListener("click", () => {
+  body.querySelectorAll("[data-ordo-type-btn]").forEach((b) => b.addEventListener("click", () => {
     activeOrdoId = b.dataset.ordoTypeBtn;
     otSel.clear(); updateOtAddBtn();
     renderOrdoTypes();
     openModal("#modal-ordotypes");
   }));
-  root.querySelectorAll("[data-save-type]").forEach((b) => b.addEventListener("click", () => {
+  body.querySelectorAll("[data-save-type]").forEach((b) => b.addEventListener("click", () => {
     activeOrdoId = b.dataset.saveType;
     openSaveTypeModal();
   }));
-  root.querySelectorAll("[data-fold-ordo]").forEach((h) => h.addEventListener("click", (e) => {
-    if (e.target.closest("button")) return;
-    const o = ordos.find((x) => x.id === h.dataset.foldOrdo);
-    if (!o || o.fresh) return;
-    o.fold = !o.fold;
-    renderOrdos();
+  body.querySelectorAll("[data-dtype]").forEach((b) => b.addEventListener("click", () => {
+    const d = demandes.find((x) => x.id === b.dataset.d);
+    d.type = b.dataset.dtype;
+    d.opts = initDemandeOpts(d.type);
+    renderDemandes(); updateEmailButton(); refreshSoon();
   }));
+  body.querySelectorAll("[data-lieu]").forEach((b) => b.addEventListener("click", () => {
+    const d = demandes.find((x) => x.id === b.dataset.d);
+    d.opts.lieu = b.dataset.lieu;
+    renderDemandes(); refreshSoon();
+  }));
+  body.querySelectorAll("[data-sendmail]").forEach((cb) => cb.addEventListener("change", () => {
+    demandes.find((x) => x.id === cb.dataset.d).opts.sendMail = cb.checked;
+    renderDemandes(); updateEmailButton();
+  }));
+  body.querySelectorAll("[data-mailcfg]").forEach((a) => a.addEventListener("click", (e) => {
+    e.preventDefault(); e.stopPropagation();
+    openMailModal();
+  }));
+  refreshDemandeWarnings();
 }
 
-// saisie : mise à jour du modèle sans re-rendu (conserve le focus)
-$("#ordos").addEventListener("input", (e) => {
+// « Terminé » / fermeture : rafraîchit les miniatures (résumés à jour)
+$("#modal-editor")?.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => {
+  editing = null;
+  renderOrdos(); renderDemandes();
+}));
+
+function renderOrdos() {
+  const root = $("#ordos");
+  root.innerHTML = ordos.map((o, idx) => {
+    const resume = ordoResume(o) || (o.fresh ? " — type ou vierge ?" : " — à remplir");
+    return `
+  <div class="mini-card" data-open-ordo="${o.id}" title="Cliquer pour remplir">
+    <span style="flex:none;">💊</span>
+    <span class="mini-label">Ordonnance${ordos.length > 1 ? " " + (idx + 1) : ""}${o.mode === "ald" ? " (ALD)" : ""}${resume}</span>
+    <span class="mini-edit">✎</span>
+    <button class="subtle small" data-del-ordo="${o.id}" title="Retirer">✕</button>
+  </div>`;
+  }).join("");
+  root.querySelectorAll("[data-del-ordo]").forEach((b) => b.addEventListener("click", (e) => {
+    e.stopPropagation();
+    ordos.splice(ordos.findIndex((x) => x.id === b.dataset.delOrdo), 1);
+    if (editing?.kind === "ordo" && editing.id === b.dataset.delOrdo) { editing = null; $("#modal-editor").classList.remove("open"); }
+    renderOrdos(); refreshSoon();
+  }));
+  root.querySelectorAll("[data-open-ordo]").forEach((c) => c.addEventListener("click", () => openEditor("ordo", c.dataset.openOrdo)));
+  renderEditor();
+}
+
+// saisie : mise à jour du modèle sans re-rendu (conserve le focus) — le
+// formulaire vit dans l'éditeur central
+$("#modal-editor").addEventListener("input", (e) => {
   const t = e.target;
   const o = ordos.find((x) => x.id === t.dataset.oid);
   if (!o) return;
@@ -467,7 +515,7 @@ $("#ordos").addEventListener("input", (e) => {
   if (t.dataset.ok === "duree") o.duree = t.value;
   refreshSoon();
 });
-$("#ordos").addEventListener("change", (e) => {
+$("#modal-editor").addEventListener("change", (e) => {
   const t = e.target;
   const o = ordos.find((x) => x.id === t.dataset.oid);
   if (!o || t.dataset.ok !== "mode") return;
@@ -479,24 +527,24 @@ $("#ordos").addEventListener("change", (e) => {
   renderOrdos(); refreshSoon();
 });
 
-// barre de mise en forme + Tab + collage sécurisé (délégation sur le conteneur)
-$("#ordos").addEventListener("mousedown", (e) => {
+// barre de mise en forme + Tab + collage sécurisé (délégation sur l'éditeur)
+$("#modal-editor").addEventListener("mousedown", (e) => {
   if (e.target.closest(".richbar button")) e.preventDefault(); // conserve la sélection
 });
-$("#ordos").addEventListener("click", (e) => {
+$("#modal-editor").addEventListener("click", (e) => {
   const b = e.target.closest(".richbar button");
   if (!b) return;
   if (b.dataset.cmd) document.execCommand(b.dataset.cmd, false, null);
   else if (b.dataset.insert) document.execCommand("insertText", false, b.dataset.insert);
   refreshSoon();
 });
-$("#ordos").addEventListener("keydown", (e) => {
+$("#modal-editor").addEventListener("keydown", (e) => {
   if (e.key !== "Tab" || !e.target.classList.contains("rich")) return;
   e.preventDefault();
   document.execCommand(e.shiftKey ? "outdent" : "indent", false, null);
   refreshSoon();
 });
-$("#ordos").addEventListener("paste", (e) => {
+$("#modal-editor").addEventListener("paste", (e) => {
   if (!e.target.classList.contains("rich")) return;
   e.preventDefault();
   const html = e.clipboardData.getData("text/html");
@@ -506,9 +554,9 @@ $("#ordos").addEventListener("paste", (e) => {
 });
 
 $("#btn-create-ordo").addEventListener("click", () => {
-  newOrdo();
+  const o = newOrdo();
   refreshSoon();
-  $("#ordos").lastElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  openEditor("ordo", o.id);
 });
 
 function selectedItems() {
@@ -1298,6 +1346,7 @@ function newDemande() {
   const d = { id: "dem" + (++demandeSeq), type: null, opts: {} };
   demandes.push(d);
   renderDemandes();
+  return d;
 }
 
 const SITES_UI = {
@@ -1312,7 +1361,7 @@ function demandeCardImagerie(d) {
   const inp = (k, val, ph = "") =>
     `<input type="text" data-d="${d.id}" data-k="${k}" value="${(val || "").replace(/"/g, "&quot;")}" placeholder="${ph}">`;
   const nonOui = (k, val, label) =>
-    `<label class="field"><span class="lbl">${label}</span>${sel(k, [["non", "NON"], ["oui", "OUI"]], val)}</label>`;
+    `<label class="doc-item" style="padding:6px 2px; align-self:center;"><input type="checkbox" data-d="${d.id}" data-kob="${k}" ${val === "oui" ? "checked" : ""}><span style="font-size:12.5px;">${label}</span></label>`;
   const t = d.type;
 
   // site (pas pour interventionnel ni TEP)
@@ -1351,7 +1400,7 @@ function demandeCardImagerie(d) {
         ${isoRows}
         ${nonOui("diabete", o.diabete, "Diabète (METFORMINE : arrêt)")}
         ${nonOui("ir", o.ir, "Insuffisance rénale")}
-        ${o.ir === "oui" ? `<label class="field"><span class="lbl">Créatininémie (µmol/L)</span>${inp("creat", o.creat)}</label><label class="field"><span class="lbl">Dialysé</span>${sel("dialyse", [["", "NON"], ["1", "OUI"]], o.dialyse ? "1" : "")}</label>` : ""}
+        ${o.ir === "oui" ? `<label class="field"><span class="lbl">Créatininémie (µmol/L)</span>${inp("creat", o.creat)}</label><label class="doc-item" style="padding:6px 2px; align-self:center;"><input type="checkbox" data-d="${d.id}" data-kb="dialyse" ${o.dialyse ? "checked" : ""}><span style="font-size:12.5px;">Dialysé</span></label>` : ""}
         ${nonOui("betabloquants", o.betabloquants, "Bêta-bloquants")}
         ${nonOui("grossesse", o.grossesse, "Grossesse")}
         ${nonOui("gammapathie", o.gammapathie, "Gammapathie (myélome)")}
@@ -1510,8 +1559,8 @@ function demandeCard(d) {
     </label>
     ${o.hospit === "hdj" ? `<label class="field"><span class="lbl">Service HDJ</span>${inp("hdjService", o.hdjService)}</label>` :
       o.hospit === "hosp" ? `<label class="field"><span class="lbl">Entrée</span>${sel("hospJ", [["J0", "J0"], ["J-1", "J-1"], ["J-2", "J-2"]], o.hospJ)}</label>` : "<span></span>"}
-    <label class="field"><span class="lbl">Anesthésie générale</span>${sel("ag", [["oui", "OUI"], ["non", "NON"]], o.ag)}</label>
-    <label class="field"><span class="lbl">Infos délivrées au patient</span>${sel("infosPatient", [["oui", "OUI"], ["non", "NON"]], o.infosPatient)}</label>
+    <label class="doc-item" style="padding:6px 2px; align-self:center;"><input type="checkbox" data-d="${d.id}" data-kob="ag" ${o.ag !== "non" ? "checked" : ""}><span style="font-size:12.5px;"><strong>Anesthésie générale</strong></span></label>
+    <label class="doc-item" style="padding:6px 2px; align-self:center;"><input type="checkbox" data-d="${d.id}" data-kob="infosPatient" ${o.infosPatient !== "non" ? "checked" : ""}><span style="font-size:12.5px;">Infos délivrées au patient</span></label>
   </div>
   <details style="margin-top:4px;">
     <summary style="cursor:pointer; font-size:12.5px; font-weight:700; color:var(--rouge);">Informations cliniques obligatoires (risques, anticoagulants…)</summary>
@@ -1521,8 +1570,8 @@ function demandeCard(d) {
         ${sel("iso", [["", "Aucun"], ["bhre", "BHRe"], ["tuberculose", "Tuberculose"], ["autre", "Autre…"]], o.iso)}
       </label>
       ${o.iso === "autre" ? `<label class="field"><span class="lbl">Précision isolement</span>${inp("isoAutre", o.isoAutre)}</label>` :
-        `<label class="field"><span class="lbl">Risque Creutzfeldt-Jakob</span>${sel("cjd", [["non", "NON"], ["oui", "OUI"]], o.cjd)}</label>`}
-      ${o.iso === "autre" ? `<label class="field"><span class="lbl">Risque Creutzfeldt-Jakob</span>${sel("cjd", [["non", "NON"], ["oui", "OUI"]], o.cjd)}</label>` : "<span></span>"}
+        `<label class="doc-item" style="padding:6px 2px; align-self:center;"><input type="checkbox" data-d="${d.id}" data-kob="cjd" ${o.cjd === "oui" ? "checked" : ""}><span style="font-size:12.5px;">Risque Creutzfeldt-Jakob</span></label>`}
+      ${o.iso === "autre" ? `<label class="doc-item" style="padding:6px 2px; align-self:center;"><input type="checkbox" data-d="${d.id}" data-kob="cjd" ${o.cjd === "oui" ? "checked" : ""}><span style="font-size:12.5px;">Risque Creutzfeldt-Jakob</span></label>` : "<span></span>"}
       <label class="doc-item" style="grid-column:1 / -1; padding:2px 0;"><input type="checkbox" data-d="${d.id}" data-kb="anticoEn" ${o.anticoEn ? "checked" : ""}><span><strong>Anticoagulation en cours</strong></span></label>
       ${o.anticoEn ? `<label class="field"><span class="lbl">Lequel</span>${inp("antico", o.antico, "ex. apixaban")}</label>
       <label class="field"><span class="lbl">Stoppé ? Quand</span>${inp("anticoStop", o.anticoStop, "ex. J-2, ou « non stoppé »")}</label>` : ""}
@@ -1564,11 +1613,6 @@ function refreshDemandeWarnings() {
 
 function renderDemandes() {
   const root = $("#demandes");
-  // mémorise les sections dépliées de chaque carte (le re-rendu les refermerait)
-  const openMap = {};
-  root.querySelectorAll("[data-card]").forEach((card) => {
-    openMap[card.dataset.card] = [...card.querySelectorAll("details")].map((dt) => dt.open);
-  });
   root.innerHTML = demandes.map((d) => {
     let resume = "";
     if (d.type === "endo") {
@@ -1576,64 +1620,31 @@ function renderDemandes() {
       resume = " — " + (exLbls.join(", ") || "endoscopie");
     } else if (d.type) {
       resume = " — " + DEM_LABELS[d.type] + (d.opts.examen ? " · " + d.opts.examen : "");
+    } else {
+      resume = " — choisir le type";
     }
-    const folded = d.fold && d.type;
-    const warnBadge = folded && demandeWarnings(d).length ? ` <span title="À compléter avant envoi">⚠️</span>` : "";
-    return `<div style="border:1.5px solid var(--bleu); border-radius:10px; padding:8px 10px; margin-bottom:10px; background:var(--bleu-pale);" data-card="${d.id}">
-      <div style="display:flex; align-items:center; gap:8px; cursor:pointer;" data-fold-dem="${d.id}" title="Replier / déplier">
-        <span style="flex:none; font-size:10px; color:var(--gris-clair);">${folded ? "▸" : "▾"}</span>
-        <strong style="flex:1; font-size:13px;">🩺 Demande d'examen${resume}${warnBadge}</strong>
-        <button class="subtle small" data-del-dem="${d.id}">✕ retirer</button>
-      </div>
-      <div style="display:${folded ? "none" : "block"};">${demandeCard(d)}</div>
-    </div>`;
+    const warnBadge = d.type && demandeWarnings(d).length ? ` <span title="À compléter avant envoi">⚠️</span>` : "";
+    return `
+  <div class="mini-card" data-open-dem="${d.id}" title="Cliquer pour remplir">
+    <span style="flex:none;">🩺</span>
+    <span class="mini-label">Demande${resume}${warnBadge}</span>
+    <span class="mini-edit">✎</span>
+    <button class="subtle small" data-del-dem="${d.id}" title="Retirer">✕</button>
+  </div>`;
   }).join("");
-
-  // structure : choix du type / suppression (re-render nécessaire)
-  root.querySelectorAll("[data-dtype]").forEach((b) => b.addEventListener("click", () => {
-    const d = demandes.find((x) => x.id === b.dataset.d);
-    d.type = b.dataset.dtype;
-    d.opts = initDemandeOpts(d.type);
-    renderDemandes(); updateEmailButton(); refreshSoon();
-  }));
-  root.querySelectorAll("[data-del-dem]").forEach((b) => b.addEventListener("click", () => {
+  root.querySelectorAll("[data-del-dem]").forEach((b) => b.addEventListener("click", (e) => {
+    e.stopPropagation();
     demandes.splice(demandes.findIndex((x) => x.id === b.dataset.delDem), 1);
+    if (editing?.kind === "dem" && editing.id === b.dataset.delDem) { editing = null; $("#modal-editor").classList.remove("open"); }
     renderDemandes(); updateEmailButton(); refreshSoon();
   }));
-  root.querySelectorAll("[data-sendmail]").forEach((cb) => cb.addEventListener("change", () => {
-    demandes.find((x) => x.id === cb.dataset.d).opts.sendMail = cb.checked;
-    renderDemandes();
-    updateEmailButton();
-  }));
-  root.querySelectorAll("[data-lieu]").forEach((b) => b.addEventListener("click", () => {
-    const d = demandes.find((x) => x.id === b.dataset.d);
-    d.opts.lieu = b.dataset.lieu;
-    renderDemandes(); refreshSoon();
-  }));
-  root.querySelectorAll("[data-mailcfg]").forEach((a) => a.addEventListener("click", (e) => {
-    e.preventDefault(); e.stopPropagation();
-    openMailModal();
-  }));
-  root.querySelectorAll("[data-fold-dem]").forEach((h) => h.addEventListener("click", (e) => {
-    if (e.target.closest("button")) return;
-    const d = demandes.find((x) => x.id === h.dataset.foldDem);
-    if (!d || !d.type) return;
-    d.fold = !d.fold;
-    renderDemandes();
-  }));
-
-  // restaure les sections dépliées
-  root.querySelectorAll("[data-card]").forEach((card) => {
-    const states = openMap[card.dataset.card];
-    if (states) [...card.querySelectorAll("details")].forEach((dt, i) => { if (states[i]) dt.open = true; });
-  });
-
-  refreshDemandeWarnings();
+  root.querySelectorAll("[data-open-dem]").forEach((c) => c.addEventListener("click", () => openEditor("dem", c.dataset.openDem)));
+  renderEditor();
 }
 
-// Saisie dans les formulaires de demande : mise à jour sans re-render (focus conservé),
-// sauf changements structurels (examens cochés, délai/hospit/iso) qui re-rendent la carte.
-$("#demandes").addEventListener("click", (e) => {
+// Saisie dans les formulaires de demande (dans l'éditeur central) : mise à
+// jour sans re-render (focus conservé), sauf changements structurels.
+$("#modal-editor").addEventListener("click", (e) => {
   const b = e.target.closest("[data-sugg]");
   if (!b) return;
   const d = demandes.find((x) => x.id === b.dataset.d);
@@ -1645,11 +1656,12 @@ $("#demandes").addEventListener("click", (e) => {
   refreshSoon();
 });
 
-$("#demandes").addEventListener("input", (e) => {
+$("#modal-editor").addEventListener("input", (e) => {
   const t = e.target, d = demandes.find((x) => x.id === t.dataset.d);
   if (!d) return;
   if (t.dataset.k) d.opts[t.dataset.k] = t.value;
   if (t.dataset.kb) d.opts[t.dataset.kb] = t.checked;
+  if (t.dataset.kob) d.opts[t.dataset.kob] = t.checked ? "oui" : "non"; // case à cocher OUI/NON
   if (t.dataset.crit) {
     d.opts.crit[t.dataset.crit] = t.checked;
     if (d.type === "endo" && Object.values(d.opts.crit).some(Boolean)) d.opts.lieu = "bloc";
@@ -1672,16 +1684,17 @@ $("#demandes").addEventListener("input", (e) => {
   refreshDemandeWarnings();
   refreshSoon();
 });
-$("#demandes").addEventListener("change", (e) => {
+$("#modal-editor").addEventListener("change", (e) => {
   const t = e.target, d = demandes.find((x) => x.id === t.dataset.d);
   if (!d) return;
   if (t.dataset.ex || t.dataset.mat || t.dataset.multi || t.dataset.crit || t.dataset.kb ||
-      ["delai", "hospit", "iso", "risqueInf", "ir", "ag", "diabete", "tepDeja"].includes(t.dataset.k || "")) renderDemandes();
+      ["delai", "hospit", "iso", "risqueInf", "ir", "tepDeja"].includes(t.dataset.k || "") ||
+      ["risqueInf", "ir", "ag", "diabete", "tepDeja"].includes(t.dataset.kob || "")) renderDemandes();
 });
 
 $("#btn-create-demande").addEventListener("click", () => {
-  newDemande();
-  $("#demandes").lastElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  const d = newDemande();
+  openEditor("dem", d.id);
 });
 
 // Boutons d'accès rapide : ouvrent / referment une catégorie (masquée par défaut)
@@ -2551,7 +2564,7 @@ function applyUserType(t) {
   o.textNonAld = toHtml(t.textNonAld);
   o.duree = t.duree || "";
   o.fresh = false;
-  closeModals();
+  $("#modal-ordotypes").classList.remove("open");
   renderOrdos();
   toast(`📋 « ${t.name} » chargée.`, 4000);
   refreshSoon();
@@ -2643,7 +2656,7 @@ function applyOrdoType(item) {
   if (hasContent && !confirm("Remplacer le contenu de cette ordonnance ?")) return;
   o[target] = content;
   o.fresh = false;
-  closeModals();
+  $("#modal-ordotypes").classList.remove("open");
   renderOrdos();
   toast(`📋 « ${item.name} » chargée — modifiez librement puis choisissez simple ou ALD.`, 6000);
   refreshSoon();
