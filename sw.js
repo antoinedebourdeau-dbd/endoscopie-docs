@@ -3,7 +3,7 @@
 // l'interface). Aucune donnée patient ne transite par le réseau ni n'est mise
 // en cache : les documents sont générés en mémoire, dans la page.
 // VERSION est synchronisée avec APP_VERSION par tools/deploy-pages.sh.
-const VERSION = "3.25";
+const VERSION = "3.26";
 const CACHE = "dochge-v" + VERSION;
 
 const SHELL = [
@@ -50,16 +50,15 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET" || url.origin !== location.origin) return; // jamais interceptés
   if (url.pathname.endsWith("version.json")) return; // détection de mise à jour : toujours réseau
 
-  // stale-while-revalidate : réponse cache immédiate, rafraîchie en arrière-plan
+  // réseau d'abord, cache en secours (hors-ligne) : une mise à jour déployée
+  // est visible dès la PREMIÈRE ouverture — le stale-while-revalidate faisait
+  // tourner l'ancienne version un chargement de trop.
   e.respondWith(
-    caches.match(e.request, { ignoreSearch: url.pathname.endsWith("/") }).then((hit) => {
-      const net = fetch(e.request)
-        .then((r) => {
-          if (r.ok) caches.open(CACHE).then((c) => c.put(e.request, r.clone()));
-          return r;
-        })
-        .catch(() => hit);
-      return hit || net;
-    })
+    fetch(e.request)
+      .then((r) => {
+        if (r.ok) caches.open(CACHE).then((c) => c.put(e.request, r.clone()));
+        return r;
+      })
+      .catch(() => caches.match(e.request, { ignoreSearch: url.pathname.endsWith("/") }))
   );
 });
