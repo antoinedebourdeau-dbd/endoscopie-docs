@@ -2,7 +2,7 @@
 
 // Version affichée dans le bandeau — à incrémenter à chaque déploiement
 // (permet de vérifier qu'un poste n'exécute pas une version en cache).
-export const APP_VERSION = "3.26";
+export const APP_VERSION = "3.27";
 
 import { DOCS } from "./endoc-docs.js";
 import { assembleDocs } from "./render.js";
@@ -368,6 +368,17 @@ const RICHBAR = `
     <button type="button" data-cmd="insertOrderedList" title="Liste numérotée">1.&nbsp;Liste</button>
     <button type="button" data-cmd="indent" title="Augmenter le retrait (Tab)">⇥</button>
     <button type="button" data-cmd="outdent" title="Diminuer le retrait (Maj+Tab)">⇤</button>
+    <span class="richsep"></span>
+    <button type="button" data-fsize="2" title="Petit texte" style="font-size:10px;">A</button>
+    <button type="button" data-fsize="3" title="Taille normale">A</button>
+    <button type="button" data-fsize="5" title="Grand texte" style="font-size:15px; font-weight:800;">A</button>
+    <button type="button" data-fsize="6" title="Très grand texte" style="font-size:17px; font-weight:800;">A</button>
+    <span class="richsep"></span>
+    <button type="button" data-color="#1c3a52" title="Encre (défaut)"><span class="swatch" style="background:#1c3a52;"></span></button>
+    <button type="button" data-color="#0072BC" title="Bleu"><span class="swatch" style="background:#0072BC;"></span></button>
+    <button type="button" data-color="#C0392B" title="Rouge"><span class="swatch" style="background:#C0392B;"></span></button>
+    <button type="button" data-color="#EF7D00" title="Orange"><span class="swatch" style="background:#EF7D00;"></span></button>
+    <button type="button" data-color="#146c3a" title="Vert"><span class="swatch" style="background:#146c3a;"></span></button>
   </div>`;
 
 function ordoResume(o) {
@@ -536,6 +547,8 @@ $("#modal-editor").addEventListener("click", (e) => {
   if (!b) return;
   if (b.dataset.cmd) document.execCommand(b.dataset.cmd, false, null);
   else if (b.dataset.insert) document.execCommand("insertText", false, b.dataset.insert);
+  else if (b.dataset.fsize) document.execCommand("fontSize", false, b.dataset.fsize);
+  else if (b.dataset.color) document.execCommand("foreColor", false, b.dataset.color);
   refreshSoon();
 });
 $("#modal-editor").addEventListener("keydown", (e) => {

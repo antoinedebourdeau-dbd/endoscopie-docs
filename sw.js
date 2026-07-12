@@ -3,7 +3,7 @@
 // l'interface). Aucune donnée patient ne transite par le réseau ni n'est mise
 // en cache : les documents sont générés en mémoire, dans la page.
 // VERSION est synchronisée avec APP_VERSION par tools/deploy-pages.sh.
-const VERSION = "3.26";
+const VERSION = "3.27";
 const CACHE = "dochge-v" + VERSION;
 
 const SHELL = [

@@ -332,7 +332,8 @@ export function renderOrdo(key, ctx) {
 
 // Contenu riche saisi dans l'éditeur (gras, italique, listes…) — nettoyé
 // avant impression. Compatibilité : un ancien texte brut est converti.
-const RICH_ALLOWED = new Set(["B", "STRONG", "I", "EM", "U", "UL", "OL", "LI", "BR", "DIV", "P", "SPAN", "BLOCKQUOTE"]);
+const RICH_ALLOWED = new Set(["B", "STRONG", "I", "EM", "U", "UL", "OL", "LI", "BR", "DIV", "P", "SPAN", "BLOCKQUOTE", "FONT"]);
+const SAFE_COLOR = /^(#[0-9a-fA-F]{3,8}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))$/;
 export function sanitizeRich(html) {
   const s = String(html || "");
   if (!/[<>]/.test(s)) return esc(s).replace(/\n/g, "<br>"); // ancien format texte
@@ -351,7 +352,26 @@ export function sanitizeRich(html) {
           while (child.firstChild) el.insertBefore(child.firstChild, child);
           const dead = child; child = first || dead.nextSibling; dead.remove(); continue;
         }
+        // taille / couleur choisies dans l'éditeur : seules propriétés
+        // de style conservées, valeurs strictement validées
+        let fSize = null, fColor = null, style = null;
+        if (child.tagName === "FONT") {
+          const sz = child.getAttribute("size"), col = child.getAttribute("color");
+          if (sz && /^[1-7]$/.test(sz)) fSize = sz;
+          if (col && SAFE_COLOR.test(col)) fColor = col;
+        } else if (child.tagName === "SPAN") {
+          const cs = child.getAttribute("style") || "";
+          const mC = /(?:^|;)\s*color\s*:\s*(#[0-9a-fA-F]{3,8}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))/i.exec(cs);
+          const mS = /font-size\s*:\s*(\d{1,2}(?:\.\d+)?(?:px|pt|em))/i.exec(cs);
+          const parts = [];
+          if (mC) parts.push("color:" + mC[1]);
+          if (mS) parts.push("font-size:" + mS[1]);
+          if (parts.length) style = parts.join("; ");
+        }
         for (const a of [...child.attributes]) child.removeAttribute(a.name);
+        if (fSize) child.setAttribute("size", fSize);
+        if (fColor) child.setAttribute("color", fColor);
+        if (style) child.setAttribute("style", style);
         walk(child);
         child = child.nextSibling;
       } else if (child.nodeType === 3) {
